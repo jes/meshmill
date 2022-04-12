@@ -19,6 +19,7 @@ function timefmt(millis) {
 }
 
 function progress(pct) {
+    $(`#${progresstarget}-pct`).val(pct);
     if (pct == 0) {
         $(`#${progresstarget}-pct`).text("");
     } else {

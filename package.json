@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.0",
-    "yarn": "^1.22.18"
+    "line-reader": "^0.4.0",
+    "tmp": "^0.2.1"
   },
   "config": {
     "forge": {
@@ -44,5 +45,23 @@
         }
       ]
     }
+  },
+  "build": {
+    "extraResources": [
+      {
+        "from": "./bin/pngcam",
+        "to": "bin/pngcam",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "./bin/pngcam-render",
+        "to": "bin/pngcam-render",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
   }
 }

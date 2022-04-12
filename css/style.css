@@ -15,20 +15,16 @@ html, body, input, button, select {
     height: 100%;
 }
 
-#tabs {
+#tabs, #jobtabs {
     border-right: solid 1px black;
     flex-grow: 0;
     min-width: 100px;
     overflow: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
 }
 
 .tab {
     width: 90px;
     height: 90px;
-    flex-grow: 0;
     margin-left: 5px;
     margin-right: 5px;
 }

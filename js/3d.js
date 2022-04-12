@@ -1,8 +1,10 @@
 var container;
 var camera;
 var renderer;
+var scene;
+var scenemiddle;
 
-function showScene(geometry) {
+function showScene(geometry, recentre) {
     container = document.getElementById('scene');
     while(container.firstChild) container.removeChild(container.firstChild);
 
@@ -10,7 +12,7 @@ function showScene(geometry) {
         antialias: true,
         alpha: false,
     });
-    renderer.setClearColor(0x888888, 1);
+    renderer.setClearColor(0x444444, 1);
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
 
@@ -21,10 +23,12 @@ function showScene(geometry) {
     });
     var mesh = new THREE.Mesh(geometry, material);
 
-    var middle = new THREE.Vector3();
     geometry.computeBoundingBox();
-    geometry.boundingBox.getCenter(middle);
-    mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-middle.x, -middle.y, -middle.z));
+    if (recentre) {
+        scenemiddle = new THREE.Vector3();
+        geometry.boundingBox.getCenter(scenemiddle);
+        mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-scenemiddle.x, -scenemiddle.y, -scenemiddle.z));
+    }
 
     /* TODO: try to use an orthographic camera (but it seems like
      * lights don't work if they're attached to an orthographic
@@ -32,7 +36,7 @@ function showScene(geometry) {
     /* TODO: don't reset the camera every time a new model is drawn */
     camera = new THREE.PerspectiveCamera(70, container.clientWidth/container.clientHeight, 1, 1000);
 
-    var scene = new THREE.Scene();
+    scene = new THREE.Scene();
     scene.add(mesh);
     scene.add(new THREE.AmbientLight(0xffffff, 0.25));
     camera.add(new THREE.DirectionalLight(0xffffff, 0.75));
@@ -63,7 +67,7 @@ function showScene(geometry) {
 
 function STLViewer(model) {
     (new THREE.STLLoader()).load(model, function (geometry) {
-        showScene(geometry);
+        showScene(geometry, true);
     });
 }
 

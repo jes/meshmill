@@ -1,6 +1,6 @@
 /* based on https://stackoverflow.com/q/70609456 */
 
-function HeightmapViewer(file, x_mm, y_mm, z_mm) {
+function HeightmapViewer(file, x_mm, y_mm, z_mm, xoff, yoff, zoff) {
     var img = new Image();
     img.src = file + "?" + Math.random(); // XXX: avoid cache: but why are local files being cached?
     img.onload = function () {
@@ -23,9 +23,9 @@ function HeightmapViewer(file, x_mm, y_mm, z_mm) {
 
         // add the coordinate for (x,y) to vertices[idx .. idx+2]
         var addVertex = function(x,y,idx) {
-            vertices[idx] = x*x_mmperpx;
-            vertices[idx+1] = (h-y-1)*y_mmperpx;
-            vertices[idx+2] = pixel.data[(y*w+x)*4] * z_mmperbrightness;
+            vertices[idx] = x*x_mmperpx + xoff;
+            vertices[idx+1] = (h-y-1)*y_mmperpx + yoff;
+            vertices[idx+2] = pixel.data[(y*w+x)*4] * z_mmperbrightness + zoff;
         };
 
         // add each square from the heightmap as 2 triangles

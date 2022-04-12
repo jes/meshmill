@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const lineReader = require('line-reader');
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { spawn } = require('child_process');
 
@@ -67,6 +68,9 @@ ipcMain.on('generate-toolpath', (event,arg) => {
         '--route', arg.job.path.direction,
         '--width', arg.width,
         '--depth', arg.depth,
+        '--x-offset', arg.offset.x,
+        '--y-offset', arg.offset.y,
+        '--z-offset', arg.offset.z,
     ];
     if (arg.roughingonly) opts.push('--roughing-only');
     if (arg.rampentry) opts.push('--ramp-entry');
@@ -93,5 +97,27 @@ ipcMain.on('generate-toolpath', (event,arg) => {
             if (code !== 0) console.log(`pngcam exited with code ${code}`);
             win.webContents.send('toolpath', gcodeFile);
         });
+    });
+});
+
+// this is a dead simple "gcode parser" that is sufficient for
+// parsing pngcam outputs and nothing more
+ipcMain.on('plot-toolpath', (event,arg) => {
+    let path = [];
+    let X = 0; let Y = 0; let Z = 0;
+    path.push([X,Y,Z]);
+    // TODO: distinguish G0 from G1
+    lineReader.eachLine(arg.file, (line,last) => {
+        let match = line.match(/^G0*[01] /i);
+        if (match) {
+            let xmatch = line.match(/X([0-9-.]*)\b/i);
+            if (xmatch) X = parseFloat(xmatch[1]);
+            let ymatch = line.match(/Y([0-9-.]*)\b/i);
+            if (ymatch) Y = parseFloat(ymatch[1]);
+            let zmatch = line.match(/Z([0-9-.]*)\b/i);
+            if (zmatch) Z = parseFloat(zmatch[1]);
+            path.push([X,Y,Z]);
+        }
+        if (last) win.webContents.send('toolpath-points', path);
     });
 });

@@ -79,10 +79,12 @@ Project.prototype.generateToolpath = function(id, cb) {
         heightmap: this.heightmap,
         width: this.mesh.width,
         depth: this.mesh.depth,
+        offset: {
+            x: this.mesh.min.x,
+            y: this.mesh.max.y,
+            z: this.mesh.max.z,
+        },
     });
-};
-
-Project.prototype.getToolpath = function() {
 };
 
 window.api.send('get-heightmap');

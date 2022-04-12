@@ -10,7 +10,7 @@ function showHeightmap(file) {
     var width = project.mesh.width;
     var height = project.mesh.height;
     var depth = project.mesh.depth;
-    HeightmapViewer(file, width, height, depth);
+    HeightmapViewer(file, width, height, depth, project.mesh.min.x-scenemiddle.x, project.mesh.min.y-scenemiddle.y, project.mesh.min.z-scenemiddle.z);
 }
 
 function timefmt(millis) {
@@ -125,7 +125,7 @@ $('#resolution').keyup(function() {
 });
 
 $('#bottomside').change(function() {
-    project.bottomside = $('#bottomside').val();
+    project.bottomside = $('#bottomside').prop('checked');
     // TODO: redraw the STL upside down
     // TODO: update the bounds to show negative Y (?) values
     updateModel();
@@ -173,10 +173,10 @@ function updateJob() {
     j.path.stepover = parseFloat($('#stepover').val());
     j.path.stepdown = parseFloat($('#stepdown').val());
     j.path.clearance = parseFloat($('#clearance').val());
-    j.path.roughingonly = $('#roughingonly').val();
-    j.path.rampentry = $('#rampentry').val();
-    j.path.omittop = $('#omittop').val();
-    j.path.clearbottom = $('#clearbottom').val();
+    j.path.roughingonly = $('#roughingonly').prop('checked');
+    j.path.rampentry = $('#rampentry').prop('checked');
+    j.path.omittop = $('#omittop').prop('checked');
+    j.path.clearbottom = $('#clearbottom').prop('checked');
 }
 
 $('#generate-toolpath').click(function() {

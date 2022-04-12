@@ -198,6 +198,10 @@ $('#generate-toolpath').click(function() {
     });
 });
 
+$('#save-gcode').click(function() {
+    project.saveGcode(currentjob);
+});
+
 $('#deletejob').click(function() {
     project.deleteJob(currentjob);
     deleteJobTab(project.jobs.length);

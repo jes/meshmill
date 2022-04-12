@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const lineReader = require('line-reader');
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, dialog, BrowserWindow, ipcMain } = require('electron');
 const { spawn } = require('child_process');
 
 let win;
@@ -142,4 +142,10 @@ ipcMain.on('plot-toolpath', (event,arg) => {
 
 ipcMain.on('cancel', (event,arg) => {
     running.kill();
+});
+
+ipcMain.on('save-file', (event,arg) => {
+    let dstfile = dialog.showSaveDialogSync();
+    // TODO: alert on errors, feedback of success
+    fs.copyFile(arg.file, dstfile, function(){});
 });

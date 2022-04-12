@@ -29,6 +29,7 @@ Project.prototype.addJob = function() {
             omittop: false,
             clearbottom: false,
         },
+        gcodefile: '',
     });
     return this.jobs.length-1;
 };
@@ -76,6 +77,7 @@ Project.prototype.generateToolpath = function(id, cb) {
     window.api.receive('toolpath', function(r) {
         if (r.error)
             alert(r.error);
+        project.jobs[id].gcodefile = r.file;
         cb(r.file);
     });
     window.api.send('generate-toolpath', {
@@ -91,4 +93,8 @@ Project.prototype.generateToolpath = function(id, cb) {
     });
 };
 
-window.api.send('get-heightmap');
+Project.prototype.saveGcode = function(id) {
+    window.api.send('save-file', {
+        file: this.jobs[id].gcodefile,
+    });
+};

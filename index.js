@@ -27,7 +27,10 @@ app.on('window-all-closed', () => {
 })
 
 ipcMain.on('render-heightmap', (event,arg) => {
-    let render = spawn('pngcam-render', ['--border', '0', '--width', arg.width, (arg.bottom ? '--bottom' : ''), arg.stl]);
+    let opts = ['--border', '0', '--width', arg.width];
+    if (arg.bottom) opts.push('--bottom');
+    opts.push(arg.stl);
+    let render = spawn('pngcam-render', opts);
 
     render.stderr.on('data', (data) => {
         process.stderr.write(""+data);

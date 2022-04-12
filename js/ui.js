@@ -80,9 +80,12 @@ $('#deletejob').click(function() {
 
 $('#stlfile').change(function() {
     project.stl = $('#stlfile')[0].files[0].path;
+    STLViewer(project.stl);
 });
 
 $('#render-heightmap').click(function() {
     project.renderHeightmap(function() {
     });
 });
+
+redrawTabs();

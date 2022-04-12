@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const tmp = require('tmp');
 const lineReader = require('line-reader');
 const { app, dialog, BrowserWindow, ipcMain } = require('electron');
 const { spawn } = require('child_process');
@@ -38,7 +39,7 @@ ipcMain.on('render-heightmap', (event,arg) => {
     // TODO: write outputs to project folder; also, write to a
     // temporary file until successful, then move to the project
     // folder
-    let render = spawn('pngcam-render', opts);
+    let render = spawn('./bin/pngcam-render', opts);
     running = render;
 
     render.stderr.on('data', (data) => {
@@ -94,10 +95,10 @@ ipcMain.on('generate-toolpath', (event,arg) => {
     // TODO: write outputs to project folder; also, write to a
     // temporary file until successful, then move to the project
     // folder
-    let gcodeFile = '/home/jes/gcode';
+    let gcodeFile = tmp.fileSync().name;
     let gcodeStream = fs.createWriteStream(gcodeFile);
     gcodeStream.on('open', function() {
-        let pngcam = spawn('pngcam', opts, {
+        let pngcam = spawn('./bin/pngcam', opts, {
             stdio: ['pipe', gcodeStream, 'pipe'], // send stdout to a file
         });
         running = pngcam;

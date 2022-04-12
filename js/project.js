@@ -23,7 +23,7 @@ Project.prototype.addJob = function() {
         path: {
             direction: 'horizontal',
             stepover: 3,
-            stepdown: 20,
+            stepdown: 6,
             clearance: 0,
             roughingonly: false,
             rampentry: false,

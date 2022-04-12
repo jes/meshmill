@@ -2,7 +2,7 @@ function Project() {
     this.jobs = [];
     this.stl = '';
     this.mesh = {};
-    this.resolution = 0.1;
+    this.resolution = 0.25;
 }
 
 Project.prototype.addJob = function() {
@@ -52,9 +52,10 @@ Project.prototype.loadSTL = function(file, cb) {
 };
 
 Project.prototype.renderHeightmap = function(cb) {
+    var width = this.mesh.width / this.resolution;
     window.api.send('render-heightmap', {
         stl: this.stl,
-        resolution: this.resolution,
+        width: width,
     });
     window.api.receive('heightmap', function(file) {
         cb(file);

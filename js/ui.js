@@ -1,6 +1,8 @@
 var currentjob;
 var project = new Project();
 
+var LARGE_HEIGHTMAP_PX = 4e6; // how many pixels for large heightmap warning?
+
 function showHeightmap(file) {
     var width = project.mesh.width;
     var height = project.mesh.height;
@@ -15,12 +17,29 @@ function showModel() {
     $('#model-options').show();
     $('#toolpath-options').hide();
 
+    $('#resolution').val(project.resolution);
+
+    updateModel();
     redrawTabs();
 }
 
 function loadSTL() {
-    project.loadSTL($('#stlfile')[0].files[0].path);
+    project.loadSTL($('#stlfile')[0].files[0].path, updateModel);
     STLViewer(project.stl);
+    updateModel();
+}
+
+function updateModel() {
+    $('#heightmapwarning').hide();
+    if (project.mesh.width == null) {
+        $('#heightmapsize').text('?');
+    } else {
+        console.log(project.mesh);
+        var w = Math.round(project.mesh.width / project.resolution);
+        var h = Math.round(project.mesh.height / project.resolution);
+        $('#heightmapsize').text(`${w}x${h}`);
+        if (w*h > LARGE_HEIGHTMAP_PX) $('#heightmapwarning').show();
+    }
 }
 
 $('#stlfile').change(function() {
@@ -35,6 +54,11 @@ $('#render-heightmap').click(function() {
     project.renderHeightmap(function(file) {
         showHeightmap(file);
     });
+});
+
+$('#resolution').keyup(function() {
+    project.resolution = parseFloat($('#resolution').val());
+    updateModel();
 });
 
 /* job tab */
@@ -110,4 +134,4 @@ $('#addjob-tab').click(function() {
     showJob(id);
 });
 
-redrawTabs();
+showModel();

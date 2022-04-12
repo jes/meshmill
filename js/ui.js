@@ -30,14 +30,14 @@ function showJob(id) {
 }
 
 function addJobTab(id) {
-    $('#jobtabs').append('<button class="tab" id="job-' + id + '-tab">JOB ' + (id+1) + '</button>');
-    $('#job-' + id + '-tab').click(function() {
+    $('#jobtabs').append(`<button class="tab" id="job-${id}-tab">JOB ${id+1}</button>`);
+    $(`#job-${id}-tab`).click(function() {
         showJob(id);
     });
 }
 
 function deleteJobTab(id) {
-    $('#job-' + id + '-tab').remove();
+    $(`#job-${id}-tab`).remove();
     redrawTabs();
 }
 
@@ -50,9 +50,9 @@ function redrawTabs() {
 
     for (var i = 0; i < project.jobs.length; i++) {
         if (i == currentjob) {
-            $('#job-' + i + '-tab').css('background','red');
+            $(`#job-${i}-tab`).css('background','red');
         } else {
-            $('#job-' + i + '-tab').css('background','');
+            $(`#job-${i}-tab`).css('background','');
         }
     }
 }
@@ -76,4 +76,13 @@ $('#deletejob').click(function() {
     } else {
         showModel();
     }
+});
+
+$('#stlfile').change(function() {
+    project.stl = $('#stlfile')[0].files[0].path;
+});
+
+$('#render-heightmap').click(function() {
+    project.renderHeightmap(function() {
+    });
 });

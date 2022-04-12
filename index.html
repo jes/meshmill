@@ -1,29 +1,10 @@
 <!doctype html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - buffergeometry - uint</title>
+		<title>Meshmill</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <link rel="stylesheet" type="text/css" href="css/style.css">
-		<style>
-			body {
-				background-color: rgba(0,0,0,0);
-				margin: 0px;
-				overflow: hidden;
-			}
-
-			#info {
-				position: absolute;
-				top: 0px; width: 100%;
-				padding: 5px;
-			}
-
-			a {
-
-				color: #0080ff;
-			}
-
-		</style>
 	</head>
 	<body>
         <div id="app">
@@ -35,7 +16,7 @@
 
             <div id="options">
                 <div id="model-options">
-                    Model: <input type="file"><br>
+                    Model: <input id="stlfile" type="file"><br>
                     <button>Reload from disk</button>
                     <hr>
                     Bounds:<br>
@@ -46,7 +27,7 @@
                     XY Resolution: 0.1mm<br>
                     Heightmap: 2000x5000 px<br>
                     <hr>
-                    <button>Generate heightmap</button><br>
+                    <button id="render-heightmap">Render heightmap</button><br>
                     <span id="model-pct">60%</span> | ETA: <span id="model-eta">10 sec</span><br>
                 </div>
 

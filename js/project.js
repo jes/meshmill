@@ -1,5 +1,7 @@
 function Project() {
     this.jobs = [];
+    this.stl = '';
+    this.resolution = 0.1;
 }
 
 Project.prototype.addJob = function() {
@@ -29,8 +31,27 @@ Project.prototype.addJob = function() {
 
 Project.prototype.deleteJob = function(id) {
     this.jobs.splice(id, 1);
-}
+};
 
 Project.prototype.getJob = function(id) {
     return this.jobs[id];
-}
+};
+
+Project.prototype.renderHeightmap = function(cb) {
+    window.api.send('render-heightmap', {
+        stl: this.stl,
+        resolution: this.resolution,
+    });
+    window.api.receive('heightmap', function(a) {
+        alert(a);
+        $('#scene').html('<img src="' + a + '">');
+    });
+};
+
+Project.prototype.getToolpath = function() {
+};
+
+window.api.receiveAll('heightmap', function(url) {
+    $('#scene').html('<img src="' + url + '">');
+});
+window.api.send('get-heightmap');

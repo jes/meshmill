@@ -10,6 +10,7 @@ It aims to focus on:
 
  * ease of installation
  * ease of use
+ * true 3D toolpaths, not 2.5D
 
 At the expense of:
 
@@ -20,6 +21,12 @@ At the expense of:
 I created Meshmill because I was frustrated with how difficult it was to get other open source
 3D CAM software to work. Maybe once we have ease of installation and ease of use sorted, we can
 address the rest.
+
+Hopefully we've already ticked "ease of installation" and "true 3D toolpaths", which should
+make it actually useful in some cases already.
+To attack "ease of use", I want to add helpful tooltips to every input element, I want to add
+"workflow hints" that point you to the next button you're likely to want to interact with, and
+I want to add diagrams that make crystal clear what each setting is actually adjusting.
 
 ## Important stuff please read
 

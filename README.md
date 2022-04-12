@@ -1,5 +1,7 @@
 # Meshmill
 
+![Screenshot](img/screenshot.png)
+
 Meshmill is open source 3D CAM software.
 
 *** This is not even beta-quality software. Use it at your own peril. ***

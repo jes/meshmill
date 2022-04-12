@@ -44,6 +44,8 @@ Project.prototype.loadSTL = function(file, cb) {
     (new THREE.STLLoader()).load(file, function (geometry) {
         geometry.computeBoundingBox();
         var bb = geometry.boundingBox;
+        project.mesh.min = bb.min;
+        project.mesh.max = bb.max;
         project.mesh.width = bb.max.x-bb.min.x;
         project.mesh.height = bb.max.y-bb.min.y;
         project.mesh.depth = bb.max.z-bb.min.z;

@@ -35,6 +35,9 @@ ipcMain.on('render-heightmap', (event,arg) => {
     if (arg.bottom) opts.push('--bottom');
 
     opts.push(arg.stl);
+    // TODO: write outputs to project folder; also, write to a
+    // temporary file until successful, then move to the project
+    // folder
     let render = spawn('pngcam-render', opts);
     running = render;
 
@@ -88,6 +91,9 @@ ipcMain.on('generate-toolpath', (event,arg) => {
     if (arg.clearbottom) opts.push('--deep-black');
 
     opts.push(arg.heightmap);
+    // TODO: write outputs to project folder; also, write to a
+    // temporary file until successful, then move to the project
+    // folder
     let gcodeFile = '/home/jes/gcode';
     let gcodeStream = fs.createWriteStream(gcodeFile);
     gcodeStream.on('open', function() {

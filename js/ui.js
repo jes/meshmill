@@ -195,6 +195,7 @@ $('#generate-toolpath').click(function() {
         progressEnd();
         if (file)
             ToolpathViewer(file);
+        // TODO: show cycle time estimate
     });
 });
 

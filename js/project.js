@@ -7,6 +7,7 @@ function Project() {
     this.bottomside = false;
 }
 
+// TODO: clone last job instead of starting afresh
 Project.prototype.addJob = function() {
     this.jobs.push({
         tool: {

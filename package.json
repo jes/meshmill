@@ -1,0 +1,44 @@
+{
+  "name": "meshmill",
+  "version": "0.0.1",
+  "description": "Open source 3D CAM software",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
+  },
+  "author": "James Stanley",
+  "license": "Unlicense",
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.63",
+    "@electron-forge/maker-deb": "^6.0.0-beta.63",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.63",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
+    "@electron-forge/maker-zip": "^6.0.0-beta.63",
+    "electron": "^18.0.3",
+    "electron-forge-maker-appimage": "github:Marcus10110/electron-forge-maker-appimage"
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0",
+    "yarn": "^1.22.18"
+  },
+  "config": {
+    "forge": {
+      "packagerConfig": {},
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "meshmill"
+          }
+        },
+        {
+          "name": "electron-forge-maker-appimage",
+          "platforms": ["linux"]
+        }
+      ]
+    }
+  }
+}

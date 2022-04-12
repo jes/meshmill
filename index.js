@@ -30,7 +30,7 @@ ipcMain.on('render-heightmap', (event,arg) => {
     let render = spawn('pngcam-render', ['--border', '0', '--width', arg.width, arg.stl]);
 
     render.stderr.on('data', (data) => {
-        console.log(""+data);
+        process.stderr.write(""+data);
         let match = (""+data).match(/(\d+)%/);
         if (match) {
             win.webContents.send('progress', match[1]);
@@ -38,7 +38,7 @@ ipcMain.on('render-heightmap', (event,arg) => {
     });
 
     render.stdout.on('data', (data) => {
-        console.log(""+data);
+        process.stderr.write(""+data);
     });
     
     render.on('close', (code) => {

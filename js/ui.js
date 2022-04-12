@@ -124,6 +124,13 @@ $('#resolution').keyup(function() {
     updateModel();
 });
 
+$('#bottomside').change(function() {
+    project.bottomside = $('#bottomside').val();
+    // TODO: redraw the STL upside down
+    // TODO: update the bounds to show negative Y (?) values
+    updateModel();
+});
+
 /* job tab */
 
 function showJob(id) {

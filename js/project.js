@@ -3,6 +3,7 @@ function Project() {
     this.stl = '';
     this.mesh = {};
     this.resolution = 0.25;
+    this.bottomside = false;
 }
 
 Project.prototype.addJob = function() {
@@ -58,6 +59,7 @@ Project.prototype.renderHeightmap = function(cb) {
     window.api.send('render-heightmap', {
         stl: this.stl,
         width: width,
+        bottom: this.bottomside,
     });
     window.api.receive('heightmap', function(file) {
         cb(file);

@@ -1,5 +1,8 @@
 var currentjob;
 var project = new Project();
+var progresspct;
+var progresstarget;
+var progressstarted;
 
 var LARGE_HEIGHTMAP_PX = 4e6; // how many pixels for large heightmap warning?
 
@@ -8,6 +11,53 @@ function showHeightmap(file) {
     var height = project.mesh.height;
     var depth = project.mesh.depth;
     HeightmapViewer(file, width, height, depth);
+}
+
+function timefmt(millis) {
+    // TODO: hours, minutes, etc.
+    return (1+Math.round(millis/1000)) + " secs";
+}
+
+function progress(pct) {
+    if (pct == 0) {
+        $(`#${progresstarget}-pct`).text("");
+    } else {
+        $(`#${progresstarget}-pct`).text(pct + "%");
+    }
+    progresspct = pct;
+
+    progressEta();
+}
+
+function progressEta() {
+    let pct = progresspct;
+    if (progressstarted) {
+        if (pct > 0) {
+            let howlong = Date.now()-progressstarted;
+            let howmuch = pct/100;
+            let timefor100 = howlong/howmuch;
+            let remaining = timefor100 - howlong;
+            console.log(remaining);
+            $(`#${progresstarget}-eta`).text("ETA: " + timefmt(remaining));
+        } else {
+            $(`#${progresstarget}-eta`).text("ETA: ?");
+        }
+    } else {
+        $(`#${progresstarget}-eta`).text("");
+    }
+}
+window.api.receiveAll('progress', progress);
+
+window.setInterval(progressEta, 1000);
+
+function progressStart() {
+    progressstarted = Date.now();
+    progress(0);
+}
+
+function progressEnd() {
+    progressstarted = null;
+    progress(100);
 }
 
 /* model tab */
@@ -19,6 +69,9 @@ function showModel() {
 
     $('#resolution').val(project.resolution);
 
+    progresstarget = 'model';
+    progress(0);
+
     updateModel();
     redrawTabs();
 }
@@ -26,7 +79,6 @@ function showModel() {
 function loadSTL() {
     project.loadSTL($('#stlfile')[0].files[0].path, updateModel);
     STLViewer(project.stl);
-    updateModel();
 }
 
 function updateModel() {
@@ -34,7 +86,6 @@ function updateModel() {
     if (project.mesh.width == null) {
         $('#heightmapsize').text('?');
     } else {
-        console.log(project.mesh);
         var w = Math.round(project.mesh.width / project.resolution);
         var h = Math.round(project.mesh.height / project.resolution);
         $('#heightmapsize').text(`${w}x${h}`);
@@ -57,7 +108,9 @@ $('#reloadstl').click(function() {
 });
 
 $('#render-heightmap').click(function() {
+    progressStart();
     project.renderHeightmap(function(file) {
+        progressEnd();
         showHeightmap(file);
     });
 });
@@ -85,6 +138,9 @@ function showJob(id) {
     $('#stepover').text(job.path.stepover);
     $('#stepdown').text(job.path.stepdown);
     $('#clearance').text(job.path.clearance);
+
+    progresstarget = 'toolpath';
+    progress(0);
 
     redrawTabs();
 }
@@ -141,3 +197,4 @@ $('#addjob-tab').click(function() {
 });
 
 showModel();
+

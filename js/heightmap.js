@@ -17,7 +17,6 @@ function HeightmapViewer(file, x_mm, y_mm, z_mm) {
         var ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
         var pixel = ctx.getImageData(0, 0, w, h);
-        console.log(canvas);
 
         var geom = new THREE.BufferGeometry();
         var vertices = new Float32Array(w*h*2*3*3);

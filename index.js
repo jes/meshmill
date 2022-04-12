@@ -31,6 +31,10 @@ ipcMain.on('render-heightmap', (event,arg) => {
 
     render.stderr.on('data', (data) => {
         console.log(""+data);
+        let match = (""+data).match(/(\d+)%/);
+        if (match) {
+            win.webContents.send('progress', match[1]);
+        }
     });
 
     render.stdout.on('data', (data) => {

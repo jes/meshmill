@@ -26,7 +26,9 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
-})
+});
+
+var running;
 
 ipcMain.on('render-heightmap', (event,arg) => {
     let opts = ['--border', '0', '--width', arg.width];
@@ -34,6 +36,7 @@ ipcMain.on('render-heightmap', (event,arg) => {
 
     opts.push(arg.stl);
     let render = spawn('pngcam-render', opts);
+    running = render;
 
     render.stderr.on('data', (data) => {
         process.stderr.write(""+data);
@@ -48,8 +51,15 @@ ipcMain.on('render-heightmap', (event,arg) => {
     });
     
     render.on('close', (code) => {
-        if (code !== 0) console.log(`pngcam-render exited with code ${code}`);
-        win.webContents.send('heightmap', `${arg.stl}.png`);
+        if (code !== 0) {
+            win.webContents.send('heightmap', {
+                error: `pngcam-render exited with code ${code}`,
+            });
+        } else {
+            win.webContents.send('heightmap', {
+                file: `${arg.stl}.png`,
+            });
+        }
     });
 });
 
@@ -84,6 +94,7 @@ ipcMain.on('generate-toolpath', (event,arg) => {
         let pngcam = spawn('pngcam', opts, {
             stdio: ['pipe', gcodeStream, 'pipe'], // send stdout to a file
         });
+        running = pngcam;
 
         pngcam.stderr.on('data', (data) => {
             process.stderr.write(""+data);
@@ -94,8 +105,15 @@ ipcMain.on('generate-toolpath', (event,arg) => {
         });
 
         pngcam.on('close', (code) => {
-            if (code !== 0) console.log(`pngcam exited with code ${code}`);
-            win.webContents.send('toolpath', gcodeFile);
+            if (code !== 0) {
+                win.webContents.send('toolpath', {
+                    error: `pngcam exited with code ${code}`,
+                });
+            } else {
+                win.webContents.send('toolpath', {
+                    file: gcodeFile,
+                });
+            }
         });
     });
 });
@@ -120,4 +138,8 @@ ipcMain.on('plot-toolpath', (event,arg) => {
         }
         if (last) win.webContents.send('toolpath-points', path);
     });
+});
+
+ipcMain.on('cancel', (event,arg) => {
+    running.kill();
 });

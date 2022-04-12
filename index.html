@@ -27,7 +27,7 @@
                     Heightmap: <span id="heightmapsize"></span> px <span id="heightmapwarning">WARNING: Large</span><br>
                     <hr>
                     <button id="render-heightmap">Render heightmap</button><br>
-                    <progress max="100" id="model-pct"></progress><br>
+                    <button id="model-cancel">Stop</button> <progress max="100" id="model-pct"></progress><br>
                     <span id="model-eta"></span><br>
                 </div>
 
@@ -56,7 +56,7 @@
                     <input type="checkbox" id="clearbottom"><label for="clearbottom">Clear bottom</label><br>
                     <hr>
                     <button id="generate-toolpath">Generate toolpath</button><br>
-                    <progress max="100" id="toolpath-pct"></progress><br>
+                    <button id="toolpath-cancel">Stop</button> <progress max="100" id="toolpath-pct"></progress><br>
                     <span id="toolpath-eta"></span><br>
                     <button>Save G-code</button> | <button id="deletejob">Delete job</button><br>
                     Cycle time estimate: <span id="cycletime">45m23s</span><br>

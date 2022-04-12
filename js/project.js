@@ -59,9 +59,11 @@ Project.prototype.loadSTL = function(file, cb) {
 Project.prototype.renderHeightmap = function(cb) {
     var width = this.mesh.width / this.resolution;
     var project = this;
-    window.api.receive('heightmap', function(file) {
-        project.heightmap = file;
-        cb(file);
+    window.api.receive('heightmap', function(r) {
+        if (r.error)
+            alert(r.error);
+        project.heightmap = r.file;
+        cb(r.file);
     });
     window.api.send('render-heightmap', {
         stl: this.stl,
@@ -71,8 +73,10 @@ Project.prototype.renderHeightmap = function(cb) {
 };
 
 Project.prototype.generateToolpath = function(id, cb) {
-    window.api.receive('toolpath', function(file) {
-        cb(file);
+    window.api.receive('toolpath', function(r) {
+        if (r.error)
+            alert(r.error);
+        cb(r.file);
     });
     window.api.send('generate-toolpath', {
         job: this.jobs[id],

@@ -53,12 +53,21 @@ window.setInterval(progressEta, 1000);
 function progressStart() {
     progressstarted = Date.now();
     progress(0);
+    $(`#${progresstarget}-cancel`).show();
 }
 
 function progressEnd() {
     progressstarted = null;
     progress(null);
+    $(`#${progresstarget}-cancel`).hide();
 }
+
+function cancelProcessing() {
+    window.api.send('cancel');
+}
+
+$('#model-cancel').click(cancelProcessing);
+$('#toolpath-cancel').click(cancelProcessing);
 
 /* model tab */
 
@@ -115,7 +124,8 @@ $('#render-heightmap').click(function() {
     progressStart();
     project.renderHeightmap(function(file) {
         progressEnd();
-        showHeightmap(file);
+        if (file)
+            showHeightmap(file);
     });
 });
 
@@ -183,7 +193,8 @@ $('#generate-toolpath').click(function() {
     progressStart();
     project.generateToolpath(currentjob, function(file) {
         progressEnd();
-        ToolpathViewer(file);
+        if (file)
+            ToolpathViewer(file);
     });
 });
 

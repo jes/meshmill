@@ -20,10 +20,10 @@ function timefmt(millis) {
 
 function progress(pct) {
     $(`#${progresstarget}-pct`).val(pct);
-    if (pct == 0) {
-        $(`#${progresstarget}-pct`).text("");
+    if (pct == null) {
+        $(`#${progresstarget}-pct`).hide();
     } else {
-        $(`#${progresstarget}-pct`).text(pct + "%");
+        $(`#${progresstarget}-pct`).show();
     }
     progresspct = pct;
 
@@ -58,7 +58,7 @@ function progressStart() {
 
 function progressEnd() {
     progressstarted = null;
-    progress(100);
+    progress(null);
 }
 
 /* model tab */
@@ -71,7 +71,7 @@ function showModel() {
     $('#resolution').val(project.resolution);
 
     progresstarget = 'model';
-    progress(0);
+    progress(null);
 
     updateModel();
     redrawTabs();
@@ -141,7 +141,7 @@ function showJob(id) {
     $('#clearance').text(job.path.clearance);
 
     progresstarget = 'toolpath';
-    progress(0);
+    progress(null);
 
     redrawTabs();
 }

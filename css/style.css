@@ -1,12 +1,12 @@
 html, body {
     height: 100%;
-    font-family: sans-serif;
     margin: 0;
     overflow: hidden;
 }
 
-html, body, input, button {
+html, body, input, button, select {
     font-size: 1.1em;
+    font-family: sans-serif;
 }
 
 #app {

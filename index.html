@@ -23,7 +23,7 @@
                     <span id="bounds"></span><br>
                     <hr>
                     XY Resolution: <input type="text" id="resolution"> mm<br>
-                    <input type="checkbox" id="bottomside">Bottom side</input>
+                    <input type="checkbox" id="bottomside"><label for="bottomside">Bottom side</label><br>
                     Heightmap: <span id="heightmapsize"></span> px <span id="heightmapwarning">WARNING: Large</span><br>
                     <hr>
                     <button id="render-heightmap">Render heightmap</button><br>
@@ -32,23 +32,29 @@
                 </div>
 
                 <div id="toolpath-options" style="display:none">
-                    Tool shape: <span id="toolshape"></span><br>
-                    Tool diameter: <span id="tooldiameter"></span>mm<br>
-                    X/Y feed rate: <span id="xyfeed"></span>mm/min<br>
-                    Z feed rate: <span id="zfeed"></span>mm/min<br>
-                    Safe Z: <span id="safez"></span>mm<br>
-                    Spindle: <span id="rpm"></span> rpm<br>
+                    Tool shape: <select id="toolshape">
+                        <option value="ball">Ball-nose end mill</option>
+                        <option value="flat">Flat end mill</option>
+                    </select><br>
+                    Tool diameter: <input id="tooldiameter"></input> mm<br>
+                    X/Y feed rate: <input id="xyfeed"></input> mm/min<br>
+                    Z feed rate: <input id="zfeed"></input> mm/min<br>
+                    Safe Z: <input id="safez"></input> mm<br>
+                    Spindle: <input id="rpm"></input> rpm<br>
                     <hr>
-                    Cut direction: <span id="direction"></span><br>
-                    Step over: <span id="stepover"></span>mm<br>
-                    Step down: <span id="stepdown"></span>mm<br>
-                    Clearance: <span id="clearance"></span>mm<br>
+                    Cut direction: <select id="direction">
+                        <option value="horizontal">Horizontal (along X)</option>
+                        <option value="vertical">Vertical (along Y)</option>
+                    </select><br>
+                    Step over: <input id="stepover"></input> mm<br>
+                    Step down: <input id="stepdown"></input> mm<br>
+                    Clearance: <input id="clearance"></input> mm<br>
                     <hr>
-                    Roughing only<br>
-                    Ramp entry<br>
-                    Omit top<br>
+                    <input type="checkbox" id="roughingonly"><label for="roughingonly">Roughing only</label><br>
+                    <input type="checkbox" id="rampentry"><label for="rampentry">Ramp entry (UNIMPLEMENTED)</label><br>
+                    <input type="checkbox" id="omittop"><label for="omittop">Omit top (UNIMPLEMENTED)</label><br>
                     <hr>
-                    <button>Generate toolpath</button><br>
+                    <button id="generate-toolpath">Generate toolpath</button><br>
                     <progress max="100" id="toolpath-pct"></progress><br>
                     <span id="toolpath-eta"></span><br>
                     <button>Save G-code</button> | <button id="deletejob">Delete job</button><br>
@@ -65,6 +71,7 @@
 		<script src="js/lib/jquery-3.6.0.min.js"></script>
         <script src="js/project.js"></script>
         <script src="js/heightmap.js"></script>
+        <script src="js/toolpath.js"></script>
         <script src="js/3d.js"></script>
         <script src="js/ui.js"></script>
 	</body>

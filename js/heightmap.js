@@ -1,6 +1,7 @@
 /* based on https://stackoverflow.com/q/70609456 */
 
 function HeightmapViewer(file, x_mm, y_mm, z_mm) {
+    // TODO: electron seems to be caching image contents?
     var img = new Image();
     img.src = file;
     img.onload = function () {

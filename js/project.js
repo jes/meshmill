@@ -1,6 +1,7 @@
 function Project() {
     this.jobs = [];
     this.stl = '';
+    this.heightmap = '';
     this.mesh = {};
     this.resolution = 0.25;
     this.bottomside = false;
@@ -26,6 +27,7 @@ Project.prototype.addJob = function() {
             roughingonly: false,
             rampentry: false,
             omittop: false,
+            clearbottom: false,
         },
     });
     return this.jobs.length-1;
@@ -56,13 +58,27 @@ Project.prototype.loadSTL = function(file, cb) {
 
 Project.prototype.renderHeightmap = function(cb) {
     var width = this.mesh.width / this.resolution;
+    var project = this;
+    window.api.receive('heightmap', function(file) {
+        project.heightmap = file;
+        cb(file);
+    });
     window.api.send('render-heightmap', {
         stl: this.stl,
         width: width,
         bottom: this.bottomside,
     });
-    window.api.receive('heightmap', function(file) {
+};
+
+Project.prototype.generateToolpath = function(id, cb) {
+    window.api.receive('toolpath', function(file) {
         cb(file);
+    });
+    window.api.send('generate-toolpath', {
+        job: this.jobs[id],
+        heightmap: this.heightmap,
+        width: this.mesh.width,
+        depth: this.mesh.depth,
     });
 };
 

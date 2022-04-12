@@ -139,22 +139,53 @@ function showJob(id) {
     $('#toolpath-options').show();
 
     let job = project.getJob(id);
-    $('#toolshape').text(job.tool.shape);
-    $('#tooldiameter').text(job.tool.diameter);
-    $('#xyfeed').text(job.controller.xyfeed);
-    $('#zfeed').text(job.controller.zfeed);
-    $('#safez').text(job.controller.safez);
-    $('#rpm').text(job.controller.rpm);
-    $('#direction').text(job.path.direction);
-    $('#stepover').text(job.path.stepover);
-    $('#stepdown').text(job.path.stepdown);
-    $('#clearance').text(job.path.clearance);
+    $('#toolshape').val(job.tool.shape);
+    $('#tooldiameter').val(job.tool.diameter);
+    $('#xyfeed').val(job.controller.xyfeed);
+    $('#zfeed').val(job.controller.zfeed);
+    $('#safez').val(job.controller.safez);
+    $('#rpm').val(job.controller.rpm);
+    $('#direction').val(job.path.direction);
+    $('#stepover').val(job.path.stepover);
+    $('#stepdown').val(job.path.stepdown);
+    $('#clearance').val(job.path.clearance);
+
+    $('#roughingonly').val(job.path.roughingonly);
+    $('#rampentry').val(job.path.rampentry);
+    $('#omittop').val(job.path.omittop);
+    $('#clearbottom').val(job.path.clearbottom);
 
     progresstarget = 'toolpath';
     progress(null);
 
     redrawTabs();
 }
+
+function updateJob() {
+    let j = project.jobs[currentjob];
+    j.tool.shape = $('#toolshape').val();
+    j.tool.diameter = parseFloat($('#tooldiameter').val());
+    j.controller.xyfeed = parseFloat($('#xyfeed').val());
+    j.controller.zfeed = parseFloat($('#zfeed').val());
+    j.controller.safez = parseFloat($('#safez').val());
+    j.controller.rpm = parseFloat($('#rpm').val());
+    j.path.direction = $('#direction').val();
+    j.path.stepover = parseFloat($('#stepover').val());
+    j.path.stepdown = parseFloat($('#stepdown').val());
+    j.path.clearance = parseFloat($('#clearance').val());
+    j.path.roughingonly = $('#roughingonly').val();
+    j.path.rampentry = $('#rampentry').val();
+    j.path.omittop = $('#omittop').val();
+    j.path.clearbottom = $('#clearbottom').val();
+}
+
+$('#generate-toolpath').click(function() {
+    progressStart();
+    project.generateToolpath(currentjob, function(file) {
+        progressEnd();
+        ToolpathViewer(file);
+    });
+});
 
 $('#deletejob').click(function() {
     project.deleteJob(currentjob);
@@ -166,6 +197,11 @@ $('#deletejob').click(function() {
         showModel();
     }
 });
+
+var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'stepover', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop'];
+for (var i = 0; i < inputs.length; i++) {
+    $('#' + inputs[i]).change(updateJob);
+}
 
 /* tabs */
 

@@ -19,10 +19,7 @@ function HeightmapViewer(file, x_mm, y_mm, z_mm) {
         var pixel = ctx.getImageData(0, 0, w, h);
 
         var geom = new THREE.BufferGeometry();
-        var vertices = new Float32Array(w*h*2*3*3);
-
-        // TODO: add 2 triangles to cover up the bottom side
-        // TODO: add triangles to close off edges, where necessary
+        var vertices = new Float32Array(w*h*36);
 
         // add the coordinate for (x,y) to vertices[idx .. idx+2]
         var addVertex = function(x,y,idx) {
@@ -43,7 +40,17 @@ function HeightmapViewer(file, x_mm, y_mm, z_mm) {
                 addVertex(x,y,idx+12);
                 addVertex(x,y+1,idx+15);
 
-                idx += 18;
+                // and now the backfaces, just so that the mesh
+                // doesn't look broken when viewed from below
+                addVertex(x,y,idx+18);
+                addVertex(x+1,y,idx+21);
+                addVertex(x+1,y+1,idx+24);
+
+                addVertex(x+1,y+1,idx+27);
+                addVertex(x,y+1,idx+30);
+                addVertex(x,y,idx+33);
+
+                idx += 36;
             }
         }
 

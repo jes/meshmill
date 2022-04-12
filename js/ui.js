@@ -1,4 +1,4 @@
-var currentjob;
+var currentjob = null;
 var project = new Project();
 var progresspct;
 var progresstarget;
@@ -38,7 +38,6 @@ function progressEta() {
             let howmuch = pct/100;
             let timefor100 = howlong/howmuch;
             let remaining = timefor100 - howlong;
-            console.log(remaining);
             $(`#${progresstarget}-eta`).text("ETA: " + timefmt(remaining));
         } else {
             $(`#${progresstarget}-eta`).text("ETA: ?");
@@ -97,7 +96,11 @@ function updateModel() {
         return Math.round(f*100)/100;
     }
 
-    $('#bounds').html(`X: ${fmt(project.mesh.min.x)} to ${fmt(project.mesh.max.x)} (${fmt(project.mesh.width)})<br>Y: ${fmt(project.mesh.min.y)} to ${fmt(project.mesh.max.y)} (${fmt(project.mesh.height)})<br>Z: ${fmt(project.mesh.min.z)} to ${fmt(project.mesh.max.z)} (${fmt(project.mesh.depth)})`);
+    if (project.mesh.width == null) {
+        $('#bounds').html('X:<br>Y:<br>Z:<br>');
+    } else {
+        $('#bounds').html(`X: ${fmt(project.mesh.min.x)} to ${fmt(project.mesh.max.x)} (${fmt(project.mesh.width)})<br>Y: ${fmt(project.mesh.min.y)} to ${fmt(project.mesh.max.y)} (${fmt(project.mesh.height)})<br>Z: ${fmt(project.mesh.min.z)} to ${fmt(project.mesh.max.z)} (${fmt(project.mesh.depth)})`);
+    }
 }
 
 $('#stlfile').change(function() {
@@ -172,6 +175,8 @@ function deleteJobTab(id) {
 }
 
 function redrawTabs() {
+    onWindowResize();
+
     if (currentjob == null) {
         $('#model-tab').css('background','red');
     } else {
@@ -198,4 +203,3 @@ $('#addjob-tab').click(function() {
 });
 
 showModel();
-

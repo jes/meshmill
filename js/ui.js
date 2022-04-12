@@ -29,6 +29,40 @@ function showJob(id) {
     redrawTabs();
 }
 
+$('#deletejob').click(function() {
+    project.deleteJob(currentjob);
+    deleteJobTab(project.jobs.length);
+    if (currentjob >= project.jobs.length) currentjob--;
+    if (project.jobs.length > 0) {
+        showJob(currentjob);
+    } else {
+        showModel();
+    }
+});
+
+/* model tab */
+
+function loadSTL() {
+    project.stl = $('#stlfile')[0].files[0].path;
+    STLViewer(project.stl);
+}
+
+$('#stlfile').change(function() {
+    loadSTL();
+});
+
+$('#reloadstl').click(function() {
+    loadSTL();
+});
+
+$('#render-heightmap').click(function() {
+    project.renderHeightmap(function(file) {
+        HeightmapViewer(file);
+    });
+});
+
+/* tabs */
+
 function addJobTab(id) {
     $('#jobtabs').append(`<button class="tab" id="job-${id}-tab">JOB ${id+1}</button>`);
     $(`#job-${id}-tab`).click(function() {
@@ -65,27 +99,6 @@ $('#addjob-tab').click(function() {
     let id = project.addJob();
     addJobTab(id);
     showJob(id);
-});
-
-$('#deletejob').click(function() {
-    project.deleteJob(currentjob);
-    deleteJobTab(project.jobs.length);
-    if (currentjob >= project.jobs.length) currentjob--;
-    if (project.jobs.length > 0) {
-        showJob(currentjob);
-    } else {
-        showModel();
-    }
-});
-
-$('#stlfile').change(function() {
-    project.stl = $('#stlfile')[0].files[0].path;
-    STLViewer(project.stl);
-});
-
-$('#render-heightmap').click(function() {
-    project.renderHeightmap(function() {
-    });
 });
 
 redrawTabs();

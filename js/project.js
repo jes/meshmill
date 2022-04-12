@@ -42,16 +42,12 @@ Project.prototype.renderHeightmap = function(cb) {
         stl: this.stl,
         resolution: this.resolution,
     });
-    window.api.receive('heightmap', function(a) {
-        alert(a);
-        $('#scene').html('<img src="' + a + '">');
+    window.api.receive('heightmap', function(file) {
+        HeightmapViewer(file);
     });
 };
 
 Project.prototype.getToolpath = function() {
 };
 
-window.api.receiveAll('heightmap', function(url) {
-    $('#scene').html('<img src="' + url + '">');
-});
 window.api.send('get-heightmap');

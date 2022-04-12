@@ -1,0 +1,43 @@
+html, body {
+    height: 100%;
+    font-family: sans-serif;
+    font-size: 1.1em;
+}
+
+#app {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+#tabs {
+    border-right: solid 1px black;
+    flex-grow: 0;
+    min-width: 100px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.tab {
+    width: 90px;
+    height: 90px;
+    flex-grow: 0;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+#options {
+    border-right: solid 1px black;
+    flex-grow: 0;
+    min-width: 300px;
+    overflow: auto;
+    margin-top: 5px;
+    margin-left: 5px;
+    padding-right: 5px;
+}
+
+#scene {
+    flex-grow: 1;
+}

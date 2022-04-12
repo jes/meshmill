@@ -1,16 +1,304 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <title>Hello World!</title>
-  </head>
-  <body>
-    <h1>Hello World!</h1>
-    We are using Node.js <span id="node-version"></span>,
-    Chromium <span id="chrome-version"></span>,
-    and Electron <span id="electron-version"></span>.
-  </body>
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - buffergeometry - uint</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+		<style>
+			body {
+				background-color: rgba(0,0,0,0);
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+
+				color: #0080ff;
+			}
+
+		</style>
+	</head>
+	<body>
+        <div id="app">
+            <div id="tabs">
+                <button id="model-tab" class="tab">MODEL</button>
+                <div id="jobtabs"></div>
+                <button id="addjob-tab" class="tab">+<br>ADD JOB</button>
+            </div>
+
+            <div id="options">
+                <div id="model-options">
+                    Model: <input type="file"><br>
+                    <button>Reload from disk</button>
+                    <hr>
+                    Bounds:<br>
+                    X: -5 to 65 (70)<br>
+                    Y: -10 to 70 (80)<br>
+                    Z: 0 to 10 (10)<br>
+                    <hr>
+                    XY Resolution: 0.1mm<br>
+                    Heightmap: 2000x5000 px<br>
+                    <hr>
+                    <button>Generate heightmap</button><br>
+                    <span id="model-pct">60%</span> | ETA: <span id="model-eta">10 sec</span><br>
+                </div>
+
+                <div id="toolpath-options" style="display:none">
+                    Tool shape: <span id="toolshape"></span><br>
+                    Tool diameter: <span id="tooldiameter"></span>mm<br>
+                    X/Y feed rate: <span id="xyfeed"></span>mm/min<br>
+                    Z feed rate: <span id="zfeed"></span>mm/min<br>
+                    Safe Z: <span id="safez"></span>mm<br>
+                    Spindle: <span id="rpm"></span> rpm<br>
+                    <hr>
+                    Cut direction: <span id="direction"></span><br>
+                    Step over: <span id="stepover"></span>mm<br>
+                    Step down: <span id="stepdown"></span>mm<br>
+                    Clearance: <span id="clearance"></span>mm<br>
+                    <hr>
+                    Roughing only<br>
+                    Ramp entry<br>
+                    Omit top<br>
+                    <hr>
+                    <button>Generate toolpath</button><br>
+                    <span id="toolpath-pct">60%</span> | ETA: <span id="toolpath-eta">10 sec</span><br>
+                    <button>Save G-code</button> | <button id="deletejob">Delete job</button><br>
+                    Cycle time estimate: <span id="cycletime">45m23s</span><br>
+                </div>
+            </div>
+
+            <div id="scene"></div>
+        </div>
+
+		<script src="js/lib/three.min.js"></script>
+		<script src="js/lib/jquery-3.6.0.min.js"></script>
+        <script src="js/project.js"></script>
+        <script src="js/ui.js"></script>
+
+		<script>
+            redrawTabs();
+
+			var container;
+
+			var camera, scene, renderer;
+
+			var mesh;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.getElementById( 'scene' );
+
+				//
+
+				camera = new THREE.PerspectiveCamera( 27, container.clientWidth / container.clientHeight, 1, 3500 );
+				camera.position.z = 2750;
+
+				scene = new THREE.Scene();
+				scene.fog = new THREE.Fog( 0x050505, 2000, 3500 );
+
+				//
+
+				scene.add( new THREE.AmbientLight( 0x444444 ) );
+
+				var light1 = new THREE.DirectionalLight( 0xffffff, 0.5 );
+				light1.position.set( 1, 1, 1 );
+				scene.add( light1 );
+
+				var light2 = new THREE.DirectionalLight( 0xffffff, 1.5 );
+				light2.position.set( 0, -1, 0 );
+				scene.add( light2 );
+
+				//
+
+				var triangles = 160000;
+
+				var geometry = new THREE.BufferGeometry();
+
+
+
+				var indices = new Uint32Array( triangles * 3 );
+
+				for ( var i = 0; i < indices.length; i ++ ) {
+
+					indices[ i ] = i;
+
+				}
+
+				var positions = new Float32Array( triangles * 3 * 3 );
+				var normals = new Float32Array( triangles * 3 * 3 );
+				var colors = new Float32Array( triangles * 3 * 3 );
+
+				var color = new THREE.Color();
+
+				var n = 800, n2 = n/2;	// triangles spread in the cube
+				var d = 12, d2 = d/2;	// individual triangle size
+
+				var pA = new THREE.Vector3();
+				var pB = new THREE.Vector3();
+				var pC = new THREE.Vector3();
+
+				var cb = new THREE.Vector3();
+				var ab = new THREE.Vector3();
+
+				for ( var i = 0; i < positions.length; i += 9 ) {
+
+					// positions
+
+					var x = Math.random() * n - n2;
+					var y = Math.random() * n - n2;
+					var z = Math.random() * n - n2;
+
+					var ax = x + Math.random() * d - d2;
+					var ay = y + Math.random() * d - d2;
+					var az = z + Math.random() * d - d2;
+
+					var bx = x + Math.random() * d - d2;
+					var by = y + Math.random() * d - d2;
+					var bz = z + Math.random() * d - d2;
+
+					var cx = x + Math.random() * d - d2;
+					var cy = y + Math.random() * d - d2;
+					var cz = z + Math.random() * d - d2;
+
+					positions[ i ]     = ax;
+					positions[ i + 1 ] = ay;
+					positions[ i + 2 ] = az;
+
+					positions[ i + 3 ] = bx;
+					positions[ i + 4 ] = by;
+					positions[ i + 5 ] = bz;
+
+					positions[ i + 6 ] = cx;
+					positions[ i + 7 ] = cy;
+					positions[ i + 8 ] = cz;
+
+					// flat face normals
+
+					pA.set( ax, ay, az );
+					pB.set( bx, by, bz );
+					pC.set( cx, cy, cz );
+
+					cb.subVectors( pC, pB );
+					ab.subVectors( pA, pB );
+					cb.cross( ab );
+
+					cb.normalize();
+
+					var nx = cb.x;
+					var ny = cb.y;
+					var nz = cb.z;
+
+					normals[ i ]     = nx;
+					normals[ i + 1 ] = ny;
+					normals[ i + 2 ] = nz;
+
+					normals[ i + 3 ] = nx;
+					normals[ i + 4 ] = ny;
+					normals[ i + 5 ] = nz;
+
+					normals[ i + 6 ] = nx;
+					normals[ i + 7 ] = ny;
+					normals[ i + 8 ] = nz;
+
+					// colors
+
+					var vx = ( x / n ) + 0.5;
+					var vy = ( y / n ) + 0.5;
+					var vz = ( z / n ) + 0.5;
+
+					color.setRGB( vx, vy, vz );
+
+					colors[ i ]     = color.r;
+					colors[ i + 1 ] = color.g;
+					colors[ i + 2 ] = color.b;
+
+					colors[ i + 3 ] = color.r;
+					colors[ i + 4 ] = color.g;
+					colors[ i + 5 ] = color.b;
+
+					colors[ i + 6 ] = color.r;
+					colors[ i + 7 ] = color.g;
+					colors[ i + 8 ] = color.b;
+
+				}
+
+				geometry.addAttribute( 'index', new THREE.BufferAttribute( indices, 1 ) );
+				geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+				geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
+				geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
+
+				geometry.computeBoundingSphere();
+
+				var material = new THREE.MeshPhongMaterial( {
+					color: 0xaaaaaa, specular: 0xffffff, shininess: 250,
+					side: THREE.DoubleSide, vertexColors: THREE.VertexColors
+				} );
+
+				mesh = new THREE.Mesh( geometry, material );
+				scene.add( mesh );
+
+				//
+
+				renderer = new THREE.WebGLRenderer( { antialias: false, alpha : true } );
+				renderer.setClearColor(0x000000, 0);
+				// renderer.setClearColor( scene.fog.color );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				//renderer.setSize( container.clientWidth, container.clientHeight );
+
+				// renderer.gammaInput = true;
+				// renderer.gammaOutput = true;
+
+				container.appendChild( renderer.domElement );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+                onWindowResize();
+
+			}
+
+			function onWindowResize() {
+                renderer.setSize(0,0);
+                let rect = container.getBoundingClientRect();
+				camera.aspect = rect.width / rect.height;
+				camera.updateProjectionMatrix();
+				renderer.setSize(rect.width, rect.height);
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+
+			}
+
+			function render() {
+
+				var time = Date.now() * 0.001;
+
+				mesh.rotation.x = time * 0.25;
+				mesh.rotation.y = time * 0.5;
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
 </html>
+

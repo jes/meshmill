@@ -1,15 +1,15 @@
 /* based on https://stackoverflow.com/q/70609456 */
 
-function HeightmapViewer(file) {
-    var spacingX = 3;
-    var spacingY = 3;
-    var heightOffset = 2;
-
+function HeightmapViewer(file, x_mm, y_mm, z_mm) {
     var img = new Image();
     img.src = file;
     img.onload = function () {
         var w = img.width;
         var h = img.height;
+
+        var x_mmperpx = x_mm / w;
+        var y_mmperpx = y_mm / h;
+        var z_mmperbrightness = z_mm / 255;
 
         var canvas = document.createElement('canvas');
         canvas.width = w;
@@ -17,17 +17,19 @@ function HeightmapViewer(file) {
         var ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
         var pixel = ctx.getImageData(0, 0, w, h);
+        console.log(canvas);
 
         var geom = new THREE.BufferGeometry();
-        var vertices = new Float32Array(w*h*3*3);
+        var vertices = new Float32Array(w*h*2*3*3);
+
+        // TODO: add 2 triangles to cover up the bottom side
+        // TODO: add triangles to close off edges, where necessary
 
         // add the coordinate for (x,y) to vertices[idx .. idx+2]
         var addVertex = function(x,y,idx) {
-            var zValue = pixel.data[(y*w+x)*4] / heightOffset;
-
-            vertices[idx] = x*spacingX;
-            vertices[idx+1] = y*spacingY;
-            vertices[idx+2] = zValue;
+            vertices[idx] = x*x_mmperpx;
+            vertices[idx+1] = (h-y-1)*y_mmperpx;
+            vertices[idx+2] = pixel.data[(y*w+x)*4] * z_mmperbrightness;
         };
 
         // add each square from the heightmap as 2 triangles
@@ -35,12 +37,12 @@ function HeightmapViewer(file) {
         for (var y = 0; y < h-1; y++) {
             for (var x = 0; x < w-1; x++) {
                 addVertex(x,y,idx);
-                addVertex(x+1,y,idx+3);
-                addVertex(x+1,y+1,idx+6);
+                addVertex(x+1,y+1,idx+3);
+                addVertex(x+1,y,idx+6);
 
                 addVertex(x+1,y+1,idx+9);
-                addVertex(x,y+1,idx+12);
-                addVertex(x,y,idx+15);
+                addVertex(x,y,idx+12);
+                addVertex(x,y+1,idx+15);
 
                 idx += 18;
             }

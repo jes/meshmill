@@ -1,6 +1,15 @@
 var currentjob;
 var project = new Project();
 
+function showHeightmap(file) {
+    var width = project.mesh.width;
+    var height = project.mesh.height;
+    var depth = project.mesh.depth;
+    HeightmapViewer(file, width, height, depth);
+}
+
+/* model tab */
+
 function showModel() {
     currentjob = null;
     $('#model-options').show();
@@ -8,6 +17,27 @@ function showModel() {
 
     redrawTabs();
 }
+
+function loadSTL() {
+    project.loadSTL($('#stlfile')[0].files[0].path);
+    STLViewer(project.stl);
+}
+
+$('#stlfile').change(function() {
+    loadSTL();
+});
+
+$('#reloadstl').click(function() {
+    loadSTL();
+});
+
+$('#render-heightmap').click(function() {
+    project.renderHeightmap(function(file) {
+        showHeightmap(file);
+    });
+});
+
+/* job tab */
 
 function showJob(id) {
     currentjob = id;
@@ -38,27 +68,6 @@ $('#deletejob').click(function() {
     } else {
         showModel();
     }
-});
-
-/* model tab */
-
-function loadSTL() {
-    project.stl = $('#stlfile')[0].files[0].path;
-    STLViewer(project.stl);
-}
-
-$('#stlfile').change(function() {
-    loadSTL();
-});
-
-$('#reloadstl').click(function() {
-    loadSTL();
-});
-
-$('#render-heightmap').click(function() {
-    project.renderHeightmap(function(file) {
-        HeightmapViewer(file);
-    });
 });
 
 /* tabs */

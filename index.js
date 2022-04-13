@@ -26,15 +26,17 @@ const template = [
             {
                 label: 'Save',
                 click: async () => {
-                    win.webContents.send('save-project', getFilename());
+                    let f = getFilename();
+                    if (f)
+                        win.webContents.send('save-project', f);
                 },
              },
             {
                 label: 'Save as...',
                 click: async () => {
-                    // TODO: we don't want filename to become null if they cancel the dialog
-                    filename = null;
-                    win.webContents.send('save-project', getFilename());
+                    let f = getNewFilename();
+                    if (f)
+                        win.webContents.send('save-project', f);
                 },
             },
             { role: 'quit' },
@@ -238,7 +240,8 @@ ipcMain.on('cancel', (event,arg) => {
 ipcMain.on('save-file', (event,arg) => {
     let dstfile = dialog.showSaveDialogSync();
     // TODO: alert on errors, feedback of success
-    fs.copyFile(arg.file, dstfile, function(){});
+    if (dstfile)
+        fs.copyFile(arg.file, dstfile, function(){});
 });
 
 ipcMain.on('copy-file', (event,arg) => {
@@ -298,7 +301,13 @@ ipcMain.on('tar-up', (event,arg) => {
     });
 });
 
-function getFilename(cb) {
+function getFilename() {
     if (!filename) filename = dialog.showSaveDialogSync();
     return filename;
+}
+
+function getNewFilename() {
+    newfilename = dialog.showSaveDialogSync();
+    if (newfilename) filename = newfilename;
+    return newfilename;
 }

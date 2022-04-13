@@ -79,7 +79,7 @@ function showModel() {
     $('#resolution').val(project.resolution);
 
     progresstarget = 'model';
-    progress(null);
+    progressEnd();
 
     updateModel();
     redrawTabs();
@@ -92,23 +92,34 @@ function loadSTL() {
 
 function updateModel() {
     $('#heightmapwarning').hide();
-    if (project.mesh.width == null) {
-        $('#heightmapsize').text('?');
-    } else {
+    if (project.mesh.width) {
         var w = Math.round(project.mesh.width / project.resolution);
         var h = Math.round(project.mesh.height / project.resolution);
         $('#heightmapsize').text(`${w}x${h}`);
         if (w*h > LARGE_HEIGHTMAP_PX) $('#heightmapwarning').show();
-    }
 
-    var fmt = function(f) {
-        return Math.round(f*100)/100;
-    }
-
-    if (project.mesh.width == null) {
-        $('#bounds').html('X:<br>Y:<br>Z:<br>');
-    } else {
+        var fmt = function(f) {
+            return Math.round(f*100)/100;
+        }
         $('#bounds').html(`X: ${fmt(project.mesh.min.x)} to ${fmt(project.mesh.max.x)} (${fmt(project.mesh.width)})<br>Y: ${fmt(project.mesh.min.y)} to ${fmt(project.mesh.max.y)} (${fmt(project.mesh.height)})<br>Z: ${fmt(project.mesh.min.z)} to ${fmt(project.mesh.max.z)} (${fmt(project.mesh.depth)})`);
+
+        $('#reloadstl').prop("disabled",false);
+        $('#render-heightmap').prop("disabled",false);
+    } else {
+        $('#heightmapsize').text('?');
+        $('#bounds').html('X:<br>Y:<br>Z:<br>');
+        $('#reloadstl').prop("disabled",true);
+        $('#render-heightmap').prop("disabled",true);
+    }
+
+    updateHeightmap();
+}
+
+function updateHeightmap() {
+    if (project.heightmap) {
+        $('#addjob-tab').prop("disabled",false);
+    } else {
+        $('#addjob-tab').prop("disabled",true);
     }
 }
 
@@ -124,6 +135,7 @@ $('#render-heightmap').click(function() {
     progressStart();
     project.renderHeightmap(function(file) {
         progressEnd();
+        updateHeightmap();
         if (file)
             showHeightmap(file);
     });
@@ -166,8 +178,9 @@ function showJob(id) {
     $('#clearbottom').val(job.path.clearbottom);
 
     progresstarget = 'toolpath';
-    progress(null);
+    progressEnd();
 
+    updateJob();
     redrawTabs();
 }
 
@@ -187,12 +200,25 @@ function updateJob() {
     j.path.rampentry = $('#rampentry').prop('checked');
     j.path.omittop = $('#omittop').prop('checked');
     j.path.clearbottom = $('#clearbottom').prop('checked');
+
+    if (project.heightmap) {
+        $('#generate-toolpath').prop("disabled", false);
+    } else {
+        $('#generate-toolpath').prop("disabled", true);
+    }
+
+    if (j.gcodefile) {
+        $('#save-gcode').prop("disabled", false);
+    } else {
+        $('#save-gcode').prop("disabled", true);
+    }
 }
 
 $('#generate-toolpath').click(function() {
     progressStart();
     project.generateToolpath(currentjob, function(file) {
         progressEnd();
+        updateJob();
         if (file)
             ToolpathViewer(file);
         // TODO: show cycle time estimate

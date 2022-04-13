@@ -1,7 +1,7 @@
 function Project() {
     this.jobs = [];
     this.stl = '';
-    this.heightmap = '';
+    this.heightmap = null;
     this.mesh = {};
     this.resolution = 0.25;
     this.bottomside = false;
@@ -30,7 +30,7 @@ Project.prototype.addJob = function() {
             omittop: false,
             clearbottom: false,
         },
-        gcodefile: '',
+        gcodefile: null,
     });
     return this.jobs.length-1;
 };
@@ -45,6 +45,7 @@ Project.prototype.getJob = function(id) {
 
 Project.prototype.loadSTL = function(file, cb) {
     this.stl = file;
+    this.heightmap = null;
     var project = this;
     (new THREE.STLLoader()).load(file, function (geometry) {
         geometry.computeBoundingBox();

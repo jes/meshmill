@@ -257,12 +257,18 @@ $('#addjob-tab').click(function() {
 
 /* menu actions */
 
-window.api.receiveAll('new-project', newProject);
+window.api.receiveAll('new-project', function() {
+    if (project && project.dirty) {
+        confirmDialog("Project unsaved. Are you sure you want a new one?", "New project", "Cancel", function(confirmed) {
+            if (confirmed)
+                newProject();
+        });
+    } else {
+        newProject();
+    }
+});
 
 function newProject() {
-    if (project && project.dirty) {
-        // TODO: confirm new project, if the existing project is unsaved
-    }
     project = new Project();
     $('#jobtabs').html('');
     showModel();

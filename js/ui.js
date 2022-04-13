@@ -283,12 +283,11 @@ function newProject() {
 newProject();
 
 function confirmDialog(msg, yes, no, cb) {
-    window.api.receive('confirm-dialog', cb);
     window.api.send('confirm-dialog', {
         text: msg,
         yes: yes,
         no: no,
-    });
+    }, cb);
 }
 
 window.api.receiveAll('want-close', function() {

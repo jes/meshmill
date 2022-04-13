@@ -1,9 +1,8 @@
 function ToolpathViewer(file) {
-    window.api.receive('toolpath-points', function(path) {
-        renderToolpath(path);
-    });
     window.api.send('plot-toolpath', {
         file: file,
+    }, function(path) {
+        renderToolpath(path);
     });
 }
 

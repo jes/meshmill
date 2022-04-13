@@ -8,12 +8,10 @@ function Project() {
     this.dirty = false;
     this.tmpdir = null;
 
-    // TODO: a better way for request-response calls to the main process?
     let project = this;
-    window.api.receive('tmpdir', function(dir) {
+    window.api.send('tmpdir', null, function(dir) {
         project.tmpdir = dir;
     });
-    window.api.send('tmpdir');
 }
 
 // TODO: clone last job instead of starting afresh
@@ -62,8 +60,10 @@ Project.prototype.loadSTL = function(file, cb) {
 
     var project = this;
 
-    // TODO: is there a better way to talk to the main process?
-    window.api.receive('copy-file', function(newfile) {
+    window.api.send('copy-file', {
+        src: file,
+        dst: workingfile,
+    }, function(newfile) {
         if (!newfile) throw "Couldn't copy " + file + " to " + workingfile;
         project.stl = workingfile;
         (new THREE.STLLoader()).load(project.stl, function (geometry) {
@@ -77,38 +77,27 @@ Project.prototype.loadSTL = function(file, cb) {
             if (cb) cb();
         });
     });
-
-    window.api.send('copy-file', {
-        src: file,
-        dst: workingfile,
-    });
 };
 
 Project.prototype.renderHeightmap = function(cb) {
     this.dirty = true;
     var width = this.mesh.width / this.resolution;
     var project = this;
-    window.api.receive('heightmap', function(r) {
+    window.api.send('render-heightmap', {
+        stl: this.stl,
+        width: width,
+        bottom: this.bottomside,
+    }, function(r) {
         if (r.error)
             alert(r.error);
         project.heightmap = r.file;
         cb(r.file);
     });
-    window.api.send('render-heightmap', {
-        stl: this.stl,
-        width: width,
-        bottom: this.bottomside,
-    });
 };
 
 Project.prototype.generateToolpath = function(id, cb) {
     this.dirty = true;
-    window.api.receive('toolpath', function(r) {
-        if (r.error)
-            alert(r.error);
-        project.jobs[id].gcodefile = r.file;
-        cb(r.file);
-    });
+    var project = this;
     window.api.send('generate-toolpath', {
         job: this.jobs[id],
         heightmap: this.heightmap,
@@ -119,6 +108,11 @@ Project.prototype.generateToolpath = function(id, cb) {
             y: this.mesh.max.y,
             z: this.mesh.max.z,
         },
+    }, function(r) {
+        if (r.error)
+            alert(r.error);
+        project.jobs[id].gcodefile = r.file;
+        cb(r.file);
     });
 };
 
@@ -136,33 +130,29 @@ Project.prototype.workingDir = function() {
 Project.prototype.save = function(filename) {
     let project = this;
 
-    // 2. when the json is written, tar up the dir
-    window.api.receive('write-file', function(err) {
+    // 1. write out json of the state
+    window.api.send('write-file', {
+        file: this.workingDir() + "/project.json",
+        data: JSON.stringify(this),
+    }, function(err) {
         if (err) {
             alert(err);
             return;
         }
 
-        // 4. all done!
-        window.api.receive('tar-up', function(err) {
+        // 2. tar up the directory
+        window.api.send('tar-up', {
+            dir: project.workingDir(),
+            dest: filename,
+        }, function(err) {
             if (err) {
                 alert(err);
                 return;
             }
 
+            // 3. done!
             project.dirty = false;
         });
-
-        // 3. tar up the directory
-        window.api.send('tar-up', {
-            dir: project.workingDir(),
-            dest: filename,
-        });
     });
 
-    // 1. write out json of the state
-    window.api.send('write-file', {
-        file: this.workingDir() + "/project.json",
-        data: JSON.stringify(this),
-    });
 };

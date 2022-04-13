@@ -123,7 +123,7 @@ app.on('window-all-closed', () => {
 
 var running;
 
-ipcMain.on('render-heightmap', (event,arg) => {
+ipcMain.on('render-heightmap', (event,arg,replychan) => {
     let opts = ['--border', '0', '--width', arg.width];
     if (arg.bottom) opts.push('--bottom');
 
@@ -148,18 +148,18 @@ ipcMain.on('render-heightmap', (event,arg) => {
     
     render.on('close', (code) => {
         if (code !== 0) {
-            win.webContents.send('heightmap', {
+            win.webContents.send(replychan, {
                 error: `pngcam-render exited with code ${code}`,
             });
         } else {
-            win.webContents.send('heightmap', {
+            win.webContents.send(replychan, {
                 file: `${arg.stl}.png`,
             });
         }
     });
 });
 
-ipcMain.on('generate-toolpath', (event,arg) => {
+ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     let opts = [
         '--tool-shape', arg.job.tool.shape,
         '--tool-diameter', arg.job.tool.diameter,
@@ -205,11 +205,11 @@ ipcMain.on('generate-toolpath', (event,arg) => {
 
         pngcam.on('close', (code) => {
             if (code !== 0) {
-                win.webContents.send('toolpath', {
+                win.webContents.send(replychan, {
                     error: `pngcam exited with code ${code}`,
                 });
             } else {
-                win.webContents.send('toolpath', {
+                win.webContents.send(replychan, {
                     file: gcodeFile,
                 });
             }
@@ -219,7 +219,7 @@ ipcMain.on('generate-toolpath', (event,arg) => {
 
 // this is a dead simple "gcode parser" that is sufficient for
 // parsing pngcam outputs and nothing more
-ipcMain.on('plot-toolpath', (event,arg) => {
+ipcMain.on('plot-toolpath', (event,arg,replychan) => {
     let path = [];
     let X = 0; let Y = 0; let Z = 0;
     // TODO: distinguish G0 from G1
@@ -234,7 +234,7 @@ ipcMain.on('plot-toolpath', (event,arg) => {
             if (zmatch) Z = parseFloat(zmatch[1]);
             path.push([X,Y,Z]);
         }
-        if (last) win.webContents.send('toolpath-points', path);
+        if (last) win.webContents.send(replychan, path);
     });
 });
 
@@ -252,25 +252,25 @@ ipcMain.on('save-file', (event,arg) => {
         fs.copyFile(arg.file, dstfile, function(){});
 });
 
-ipcMain.on('copy-file', (event,arg) => {
+ipcMain.on('copy-file', (event,arg,replychan) => {
     fs.copyFile(arg.src, arg.dst, 0, function(err) {
         if (err) console.log(err);
         let resp = err ? null : arg.dst;
-        win.webContents.send('copy-file', resp);
+        win.webContents.send(replychan, resp);
     });
 });
 
-ipcMain.on('write-file', (event,arg) => {
+ipcMain.on('write-file', (event,arg,replychan) => {
     fs.writeFile(arg.file, arg.data, (err) => {
         if (err) console.log(err);
-        win.webContents.send('write-file', err);
+        win.webContents.send(replychan, err);
     });
 });
 
-ipcMain.on('read-file', (event,arg) => {
+ipcMain.on('read-file', (event,arg,replychan) => {
     fs.readFile(arg.file, 'utf8', (err,data) => {
         if (err) console.log(err);
-        win.webContents.send('read-file', {
+        win.webContents.send(replychan, {
             err: err,
             data: data,
         });
@@ -282,30 +282,30 @@ ipcMain.on('close', (event,arg) => {
     app.quit();
 });
 
-ipcMain.on('confirm-dialog', (event,arg) => {
+ipcMain.on('confirm-dialog', (event,arg,replychan) => {
     dialog.showMessageBox({
         buttons: [arg.yes, arg.no],
         message: arg.text,
     }).then((response) => {
-        win.webContents.send('confirm-dialog', response.response == 0);
+        win.webContents.send(replychan, response.response == 0);
     });
 });
 
-ipcMain.on('tmpdir', (event,arg) => {
+ipcMain.on('tmpdir', (event,arg,replychan) => {
     var dir = tmp.dirSync().name;
-    win.webContents.send('tmpdir', dir);
+    win.webContents.send(replychan, dir);
 });
 
-ipcMain.on('tar-up', (event,arg) => {
+ipcMain.on('tar-up', (event,arg,replychan) => {
     tar.create({
         gzip: true,
         cwd: arg.dir,
         file: arg.dest,
     }, ["."]).then(err => {
-        win.webContents.send('tar-up', null);
+        win.webContents.send(replychan, null);
     }).catch(err => {
         console.log(err);
-        win.webContents.send('tar-up', err);
+        win.webContents.send(replychan, err);
     });
 });
 

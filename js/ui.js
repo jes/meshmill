@@ -7,6 +7,12 @@ function showHeightmap(file) {
     var width = project.mesh.width;
     var height = project.mesh.height;
     var depth = project.mesh.depth;
+    if (Settings.show_heightmap_2d) {
+        $('#heightmap-img').show();
+        $('#heightmap-img').prop("src", file + "?" + Math.random()); // XXX: avoid cache
+    } else {
+        $('#heightmap-img').hide();
+    }
     HeightmapViewer(file, width, height, depth, project.mesh.min.x-scenemiddle.x, project.mesh.min.y-scenemiddle.y, project.mesh.min.z-scenemiddle.z);
 }
 
@@ -16,6 +22,16 @@ function cancelProcessing() {
 
 $('#model-cancel').click(cancelProcessing);
 $('#toolpath-cancel').click(cancelProcessing);
+
+function updateUnits() {
+    if (Settings.imperial) {
+        $('.unit-mm').text('inches');
+        $('.unit-mmmin').text('inches/min');
+    } else {
+        $('.unit-mm').text('mm');
+        $('.unit-mmmin').text('mm/min');
+    }
+}
 
 /* model tab */
 
@@ -30,6 +46,7 @@ function showModel() {
     progressEnd();
 
     updateModel();
+    updateUnits();
     redrawTabs();
 }
 
@@ -129,6 +146,7 @@ function showJob(id) {
     progressEnd();
 
     updateJob();
+    updateUnits();
     redrawTabs();
 }
 

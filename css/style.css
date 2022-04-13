@@ -45,6 +45,10 @@ html, body, input, button, select {
     background: #444;
 }
 
+#heightmap-img {
+    width: 300px;
+}
+
 td.formlabel {
     text-align:right;
 }

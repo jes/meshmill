@@ -26,7 +26,7 @@
 
                     <hr>
                     <table>
-                    <tr><td class="formlabel">XY Resolution:</td><td><input type="text" id="resolution"></td><td>mm</td></tr>
+                    <tr><td class="formlabel">XY Resolution:</td><td><input type="text" id="resolution"></td><td class="unit-mm"></td></tr>
                     <tr><td class="formlabel">Heightmap:</td><td><span id="heightmapsize"></span> px</td><td><span id="heightmapwarning">WARNING: Large</span></td></tr>
                     <tr><td class="formlabel"><label for="bottomside">Bottom side</label></td><td><input type="checkbox" id="bottomside"></td></tr>
                     </table>
@@ -36,6 +36,9 @@
                     <button id="render-heightmap">Render heightmap</button><br>
                     <button id="model-cancel">Stop</button> <progress max="100" id="model-pct"></progress><br>
                     <span id="model-eta"></span><br>
+
+                    <hr>
+                    <img id="heightmap-img">
                 </div>
 
                 <div id="toolpath-options" style="display:none">
@@ -45,10 +48,10 @@
                     <option value="flat">Flat end mill</option>
                     </select></td></tr>
 
-                    <tr><td class="formlabel">Tool diameter:</td><td><input id="tooldiameter"></input></td><td>mm</td></tr>
-                    <tr><td class="formlabel">X/Y feed rate</td><td><input id="xyfeed"></input></td><td>mm/min</td></tr>
-                    <tr><td class="formlabel">Z feed rate</td><td><input id="zfeed"></input></td><td>mm/min</td></tr>
-                    <tr><td class="formlabel">Safe Z</td><td><input id="safez"></input></td><td>mm</td></tr>
+                    <tr><td class="formlabel">Tool diameter:</td><td><input id="tooldiameter"></input></td><td class="unit-mm"></td></tr>
+                    <tr><td class="formlabel">X/Y feed rate</td><td><input id="xyfeed"></input></td><td class="unit-mmmin"></td></tr>
+                    <tr><td class="formlabel">Z feed rate</td><td><input id="zfeed"></input></td><td class="unit-mmmin"></td></tr>
+                    <tr><td class="formlabel">Safe Z</td><td><input id="safez"></input></td><td class="unit-mm"></td></tr>
                     <tr><td class="formlabel">Spindle</td><td><input id="rpm"></input></td><td>rpm</td></tr>
                     </table>
 
@@ -59,9 +62,9 @@
                         <option value="horizontal">Horizontal (along X)</option>
                         <option value="vertical">Vertical (along Y)</option>
                     </select></td></tr>
-                    <tr><td class="formlabel">Step over</td><td><input id="stepover"></input></td><td>mm</td></tr>
-                    <tr><td class="formlabel">Step down</td><td><input id="stepdown"></input></td><td>mm</td></tr>
-                    <tr><td class="formlabel">Clearance</td><td><input id="clearance"></input></td><td>mm</td></tr>
+                    <tr><td class="formlabel">Step over</td><td><input id="stepover"></input></td><td class="unit-mm"></td></tr>
+                    <tr><td class="formlabel">Step down</td><td><input id="stepdown"></input></td><td class="unit-mm"></td></tr>
+                    <tr><td class="formlabel">Clearance</td><td><input id="clearance"></input></td><td class="unit-mm"></td></tr>
                     </table>
 
                     <hr>
@@ -96,6 +99,7 @@
         <script src="js/lib/OrbitControls.js"></script>
 		<script src="js/lib/jquery-3.6.0.min.js"></script>
         <script src="js/project.js"></script>
+        <script src="js/settings.js"></script>
         <script src="js/heightmap.js"></script>
         <script src="js/toolpath.js"></script>
         <script src="js/3d.js"></script>

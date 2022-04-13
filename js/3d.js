@@ -45,6 +45,8 @@ function showScene(geometry, recentre) {
     var largestDimension = Math.max(geometry.boundingBox.max.x, geometry.boundingBox.max.y, geometry.boundingBox.max.z);
     camera.position.z = largestDimension * 2;
 
+    addOriginVisualisation(scene, largestDimension / 2);
+
     // TODO: prevent gimbal lock
     var controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -82,4 +84,21 @@ function onWindowResize() {
     renderer.setSize(rect.width, rect.height);
 }
 
+function addLine(scene, x1,y1,z1, x2,y2,z2, colour) {
+    let points = [
+        new THREE.Vector3(x1,y1,z1),
+        new THREE.Vector3(x2,y2,z2),
+    ];
+    let geometry = new THREE.BufferGeometry().setFromPoints(points);
+    let material = new THREE.LineBasicMaterial({
+        color: colour,
+    });
+    let line = new THREE.Line(geometry, material);
+    scene.add(line);
+}
 
+function addOriginVisualisation(scene, D) {
+    addLine(scene, 0,0,0, D,0,0, 0xff0000);
+    addLine(scene, 0,0,0, 0,D,0, 0x00ff00);
+    addLine(scene, 0,0,0, 0,0,D, 0x0000ff);
+}

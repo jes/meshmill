@@ -226,8 +226,11 @@ ipcMain.on('save-file', (event,arg) => {
 });
 
 ipcMain.on('copy-file', (event,arg) => {
-    // TODO: alert on errors, feedback of success
-    fs.copyFile(arg.src, arg.dst, function(){});
+    fs.copyFile(arg.src, arg.dst, 0, function(err) {
+        if (err) console.log(err);
+        let resp = err ? null : arg.dst;
+        win.webContents.send('copy-file', resp);
+    });
 });
 
 ipcMain.on('close', (event,arg) => {
@@ -242,4 +245,9 @@ ipcMain.on('confirm-dialog', (event,arg) => {
     }).then((response) => {
         win.webContents.send('confirm-dialog', response.response == 0);
     });
+});
+
+ipcMain.on('tmpdir', (event,arg) => {
+    var dir = tmp.dirSync().name;
+    win.webContents.send('tmpdir', dir);
 });

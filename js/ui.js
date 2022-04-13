@@ -46,8 +46,10 @@ function showModel() {
 }
 
 function loadSTL() {
-    project.loadSTL($('#stlfile')[0].files[0].path, updateModel);
-    STLViewer(project.stl);
+    project.loadSTL($('#stlfile')[0].files[0].path, function() {
+        updateModel();
+        STLViewer(project.stl);
+    });
 }
 
 function updateModel() {

@@ -14,6 +14,7 @@ function renderToolpath(path) {
     let geometry = new THREE.BufferGeometry().setFromPoints(points);
     let material = new THREE.LineBasicMaterial({
         color: 0xb674c7,
+        linewidth: 2,
     });
     let line = new THREE.Line(geometry, material);
     // TODO: re-initialise the scene from scratch, with the relevant heightmap

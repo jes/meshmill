@@ -96,6 +96,7 @@ function addLine(scene, x1,y1,z1, x2,y2,z2, colour) {
     let geometry = new THREE.BufferGeometry().setFromPoints(points);
     let material = new THREE.LineBasicMaterial({
         color: colour,
+        linewidth: 2,
     });
     let line = new THREE.Line(geometry, material);
     scene.add(line);

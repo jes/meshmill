@@ -22,9 +22,13 @@ const template = [
                     filename = null;
                 }
             },
-            { label: 'Open...' },
+            {
+                label: 'Open...',
+                accelerator: 'Ctrl+O',
+            },
             {
                 label: 'Save',
+                accelerator: 'Ctrl+S',
                 click: async () => {
                     let f = getFilename();
                     if (f)
@@ -33,6 +37,7 @@ const template = [
              },
             {
                 label: 'Save as...',
+                accelerator: 'Ctrl+Shift+S',
                 click: async () => {
                     let f = getNewFilename();
                     if (f)
@@ -238,7 +243,9 @@ ipcMain.on('cancel', (event,arg) => {
 });
 
 ipcMain.on('save-file', (event,arg) => {
-    let dstfile = dialog.showSaveDialogSync();
+    let dstfile = dialog.showSaveDialogSync(win, {
+        showOverwriteConfirmation: true,
+    });
     // TODO: alert on errors, feedback of success
     if (dstfile)
         fs.copyFile(arg.file, dstfile, function(){});
@@ -302,12 +309,18 @@ ipcMain.on('tar-up', (event,arg) => {
 });
 
 function getFilename() {
-    if (!filename) filename = dialog.showSaveDialogSync();
+    if (!filename) filename = dialog.showSaveDialogSync(win, {
+        title: "Save",
+        showOverwriteConfirmation: true,
+    });
     return filename;
 }
 
 function getNewFilename() {
-    newfilename = dialog.showSaveDialogSync();
+    newfilename = dialog.showSaveDialogSync(win, {
+        title: "Save",
+        showOverwriteConfirmation: true,
+    });
     if (newfilename) filename = newfilename;
     return newfilename;
 }

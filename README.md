@@ -69,6 +69,27 @@ toolpaths, go to the "MODEL" tab and re-render the heightmap.
 
 8. Once you're happy with how your toolpath looks, use the "Save G-code" button to save it somewhere.
 
+## Development
+
+I recommend using [nvm](https://github.com/nvm-sh/nvm) to manage nodejs.
+
+    $ nvm install --lts
+    $ nvm use --lts
+
+With nvm happy, clone the Meshmill repository and install its npm dependencies.
+
+    $ git clone https://github.com/jes/meshmill
+    $ npm install
+
+And run the application.
+
+    $ npm start
+
+The backend for heightmap rendering and toolpath generation is [Pngcam](https://github.com/jes/pngcam).
+There is a bundled version under `bin/`.
+
+`main.js` is the Electron main process. `index.html` is the HTML loaded in the renderer process.
+
 ## Contact me
 
 Meshmill is created by James Stanley. You can email me at james@incoherency.co.uk or read my blog at

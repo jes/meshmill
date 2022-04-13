@@ -127,14 +127,16 @@ app.on('window-all-closed', () => {
 var running;
 
 ipcMain.on('render-heightmap', (event,arg,replychan) => {
-    let opts = ['--border', '0', '--width', arg.width];
+    let opts = ['pngcam-render', '--border', '0', '--width', arg.width];
     if (arg.bottom) opts.push('--bottom');
+
+    console.log("Render heightmap for " + arg.stl);
 
     opts.push(arg.stl);
     // TODO: write outputs to project folder; also, write to a
     // temporary file until successful, then move to the project
     // folder
-    let render = spawn(path.join(__dirname,'bin/pngcam-render'), opts);
+    let render = spawn(path.join(__dirname,'bin/perlrun'), opts);
     running = render;
 
     render.stderr.on('data', (data) => {
@@ -164,6 +166,7 @@ ipcMain.on('render-heightmap', (event,arg,replychan) => {
 
 ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     let opts = [
+        'pngcam',
         '--tool-shape', arg.job.tool.shape,
         '--tool-diameter', arg.job.tool.diameter,
         '--step-down', arg.job.path.stepdown,
@@ -193,7 +196,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     let gcodeFile = tmp.fileSync().name;
     let gcodeStream = fs.createWriteStream(gcodeFile);
     gcodeStream.on('open', function() {
-        let pngcam = spawn(path.join(__dirname, 'bin/pngcam'), opts, {
+        let pngcam = spawn(path.join(__dirname, 'bin/perlrun'), opts, {
             stdio: ['pipe', gcodeStream, 'pipe'], // send stdout to a file
         });
         running = pngcam;

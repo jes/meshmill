@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Run perl scripts with LD_LIBRARY_PATH and PERL5LIB set
+
+dir=`dirname $0`
+
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$dir/ PERL5LIB=$dir/lib $dir/"$@"

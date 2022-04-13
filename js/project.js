@@ -138,7 +138,6 @@ Project.prototype.save = function(filename) {
 
     // 2. when the json is written, tar up the dir
     window.api.receive('write-file', function(err) {
-        console.log("2: " + err);
         if (err) {
             alert(err);
             return;
@@ -146,7 +145,6 @@ Project.prototype.save = function(filename) {
 
         // 4. all done!
         window.api.receive('tar-up', function(err) {
-            console.log("4: " + err);
             if (err) {
                 alert(err);
                 return;
@@ -156,7 +154,6 @@ Project.prototype.save = function(filename) {
         });
 
         // 3. tar up the directory
-        console.log("3: " + filename);
         window.api.send('tar-up', {
             dir: project.workingDir(),
             dest: filename,
@@ -164,7 +161,6 @@ Project.prototype.save = function(filename) {
     });
 
     // 1. write out json of the state
-    console.log("1: " + this.workingDir() + "/project.json");
     window.api.send('write-file', {
         file: this.workingDir() + "/project.json",
         data: JSON.stringify(this),

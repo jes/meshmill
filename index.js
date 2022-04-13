@@ -286,12 +286,14 @@ ipcMain.on('tmpdir', (event,arg) => {
 });
 
 ipcMain.on('tar-up', (event,arg) => {
-    tar.c({
+    tar.create({
         gzip: true,
         cwd: arg.dir,
         file: arg.dest,
-    }, ["."]).then(_ => {
-        let err = null;
+    }, ["."]).then(err => {
+        win.webContents.send('tar-up', null);
+    }).catch(err => {
+        console.log(err);
         win.webContents.send('tar-up', err);
     });
 });

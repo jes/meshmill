@@ -1,14 +1,14 @@
-function ToolpathViewer(file) {
+function ToolpathViewer(file, xoff, yoff, zoff) {
     window.api.send('plot-toolpath', {
         file: file,
     }, function(path) {
-        renderToolpath(path);
+        renderToolpath(path, xoff, yoff, zoff);
     });
 }
 
-function renderToolpath(path) {
+function renderToolpath(path, xoff, yoff, zoff) {
     let points = path.map(function(p) {
-        return new THREE.Vector3(p[0]-scenemiddle.x,p[1]-scenemiddle.y,p[2]-scenemiddle.z);
+        return new THREE.Vector3(p[0]-xoff,p[1]-yoff,p[2]-zoff);
     });
     let geometry = new THREE.BufferGeometry().setFromPoints(points);
     let material = new THREE.LineBasicMaterial({

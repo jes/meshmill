@@ -7,7 +7,20 @@ function showHeightmap(file) {
     var width = project.mesh.width;
     var height = project.mesh.height;
     var depth = project.mesh.depth;
-    HeightmapViewer(file, width, height, depth, project.mesh.min.x-scenemiddle.x, project.mesh.min.y-scenemiddle.y, project.mesh.min.z-scenemiddle.z);
+
+    var middlex = (project.mesh.min.x+project.mesh.max.x)/2;
+    var middley = (project.mesh.min.y+project.mesh.max.y)/2;
+    var middlez = (project.mesh.min.z+project.mesh.max.z)/2;
+
+    HeightmapViewer(file, width, height, depth, project.mesh.min.x-middlex, project.mesh.min.y-middley, project.mesh.min.z-middlez);
+}
+
+function showToolpath(file) {
+    var middlex = (project.mesh.min.x+project.mesh.max.x)/2;
+    var middley = (project.mesh.min.y+project.mesh.max.y)/2;
+    var middlez = (project.mesh.min.z+project.mesh.max.z)/2;
+
+    ToolpathViewer(file, middlex, middley, middlez);
 }
 
 function cancelProcessing() {
@@ -190,7 +203,7 @@ $('#generate-toolpath').click(function() {
         progressEnd();
         updateJob();
         if (file)
-            ToolpathViewer(file);
+            showToolpath(file);
         // TODO: show cycle time estimate
     });
 });
@@ -259,7 +272,7 @@ $('#addjob-tab').click(function() {
 
 /* menu actions */
 
-window.api.receiveAll('new-project', function() {
+window.api.receive('new-project', function() {
     if (project && project.dirty) {
         confirmDialog("Project unsaved. Are you sure you want a new one?", "New project", "Cancel", function(confirmed) {
             if (confirmed)
@@ -270,15 +283,42 @@ window.api.receiveAll('new-project', function() {
     }
 });
 
-window.api.receiveAll('save-project', function(filename) {
+window.api.receive('save-project', function(filename) {
     project.save(filename);
 });
 
-function newProject() {
-    project = new Project();
+window.api.receive('want-open', function() {
+    if (project && project.dirty) {
+        confirmDialog("Project unsaved. Are you sure you want to open another?", "Open another project", "Cancel", function(confirmed) {
+            if (confirmed)
+                window.api.send('open-project');
+        });
+    } else {
+        window.api.send('open-project');
+    }
+});
+
+window.api.receive('open-project', function(filename) {
+    openProject(filename);
+});
+
+function openProject(filename) {
+    newProject(function(project) {
+        project.open(filename, function() {
+            for (var i = 0; i < project.jobs.length; i++)
+                addJobTab(i);
+            showModel();
+            console.log(project);
+            if (project.heightmap) showHeightmap(project.heightmap);
+            else if (project.stl) STLViewer(project.stl);
+        });
+    });
+}
+
+function newProject(cb) {
+    project = new Project(cb);
     $('#jobtabs').html('');
     showModel();
-    showScene();
 }
 newProject();
 
@@ -290,7 +330,7 @@ function confirmDialog(msg, yes, no, cb) {
     }, cb);
 }
 
-window.api.receiveAll('want-close', function() {
+window.api.receive('want-close', function() {
     if (project && project.dirty) {
         confirmDialog("Project unsaved. Are you sure you want to quit?", "Quit", "Don't quit", function(confirmed) {
             if (confirmed)

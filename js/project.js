@@ -1,16 +1,20 @@
-function Project() {
+let SAVE_FIELDS = ['jobs', 'stl', 'heightmap', 'mesh', 'resolution', 'bottomside'];
+
+function Project(cb) {
     this.jobs = [];
     this.stl = '';
     this.heightmap = null;
     this.mesh = {};
     this.resolution = 0.25;
     this.bottomside = false;
+
     this.dirty = false;
     this.tmpdir = null;
 
     let project = this;
     window.api.send('tmpdir', function(dir) {
         project.tmpdir = dir;
+        if (cb) cb(project)
     });
 }
 
@@ -60,6 +64,9 @@ Project.prototype.loadSTL = function(file, cb) {
 
     var project = this;
 
+    // TODO: we need to keep track of the original path on disk,
+    // so that "reload from disk" has any chance of working after
+    // we re-open the project
     window.api.send('copy-file', {
         src: file,
         dst: workingfile,
@@ -130,10 +137,21 @@ Project.prototype.workingDir = function() {
 Project.prototype.save = function(filename) {
     let project = this;
 
+    let obj = {};
+    for (var i = 0; i < SAVE_FIELDS.length; i++) {
+        let field = SAVE_FIELDS[i];
+        obj[field] = this[field];
+    }
+    let json = JSON.stringify(obj);
+    // XXX: could workingDir() plausibly coincide with some text
+    // that happens to exist in places we don't want to replace it?
+    let newjson = json.replaceAll(this.workingDir(), "$TMPDIR$");
+    console.log(newjson);
+
     // 1. write out json of the state
     window.api.send('write-file', {
         file: this.workingDir() + "/project.json",
-        data: JSON.stringify(this),
+        data: newjson,
     }, function(err) {
         if (err) {
             alert(err);
@@ -154,5 +172,42 @@ Project.prototype.save = function(filename) {
             project.dirty = false;
         });
     });
+};
 
+Project.prototype.open = function(filename, cb) {
+    let project = this;
+
+    // 1. untar the project file
+    window.api.send('untar', {
+        file: filename,
+        dir: this.workingDir(),
+    }, function(err) {
+        console.log("untarred to " + project.workingDir());
+        if (err) {
+            alert(err);
+            return;
+        }
+
+        // 2. load state from the json
+        window.api.send('read-file', project.workingDir() + "/project.json", function(r) {
+            if (r.err) {
+                alert(r.err);
+                return;
+            }
+
+            // XXX: could $TMPDIR$ plausibly exist somewhere
+            // we don't want to replace it?
+            let json = r.data.replaceAll("$TMPDIR$", project.workingDir());
+            let obj = JSON.parse(json);
+            for (var i = 0; i < SAVE_FIELDS.length; i++) {
+                let field = SAVE_FIELDS[i];
+                project[field] = obj[field];
+            }
+
+            // 3. done!
+            console.log("FINISHED LOADING");
+            project.dirty = false;
+            cb();
+        });
+    });
 };

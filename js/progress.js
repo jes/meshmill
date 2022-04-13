@@ -36,8 +36,7 @@ function progressEta() {
         $(`#${progresstarget}-eta`).text("");
     }
 }
-window.api.receiveAll('progress', progress);
-
+window.api.receive('progress', progress);
 
 window.setInterval(progressEta, 1000);
 

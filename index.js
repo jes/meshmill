@@ -25,12 +25,15 @@ const template = [
             {
                 label: 'Open...',
                 accelerator: 'Ctrl+O',
+                click: async () => {
+                    win.webContents.send('want-open');
+                },
             },
             {
                 label: 'Save',
                 accelerator: 'Ctrl+S',
                 click: async () => {
-                    let f = getFilename();
+                    let f = getSaveFilename();
                     if (f)
                         win.webContents.send('save-project', f);
                 },
@@ -39,7 +42,7 @@ const template = [
                 label: 'Save as...',
                 accelerator: 'Ctrl+Shift+S',
                 click: async () => {
-                    let f = getNewFilename();
+                    let f = getNewSaveFilename();
                     if (f)
                         win.webContents.send('save-project', f);
                 },
@@ -254,7 +257,7 @@ ipcMain.on('save-file', (event,arg) => {
 
 ipcMain.on('copy-file', (event,arg,replychan) => {
     fs.copyFile(arg.src, arg.dst, 0, function(err) {
-        if (err) console.log(err);
+            if (err) console.log(err);
         let resp = err ? null : arg.dst;
         win.webContents.send(replychan, resp);
     });
@@ -268,7 +271,7 @@ ipcMain.on('write-file', (event,arg,replychan) => {
 });
 
 ipcMain.on('read-file', (event,arg,replychan) => {
-    fs.readFile(arg.file, 'utf8', (err,data) => {
+    fs.readFile(arg, 'utf8', (err,data) => {
         if (err) console.log(err);
         win.webContents.send(replychan, {
             err: err,
@@ -301,7 +304,7 @@ ipcMain.on('tar-up', (event,arg,replychan) => {
         gzip: true,
         cwd: arg.dir,
         file: arg.dest,
-    }, ["."]).then(err => {
+    }, ["."]).then(_ => {
         win.webContents.send(replychan, null);
     }).catch(err => {
         console.log(err);
@@ -309,7 +312,28 @@ ipcMain.on('tar-up', (event,arg,replychan) => {
     });
 });
 
-function getFilename() {
+ipcMain.on('untar', (event,arg,replychan) => {
+    console.log("untar");
+    console.log(arg);
+    tar.extract({
+        file: arg.file,
+        cwd: arg.dir,
+    }).then(_ => {
+        win.webContents.send(replychan, null);
+    }).catch(err => {
+        console.log("untar error");
+        console.log(err);
+        win.webContents.send(replychan, err);
+    });
+});
+
+ipcMain.on('open-project', (event,arg,replychan) => {
+    let f = getOpenFilename();
+    if (f)
+        win.webContents.send('open-project', f);
+});
+
+function getSaveFilename() {
     if (!filename) filename = dialog.showSaveDialogSync(win, {
         title: "Save",
         defaultPath: 'Untitled.meshmill',
@@ -319,7 +343,7 @@ function getFilename() {
     return filename;
 }
 
-function getNewFilename() {
+function getNewSaveFilename() {
     newfilename = dialog.showSaveDialogSync(win, {
         title: "Save",
         defaultPath: 'Untitled.meshmill',
@@ -327,5 +351,18 @@ function getNewFilename() {
         filters: [{name: "Meshmill Projects (.meshmill)", extensions: ["meshmill"]},{name: "All Files", extensions:["*"]}],
     });
     if (newfilename) filename = newfilename;
+    return newfilename;
+}
+
+function getOpenFilename() {
+    newfilename = dialog.showOpenDialogSync(win, {
+        title: "Open",
+        showOverwriteConfirmation: true,
+        filters: [{name: "Meshmill Projects (.meshmill)", extensions: ["meshmill"]},{name: "All Files", extensions:["*"]}],
+    });
+    if (newfilename) {
+        filename = newfilename[0];
+        return filename;
+    }
     return newfilename;
 }

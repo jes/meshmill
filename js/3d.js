@@ -2,7 +2,6 @@ var container;
 var camera;
 var renderer;
 var scene;
-var scenemiddle;
 
 function showScene(geometry, recentre) {
     container = document.getElementById('scene');
@@ -29,7 +28,7 @@ function showScene(geometry, recentre) {
 
     geometry.computeBoundingBox();
     if (recentre) {
-        scenemiddle = new THREE.Vector3();
+        let scenemiddle = new THREE.Vector3();
         geometry.boundingBox.getCenter(scenemiddle);
         mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-scenemiddle.x, -scenemiddle.y, -scenemiddle.z));
     }

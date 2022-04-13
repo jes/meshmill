@@ -132,3 +132,41 @@ Project.prototype.workingDir = function() {
     if (this.tmpdir) return this.tmpdir;
     else throw "tmpdir not set yet";
 };
+
+Project.prototype.save = function(filename) {
+    let project = this;
+
+    // 2. when the json is written, tar up the dir
+    window.api.receive('write-file', function(err) {
+        console.log("2: " + err);
+        if (err) {
+            alert(err);
+            return;
+        }
+
+        // 4. all done!
+        window.api.receive('tar-up', function(err) {
+            console.log("4: " + err);
+            if (err) {
+                alert(err);
+                return;
+            }
+
+            project.dirty = false;
+        });
+
+        // 3. tar up the directory
+        console.log("3: " + filename);
+        window.api.send('tar-up', {
+            dir: project.workingDir(),
+            dest: filename,
+        });
+    });
+
+    // 1. write out json of the state
+    console.log("1: " + this.workingDir() + "/project.json");
+    window.api.send('write-file', {
+        file: this.workingDir() + "/project.json",
+        data: JSON.stringify(this),
+    });
+};

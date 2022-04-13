@@ -270,6 +270,10 @@ window.api.receiveAll('new-project', function() {
     }
 });
 
+window.api.receiveAll('save-project', function(filename) {
+    project.save(filename);
+});
+
 function newProject() {
     project = new Project();
     $('#jobtabs').html('');

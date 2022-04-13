@@ -4,9 +4,12 @@ const tmp = require('tmp');
 const lineReader = require('line-reader');
 const { app, dialog, BrowserWindow, ipcMain, Menu } = require('electron');
 const { spawn } = require('child_process');
+const tar = require('tar');
 const openAboutWindow = require('electron-about-window').default;
 
 let win;
+
+let filename = null;
 
 const template = [
     {
@@ -16,11 +19,24 @@ const template = [
                 label: 'New',
                 click: async () => {
                     win.webContents.send('new-project');
+                    filename = null;
                 }
             },
             { label: 'Open...' },
-            { label: 'Save' },
-            { label: 'Save as...' },
+            {
+                label: 'Save',
+                click: async () => {
+                    win.webContents.send('save-project', getFilename());
+                },
+             },
+            {
+                label: 'Save as...',
+                click: async () => {
+                    // TODO: we don't want filename to become null if they cancel the dialog
+                    filename = null;
+                    win.webContents.send('save-project', getFilename());
+                },
+            },
             { role: 'quit' },
         ],
     },
@@ -233,6 +249,23 @@ ipcMain.on('copy-file', (event,arg) => {
     });
 });
 
+ipcMain.on('write-file', (event,arg) => {
+    fs.writeFile(arg.file, arg.data, (err) => {
+        if (err) console.log(err);
+        win.webContents.send('write-file', err);
+    });
+});
+
+ipcMain.on('read-file', (event,arg) => {
+    fs.readFile(arg.file, 'utf8', (err,data) => {
+        if (err) console.log(err);
+        win.webContents.send('read-file', {
+            err: err,
+            data: data,
+        });
+    });
+});
+
 ipcMain.on('close', (event,arg) => {
     win = null;
     app.quit();
@@ -251,3 +284,19 @@ ipcMain.on('tmpdir', (event,arg) => {
     var dir = tmp.dirSync().name;
     win.webContents.send('tmpdir', dir);
 });
+
+ipcMain.on('tar-up', (event,arg) => {
+    tar.c({
+        gzip: true,
+        cwd: arg.dir,
+        file: arg.dest,
+    }, ["."]).then(_ => {
+        let err = null;
+        win.webContents.send('tar-up', err);
+    });
+});
+
+function getFilename(cb) {
+    if (!filename) filename = dialog.showSaveDialogSync();
+    return filename;
+}

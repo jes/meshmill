@@ -2,6 +2,7 @@ html, body {
     height: 100%;
     margin: 0;
     overflow: hidden;
+    background: #f8f8f8;
 }
 
 html, body, input, button, select {
@@ -41,6 +42,11 @@ html, body, input, button, select {
 
 #scene {
     flex-grow: 1;
+    background: #444;
+}
+
+td.formlabel {
+    text-align:right;
 }
 
 /* https://github.com/electron/electron/issues/2538 */

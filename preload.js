@@ -1,7 +1,11 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
-    send: (channel,data,cb) => {
+    send: (channel,data,cb) => { // or (channel,cb)
+        if (data instanceof Function) {
+            cb = data;
+            data = undefined;
+        }
         let replychan = null;
         if (cb) {
             replychan = channel + "-" + Math.random();

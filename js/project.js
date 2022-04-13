@@ -9,7 +9,7 @@ function Project() {
     this.tmpdir = null;
 
     let project = this;
-    window.api.send('tmpdir', null, function(dir) {
+    window.api.send('tmpdir', function(dir) {
         project.tmpdir = dir;
     });
 }

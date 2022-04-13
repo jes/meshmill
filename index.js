@@ -187,7 +187,6 @@ ipcMain.on('generate-toolpath', (event,arg) => {
 ipcMain.on('plot-toolpath', (event,arg) => {
     let path = [];
     let X = 0; let Y = 0; let Z = 0;
-    path.push([X,Y,Z]);
     // TODO: distinguish G0 from G1
     lineReader.eachLine(arg.file, (line,last) => {
         let match = line.match(/^G0*[01] /i);

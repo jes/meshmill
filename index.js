@@ -243,6 +243,7 @@ ipcMain.on('cancel', (event,arg) => {
 });
 
 ipcMain.on('save-file', (event,arg) => {
+    // TODO: take title, filename filter as arg
     let dstfile = dialog.showSaveDialogSync(win, {
         showOverwriteConfirmation: true,
     });
@@ -311,7 +312,9 @@ ipcMain.on('tar-up', (event,arg) => {
 function getFilename() {
     if (!filename) filename = dialog.showSaveDialogSync(win, {
         title: "Save",
+        defaultPath: 'Untitled.meshmill',
         showOverwriteConfirmation: true,
+        filters: [{name: "Meshmill Projects (.meshmill)", extensions: ["meshmill"]},{name: "All Files", extensions:["*"]}],
     });
     return filename;
 }
@@ -319,7 +322,9 @@ function getFilename() {
 function getNewFilename() {
     newfilename = dialog.showSaveDialogSync(win, {
         title: "Save",
+        defaultPath: 'Untitled.meshmill',
         showOverwriteConfirmation: true,
+        filters: [{name: "Meshmill Projects (.meshmill)", extensions: ["meshmill"]},{name: "All Files", extensions:["*"]}],
     });
     if (newfilename) filename = newfilename;
     return newfilename;

@@ -1,8 +1,5 @@
 var currentjob = null;
 var project = new Project();
-var progresspct;
-var progresstarget;
-var progressstarted;
 
 var LARGE_HEIGHTMAP_PX = 4e6; // how many pixels for large heightmap warning?
 
@@ -11,55 +8,6 @@ function showHeightmap(file) {
     var height = project.mesh.height;
     var depth = project.mesh.depth;
     HeightmapViewer(file, width, height, depth, project.mesh.min.x-scenemiddle.x, project.mesh.min.y-scenemiddle.y, project.mesh.min.z-scenemiddle.z);
-}
-
-function timefmt(millis) {
-    // TODO: hours, minutes, etc.
-    return (1+Math.round(millis/1000)) + " secs";
-}
-
-function progress(pct) {
-    $(`#${progresstarget}-pct`).val(pct);
-    if (pct == null) {
-        $(`#${progresstarget}-pct`).hide();
-    } else {
-        $(`#${progresstarget}-pct`).show();
-    }
-    progresspct = pct;
-
-    progressEta();
-}
-
-function progressEta() {
-    let pct = progresspct;
-    if (progressstarted) {
-        if (pct > 0) {
-            let howlong = Date.now()-progressstarted;
-            let howmuch = pct/100;
-            let timefor100 = howlong/howmuch;
-            let remaining = timefor100 - howlong;
-            $(`#${progresstarget}-eta`).text("ETA: " + timefmt(remaining));
-        } else {
-            $(`#${progresstarget}-eta`).text("ETA: ?");
-        }
-    } else {
-        $(`#${progresstarget}-eta`).text("");
-    }
-}
-window.api.receiveAll('progress', progress);
-
-window.setInterval(progressEta, 1000);
-
-function progressStart() {
-    progressstarted = Date.now();
-    progress(0);
-    $(`#${progresstarget}-cancel`).show();
-}
-
-function progressEnd() {
-    progressstarted = null;
-    progress(null);
-    $(`#${progresstarget}-cancel`).hide();
 }
 
 function cancelProcessing() {

@@ -1,5 +1,5 @@
 var currentjob = null;
-var project = new Project();
+var project;
 
 var LARGE_HEIGHTMAP_PX = 4e6; // how many pixels for large heightmap warning?
 
@@ -7,12 +7,6 @@ function showHeightmap(file) {
     var width = project.mesh.width;
     var height = project.mesh.height;
     var depth = project.mesh.depth;
-    if (Settings.show_heightmap_2d) {
-        $('#heightmap-img').show();
-        $('#heightmap-img').prop("src", file + "?" + Math.random()); // XXX: avoid cache
-    } else {
-        $('#heightmap-img').hide();
-    }
     HeightmapViewer(file, width, height, depth, project.mesh.min.x-scenemiddle.x, project.mesh.min.y-scenemiddle.y, project.mesh.min.z-scenemiddle.z);
 }
 
@@ -46,6 +40,7 @@ function showModel() {
     progressEnd();
 
     updateModel();
+    updateHeightmap();
     updateUnits();
     redrawTabs();
 }
@@ -81,6 +76,13 @@ function updateModel() {
 }
 
 function updateHeightmap() {
+    if (Settings.show_heightmap_2d && project.heightmap) {
+        $('#heightmap-img').show();
+        $('#heightmap-img').prop("src", project.heightmap + "?" + Math.random()); // XXX: avoid cache
+    } else {
+        $('#heightmap-img').hide();
+    }
+
     if (project.heightmap) {
         $('#addjob-tab').prop("disabled",false);
     } else {
@@ -253,4 +255,15 @@ $('#addjob-tab').click(function() {
     showJob(id);
 });
 
-showModel();
+function newProject() {
+    // TODO: warn if the project is unsaved
+    project = new Project();
+    $('#jobtabs').html('');
+    showModel();
+    showScene();
+}
+newProject();
+
+/* menu actions */
+
+window.api.receiveAll('new-project', newProject);

@@ -8,6 +8,10 @@ function showScene(geometry, recentre) {
     container = document.getElementById('scene');
     while(container.firstChild) container.removeChild(container.firstChild);
 
+    if (!geometry) {
+        return;
+    }
+
     renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: false,

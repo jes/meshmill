@@ -6,11 +6,18 @@ const { app, dialog, BrowserWindow, ipcMain, Menu } = require('electron');
 const { spawn } = require('child_process');
 const openAboutWindow = require('electron-about-window').default;
 
+let win;
+
 const template = [
     {
         label: 'File',
         submenu: [
-            { label: 'New' },
+            {
+                label: 'New',
+                click: async () => {
+                    win.webContents.send('new-project');
+                }
+            },
             { label: 'Open...' },
             { label: 'Save' },
             { label: 'Save as...' },
@@ -61,8 +68,6 @@ const template = [
 ];
 const menu = Menu.buildFromTemplate(template);
 Menu.setApplicationMenu(menu);
-
-let win;
 
 const createWindow = () => {
   win = new BrowserWindow({

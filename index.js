@@ -2,8 +2,65 @@ const path = require('path');
 const fs = require('fs');
 const tmp = require('tmp');
 const lineReader = require('line-reader');
-const { app, dialog, BrowserWindow, ipcMain } = require('electron');
+const { app, dialog, BrowserWindow, ipcMain, Menu } = require('electron');
 const { spawn } = require('child_process');
+const openAboutWindow = require('electron-about-window').default;
+
+const template = [
+    {
+        label: 'File',
+        submenu: [
+            { label: 'New' },
+            { label: 'Open...' },
+            { label: 'Save' },
+            { label: 'Save as...' },
+            { role: 'quit' },
+        ],
+    },
+    {
+        label: 'Edit',
+        submenu: [
+            { role: 'undo' },
+            { role: 'redo' },
+            { type: 'separator' },
+            { role: 'cut' },
+            { role: 'copy' },
+            { role: 'paste' },
+            { role: 'delete' },
+            { type: 'separator' },
+            { label: 'Preferences...' },
+        ],
+    },
+    { role: 'viewMenu' },
+    { role: 'windowMenu' },
+    { role: 'help',
+        submenu: [
+            {
+                label: 'Github project',
+                click: async () => {
+                    await require('electron').openExternal('https://github.com/jes/meshmill')
+                }
+            },
+
+            {
+                label: 'About Meshmill',
+                click: async () => {
+                    openAboutWindow({
+                        icon_path: '/home/jes/2993.png',
+                        product_name: 'Meshmill',
+                        homepage: 'https://github.com/jes/meshmill',
+                        bug_report_url: 'https://github.com/jes/meshmill/issues',
+                        description: 'Open source 3D CAM software.',
+                        copyright: 'By James Stanley <james@incoherency.co.uk>',
+                        adjust_window_size: true,
+                    });
+                }
+            }
+        ],
+    },
+];
+const menu = Menu.buildFromTemplate(template);
+Menu.setApplicationMenu(menu);
 
 let win;
 

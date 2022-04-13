@@ -23,6 +23,7 @@
     "tmp": "^0.2.1"
   },
   "dependencies": {
+    "electron-about-window": "^1.15.2",
     "electron-squirrel-startup": "^1.0.0",
     "line-reader": "^0.4.0",
     "tmp": "^0.2.1"

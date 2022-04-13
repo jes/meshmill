@@ -106,4 +106,5 @@ function addOriginVisualisation(scene, D) {
     addLine(scene, 0,0,0, D,0,0, 0xff0000);
     addLine(scene, 0,0,0, 0,D,0, 0x00ff00);
     addLine(scene, 0,0,0, 0,0,D, 0x0000ff);
+    // TODO: show arrows? show "X,Y,Z" ?
 }

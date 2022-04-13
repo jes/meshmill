@@ -81,6 +81,13 @@ const createWindow = () => {
   })
 
   win.loadFile('index.html')
+
+  win.on('close', (event) => {
+    if (win) {
+        event.preventDefault();
+        win.webContents.send('want-close');
+    }
+  });
 }
 
 app.whenReady().then(() => {
@@ -216,4 +223,23 @@ ipcMain.on('save-file', (event,arg) => {
     let dstfile = dialog.showSaveDialogSync();
     // TODO: alert on errors, feedback of success
     fs.copyFile(arg.file, dstfile, function(){});
+});
+
+ipcMain.on('copy-file', (event,arg) => {
+    // TODO: alert on errors, feedback of success
+    fs.copyFile(arg.src, arg.dst, function(){});
+});
+
+ipcMain.on('close', (event,arg) => {
+    win = null;
+    app.quit();
+});
+
+ipcMain.on('confirm-dialog', (event,arg) => {
+    dialog.showMessageBox({
+        buttons: [arg.yes, arg.no],
+        message: arg.text,
+    }).then((response) => {
+        win.webContents.send('confirm-dialog', response.response == 0);
+    });
 });

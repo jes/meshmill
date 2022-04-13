@@ -5,10 +5,12 @@ function Project() {
     this.mesh = {};
     this.resolution = 0.25;
     this.bottomside = false;
+    this.dirty = false;
 }
 
 // TODO: clone last job instead of starting afresh
 Project.prototype.addJob = function() {
+    this.dirty = true;
     this.jobs.push({
         tool: {
             shape: 'ball',
@@ -36,6 +38,7 @@ Project.prototype.addJob = function() {
 };
 
 Project.prototype.deleteJob = function(id) {
+    this.dirty = true;
     this.jobs.splice(id, 1);
 };
 
@@ -44,6 +47,7 @@ Project.prototype.getJob = function(id) {
 };
 
 Project.prototype.loadSTL = function(file, cb) {
+    this.dirty = true;
     this.stl = file;
     this.heightmap = null;
     var project = this;
@@ -60,6 +64,7 @@ Project.prototype.loadSTL = function(file, cb) {
 };
 
 Project.prototype.renderHeightmap = function(cb) {
+    this.dirty = true;
     var width = this.mesh.width / this.resolution;
     var project = this;
     window.api.receive('heightmap', function(r) {
@@ -76,6 +81,7 @@ Project.prototype.renderHeightmap = function(cb) {
 };
 
 Project.prototype.generateToolpath = function(id, cb) {
+    this.dirty = true;
     window.api.receive('toolpath', function(r) {
         if (r.error)
             alert(r.error);

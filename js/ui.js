@@ -255,8 +255,14 @@ $('#addjob-tab').click(function() {
     showJob(id);
 });
 
+/* menu actions */
+
+window.api.receiveAll('new-project', newProject);
+
 function newProject() {
-    // TODO: warn if the project is unsaved
+    if (project && project.dirty) {
+        // TODO: confirm new project, if the existing project is unsaved
+    }
     project = new Project();
     $('#jobtabs').html('');
     showModel();
@@ -264,6 +270,22 @@ function newProject() {
 }
 newProject();
 
-/* menu actions */
+function confirmDialog(msg, yes, no, cb) {
+    window.api.receive('confirm-dialog', cb);
+    window.api.send('confirm-dialog', {
+        text: msg,
+        yes: yes,
+        no: no,
+    });
+}
 
-window.api.receiveAll('new-project', newProject);
+window.api.receiveAll('want-close', function() {
+    if (project && project.dirty) {
+        confirmDialog("Project unsaved. Are you sure you want to quit?", "Quit", "Don't quit", function(confirmed) {
+            if (confirmed)
+                window.api.send("close");
+        });
+    } else {
+        window.api.send('close');
+    }
+});

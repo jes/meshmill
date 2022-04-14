@@ -9,9 +9,17 @@ const openAboutWindow = require('electron-about-window').default;
 const rmdir = require('rimraf');
 
 let win;
+let settingswin;
 
 let filename = null;
 let tmpnames = [];
+let settings = {
+    imperial: false,
+    workflow_hints: true,
+    show_heightmap_2d: true,
+    maxvel: 4000,
+    maxaccel: 50,
+};
 
 const template = [
     {
@@ -63,7 +71,22 @@ const template = [
             { role: 'paste' },
             { role: 'delete' },
             { type: 'separator' },
-            { label: 'Preferences...' },
+            {
+                label: 'Settings...',
+                click: async () => {
+                    settingswin = new BrowserWindow({
+                        parent: win,
+                        modal: true,
+                        width: 300,
+                        height: 300,
+                        webPreferences: {
+                          preload: path.join(__dirname, "preload.js"),
+                        },
+                    });
+                    settingswin.setMenu(null);
+                    settingswin.loadFile('settings.html');
+                },
+            }
         ],
     },
     { role: 'viewMenu' },
@@ -339,6 +362,17 @@ ipcMain.on('open-project', (event,arg,replychan) => {
     let f = getOpenFilename();
     if (f)
         win.webContents.send('open-project', f);
+});
+
+ipcMain.on('get-settings', (event,arg,replychan) => {
+    win.webContents.send(replychan, settings);
+});
+ipcMain.on('settings-get-settings', (event,arg,replychan) => {
+    settingswin.webContents.send(replychan, settings);
+});
+ipcMain.on('set-settings', (event,arg,replychan) => {
+    settings = arg;
+    win.webContents.send('set-settings', settings);
 });
 
 function getSaveFilename() {

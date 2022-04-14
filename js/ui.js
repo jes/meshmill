@@ -342,3 +342,9 @@ window.api.receive('want-close', function() {
         window.api.send('close');
     }
 });
+
+window.api.receive('set-settings', function(s) {
+    Settings = s;
+    updateUnits();
+    updateHeightmap();
+});

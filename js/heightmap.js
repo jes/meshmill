@@ -1,6 +1,6 @@
 /* based on https://stackoverflow.com/q/70609456 */
 
-function HeightmapViewer(file, size, offset, origin) {
+function HeightmapViewer(file, size, offset, origin, cb) {
     var img = new Image();
     img.src = file + "?" + Math.random(); // XXX: avoid cache: but why are local files being cached?
     img.onload = function () {
@@ -60,5 +60,7 @@ function HeightmapViewer(file, size, offset, origin) {
         showScene(geom, {
             origin: origin,
         });
+
+        if (cb) cb();
     };
 }

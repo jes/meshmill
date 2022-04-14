@@ -3,7 +3,7 @@ var project;
 
 var LARGE_HEIGHTMAP_PX = 4e6; // how many pixels for large heightmap warning?
 
-function showHeightmap(file) {
+function showHeightmap(file, cb) {
     var width = project.mesh.width;
     var height = project.mesh.height;
     var depth = project.mesh.depth;
@@ -15,7 +15,8 @@ function showHeightmap(file) {
         y: project.mesh.min.y,
         z: project.mesh.min.z,
     },
-    project.mesh.origin);
+    project.mesh.origin,
+    cb);
 }
 
 function showToolpath(file) {
@@ -23,8 +24,9 @@ function showToolpath(file) {
     var middley = (project.mesh.min.y+project.mesh.max.y)/2 - project.mesh.origin.y;
     var middlez = (project.mesh.min.z+project.mesh.max.z)/2 - project.mesh.origin.z;
 
-    showHeightmap(project.heightmap);
-    ToolpathViewer(file, middlex, middley, middlez);
+    showHeightmap(project.heightmap, function() {
+        ToolpathViewer(file, middlex, middley, middlez);
+    });
 }
 
 function cancelProcessing() {

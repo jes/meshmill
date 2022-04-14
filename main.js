@@ -242,15 +242,17 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
         });
 
         pngcam.on('close', (code) => {
-            if (code !== 0) {
-                win.webContents.send(replychan, {
-                    error: `pngcam exited with code ${code}`,
-                });
-            } else {
-                win.webContents.send(replychan, {
-                    file: gcodeFile,
-                });
-            }
+            gcodeStream.end(function() {
+                if (code !== 0) {
+                    win.webContents.send(replychan, {
+                        error: `pngcam exited with code ${code}`,
+                    });
+                } else {
+                    win.webContents.send(replychan, {
+                        file: gcodeFile,
+                    });
+                }
+            });
         });
     });
 });

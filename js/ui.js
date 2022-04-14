@@ -77,12 +77,14 @@ function updateModel() {
         var fmt = function(f) {
             return Math.round(f*100)/100;
         }
+        $('#triangles').text(project.mesh.triangles);
         $('#bounds').html(`X: ${fmt(project.mesh.min.x)} to ${fmt(project.mesh.max.x)} (${fmt(project.mesh.width)})<br>Y: ${fmt(project.mesh.min.y)} to ${fmt(project.mesh.max.y)} (${fmt(project.mesh.height)})<br>Z: ${fmt(project.mesh.min.z)} to ${fmt(project.mesh.max.z)} (${fmt(project.mesh.depth)})`);
 
         $('#reloadstl').prop("disabled",false);
         $('#render-heightmap').prop("disabled",false);
     } else {
         $('#heightmapsize').text('?');
+        $('#triangles').text(0);
         $('#bounds').html('X:<br>Y:<br>Z:<br>');
         $('#reloadstl').prop("disabled",true);
         $('#render-heightmap').prop("disabled",true);

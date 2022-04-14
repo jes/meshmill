@@ -6,10 +6,12 @@ const { app, dialog, BrowserWindow, ipcMain, Menu } = require('electron');
 const { spawn } = require('child_process');
 const tar = require('tar');
 const openAboutWindow = require('electron-about-window').default;
+const rmdir = require('rimraf');
 
 let win;
 
 let filename = null;
+let tmpnames = [];
 
 const template = [
     {
@@ -192,6 +194,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     // temporary file until successful, then move to the project
     // folder
     let gcodeFile = tmp.fileSync().name;
+    tmpnames.push(gcodeFile);
     let gcodeStream = fs.createWriteStream(gcodeFile);
     gcodeStream.on('open', function() {
         let pngcam = spawn(path.join(__dirname, 'bin/perlrun'), opts, {
@@ -283,6 +286,12 @@ ipcMain.on('read-file', (event,arg,replychan) => {
 
 ipcMain.on('close', (event,arg) => {
     win = null;
+    // remove temporary directories
+    for (var i = 0; i < tmpnames.length; i++) {
+        rmdir(tmpnames[i], (err) => {
+            if (err) console.log(err);
+        });
+    }
     app.quit();
 });
 
@@ -297,6 +306,7 @@ ipcMain.on('confirm-dialog', (event,arg,replychan) => {
 
 ipcMain.on('tmpdir', (event,arg,replychan) => {
     var dir = tmp.dirSync().name;
+    tmpnames.push(dir);
     win.webContents.send(replychan, dir);
 });
 

@@ -85,7 +85,7 @@ sub one_pass {
 
     # move to origin
     print "G91 G1 Z$self->{rapid_clearance} F$self->{rapid_feedrate}\n"; # raise up 5mm relative to whatever Z is currently at
-    print "G90 G0 X0 Y0 F$self->{rapid_feedrate}\n"; # move to (0, 0) in x/y plane
+    print "G90 G0 X$self->{x_offset} Y$self->{y_offset} F$self->{rapid_feedrate}\n"; # absolute coordinates, move to start point
 
     my ($x, $y, $z) = (0, 0, 0); # mm
 
@@ -255,8 +255,6 @@ sub one_pass {
         my $xy_dist = sqrt($dx*$dx + $dy*$dy);
         my $z_dist = $p->{z} - $last->{z};
         my $total_dist = sqrt($xy_dist*$xy_dist + $z_dist*$z_dist);
-
-        next if $xy_dist == 0 && $z_dist == 0;
 
         my $feed_rate;
         if ($p->{G} eq '_G0') {

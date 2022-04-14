@@ -13,6 +13,7 @@ let settingswin;
 
 let filename = null;
 let tmpnames = [];
+
 let settings = {
     imperial: false,
     workflow_hints: true,
@@ -20,6 +21,12 @@ let settings = {
     maxvel: 4000,
     maxaccel: 50,
 };
+let settingsfile = path.join(app.getPath('userData'), 'meshmill.json');
+try {
+    settings = JSON.parse(fs.readFileSync(settingsfile));
+} catch(err) {
+    console.log(err);
+}
 
 const template = [
     {
@@ -132,6 +139,9 @@ const createWindow = () => {
   })
 
   win.loadFile('index.html')
+
+  // TODO: is there a race window here?
+  win.webContents.send('set-settings', settings);
 
   win.on('close', (event) => {
     if (win) {
@@ -372,6 +382,7 @@ ipcMain.on('settings-get-settings', (event,arg,replychan) => {
 });
 ipcMain.on('set-settings', (event,arg,replychan) => {
     settings = arg;
+    fs.writeFileSync(settingsfile, JSON.stringify(settings));
     win.webContents.send('set-settings', settings);
 });
 

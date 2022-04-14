@@ -20,6 +20,7 @@ function showToolpath(file) {
     var middley = (project.mesh.min.y+project.mesh.max.y)/2;
     var middlez = (project.mesh.min.z+project.mesh.max.z)/2;
 
+    showHeightmap(project.heightmap);
     ToolpathViewer(file, middlex, middley, middlez);
 }
 

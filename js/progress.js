@@ -66,4 +66,7 @@ function progressEnd() {
     $(`#${progresstarget}-cancel`).hide();
 }
 
-
+function progressReset() {
+    progressstate = {};
+    progressEnd();
+}

@@ -51,7 +51,7 @@ function showModel() {
     $('#resolution').val(project.resolution);
 
     progresstarget = 'model';
-    progressEnd();
+    progressReset();
 
     updateModel();
     updateHeightmap();
@@ -163,7 +163,7 @@ function showJob(id) {
     $('#clearbottom').val(job.path.clearbottom);
 
     progresstarget = 'toolpath';
-    progressEnd();
+    progressReset();
 
     updateJob();
     updateUnits();

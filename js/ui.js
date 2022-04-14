@@ -367,3 +367,5 @@ window.api.receive('set-settings', function(s) {
     updateUnits();
     updateHeightmap();
 });
+
+window.api.send('get-settings');

@@ -140,9 +140,6 @@ const createWindow = () => {
 
   win.loadFile('index.html')
 
-  // TODO: is there a race window here?
-  win.webContents.send('set-settings', settings);
-
   win.on('close', (event) => {
     if (win) {
         event.preventDefault();
@@ -376,7 +373,7 @@ ipcMain.on('open-project', (event,arg,replychan) => {
 });
 
 ipcMain.on('get-settings', (event,arg,replychan) => {
-    win.webContents.send(replychan, settings);
+    win.webContents.send(replychan||'set-settings', settings);
 });
 ipcMain.on('settings-get-settings', (event,arg,replychan) => {
     settingswin.webContents.send(replychan, settings);

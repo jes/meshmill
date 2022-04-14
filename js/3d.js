@@ -8,9 +8,7 @@ function showScene(geometry, opts) {
     container = document.getElementById('scene');
     while(container.firstChild) container.removeChild(container.firstChild);
 
-    if (!geometry) {
-        return;
-    }
+    if (!geometry) return;
 
     renderer = new THREE.WebGLRenderer({
         antialias: true,
@@ -28,6 +26,7 @@ function showScene(geometry, opts) {
     var mesh = new THREE.Mesh(geometry, material);
 
     geometry.computeBoundingBox();
+    var largestDimension = Math.max(geometry.boundingBox.max.x, geometry.boundingBox.max.y, geometry.boundingBox.max.z);
     if (opts.recentre || !scenemiddle) {
         scenemiddle = new THREE.Vector3(0,0,0);
         geometry.boundingBox.getCenter(scenemiddle);
@@ -37,17 +36,16 @@ function showScene(geometry, opts) {
     /* TODO: try to use an orthographic camera (but it seems like
      * lights don't work if they're attached to an orthographic
      * camera?) */
-    /* TODO: don't reset the camera every time a new model is drawn */
-    camera = new THREE.PerspectiveCamera(70, container.clientWidth/container.clientHeight, 1, 1000);
+    if (opts.recentre || !camera) {
+        camera = new THREE.PerspectiveCamera(70, container.clientWidth/container.clientHeight, 1, 1000);
+        camera.add(new THREE.DirectionalLight(0xffffff, 0.75));
+        camera.position.z = largestDimension * 2;
+    }
 
     scene = new THREE.Scene();
     scene.add(mesh);
     scene.add(new THREE.AmbientLight(0xffffff, 0.25));
-    camera.add(new THREE.DirectionalLight(0xffffff, 0.75));
     scene.add(camera);
-
-    var largestDimension = Math.max(geometry.boundingBox.max.x, geometry.boundingBox.max.y, geometry.boundingBox.max.z);
-    camera.position.z = largestDimension * 2;
 
     let origin = {...opts.origin} || { x:0, y:0, z:0 };
     origin.x -= scenemiddle.x;

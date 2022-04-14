@@ -1,4 +1,4 @@
-let SAVE_FIELDS = ['jobs', 'stl', 'heightmap', 'mesh', 'resolution', 'bottomside'];
+let SAVE_FIELDS = ['jobs', 'stl', 'heightmap', 'mesh', 'resolution', 'bottomside', 'imperial'];
 
 function Project(cb) {
     this.jobs = [];
@@ -7,6 +7,7 @@ function Project(cb) {
     this.mesh = {};
     this.resolution = 0.25;
     this.bottomside = false;
+    this.imperial = Settings.imperial;
 
     this.dirty = false;
     this.tmpdir = null;

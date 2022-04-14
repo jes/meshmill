@@ -30,10 +30,6 @@ I want to add diagrams that make crystal clear what each setting is actually adj
 
 ## Important stuff please read
 
-* When a heightmap is generated from a file called `/foo/bar.stl`, it will be written to `/foo/bar.stl.png`, potentially
-polluting your working directories. Eventually this will be fixed. In particular, note that if `/foo/bar.stl.png` is not
-writable it won't work.
-
 * It has lots of bugs and UI glitches. I know of many of them, but if you spot one and you want to help out, please
 create a Github Issue, or send me an email if you're not on Github: james@incoherency.co.uk.
 
@@ -47,9 +43,9 @@ paths are something close to what Meshmill rendered.
 
 1. Download a release from the Releases page.
 
-2. `chmod +x meshmill-0.0.1.AppImage`
+2. `chmod +x meshmill-0.0.2.AppImage`
 
-3. `./meshmill-0.0.1.AppImage`
+3. `./meshmill-0.0.2.AppImage`
 
 4. Load your STL file in the "MODEL" tab.
 

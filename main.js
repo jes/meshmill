@@ -221,6 +221,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     if (arg.rampentry) opts.push('--ramp-entry');
     if (arg.omittop) opts.push('--omit-top');
     if (arg.clearbottom) opts.push('--deep-black');
+    if (arg.imperial) opts.push('--imperial');
 
     opts.push(arg.heightmap);
     // TODO: write outputs to project folder; also, write to a

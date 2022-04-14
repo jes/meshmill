@@ -32,7 +32,7 @@ $('#model-cancel').click(cancelProcessing);
 $('#toolpath-cancel').click(cancelProcessing);
 
 function updateUnits() {
-    if (Settings.imperial) {
+    if (project.imperial) {
         $('.unit-mm').text('inches');
         $('.unit-mmmin').text('inches/min');
     } else {
@@ -345,6 +345,7 @@ window.api.receive('want-close', function() {
 
 window.api.receive('set-settings', function(s) {
     Settings = s;
+    project.imperial = Settings.imperial;
     updateUnits();
     updateHeightmap();
 });

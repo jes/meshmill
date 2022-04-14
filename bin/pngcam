@@ -42,9 +42,10 @@ sub run {
     my ($self) = @_;
 
     if (!$self->{quiet}) {
-        print STDERR "$self->{pxwidth}x$self->{pxheight} px depth map. $self->{width}x$self->{height} mm work piece.\n";
-        print STDERR "X resolution is $self->{x_px_mm} px/mm. Y resolution is $self->{y_px_mm} px/mm.\n";
-        print STDERR "Step-over is $self->{step_over} mm = " . sprintf("%.2f", $self->{step_over} * $self->{x_px_mm}) . " px in X and " . sprintf("%.2f", $self->{step_over} * $self->{y_px_mm}) . " px in Y\n";
+        my $unit = $self->{imperial} ? 'inches' : 'mm';
+        print STDERR "$self->{pxwidth}x$self->{pxheight} px depth map. $self->{width}x$self->{height} $unit work piece.\n";
+        print STDERR "X resolution is $self->{x_px_mm} px/$unit. Y resolution is $self->{y_px_mm} px/$unit.\n";
+        print STDERR "Step-over is $self->{step_over} $unit = " . sprintf("%.2f", $self->{step_over} * $self->{x_px_mm}) . " px in X and " . sprintf("%.2f", $self->{step_over} * $self->{y_px_mm}) . " px in Y\n";
         print STDERR "\n";
     }
 
@@ -53,7 +54,7 @@ sub run {
     }
 
     # setup defaults
-    print "G21\n"; # units in mm
+    print $self->{imperial} ? "G20\n" : "G21\n"; # units in inches or mm
     print "G90\n"; # absolute coordinates
     print "G54\n"; # work coordinate system
 
@@ -461,6 +462,7 @@ my $invert;
 my $deep_black;
 my $normalise;
 my $normalise_ignore_black;
+my $imperial;
 
 my $quiet;
 
@@ -493,6 +495,7 @@ GetOptions(
     'deep-black' => \$deep_black,
     'normalise' => \$normalise,
     'normalise-ignore-black' => \$normalise_ignore_black,
+    'imperial' => \$imperial,
 
     'quiet' => \$quiet,
 
@@ -538,6 +541,7 @@ my $pngcam = Pngcam->new(
     deep_black => $deep_black,
     normalise => $normalise,
     normalise_ignore_black => $normalise_ignore_black,
+    imperial => $imperial,
 
     quiet => $quiet,
 
@@ -658,6 +662,10 @@ Heightmap options:
         When normalising, ignore black (i.e. stretch all brightnesses apart from black, but leave black alone).
         Note that normalisation is applied before inversion, so if you need this with --invert, you might have to invert the image externally instead.
         Default: don't ignore black
+
+    --imperial
+        All units are inches instead of mm, and inches/min instead of mm/min. G-code output has G20 instead of G21.
+        Default: not imperial.
 
 Output options:
 

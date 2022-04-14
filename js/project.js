@@ -127,6 +127,7 @@ Project.prototype.generateToolpath = function(id, cb) {
             y: this.mesh.max.y,
             z: this.mesh.max.z,
         },
+        imperial: this.imperial,
     }, function(r) {
         if (r.error)
             alert(r.error);

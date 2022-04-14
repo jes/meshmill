@@ -2,7 +2,6 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
     send: (channel,data,cb) => { // or (channel,cb)
-        console.log("SEND: " + channel);
         if (data instanceof Function) {
             cb = data;
             data = undefined;

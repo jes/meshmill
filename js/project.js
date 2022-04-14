@@ -1,4 +1,4 @@
-let SAVE_FIELDS = ['jobs', 'stl', 'heightmap', 'mesh', 'resolution', 'bottomside', 'imperial'];
+let SAVE_FIELDS = ['jobs', 'stl', 'heightmap', 'mesh', 'resolution', 'bottomside', 'imperial', 'xyorigin', 'zorigin'];
 
 function Project(cb) {
     this.jobs = [];
@@ -8,6 +8,8 @@ function Project(cb) {
     this.resolution = 0.25;
     this.bottomside = false;
     this.imperial = Settings.imperial;
+    this.xyorigin = 'fromstl';
+    this.zorigin = 'fromstl';
 
     this.dirty = false;
     this.tmpdir = null;
@@ -93,6 +95,7 @@ Project.prototype.loadSTL = function(file, cb) {
             project.mesh.width = bb.max.x-bb.min.x;
             project.mesh.height = bb.max.y-bb.min.y;
             project.mesh.depth = bb.max.z-bb.min.z;
+            project.calculateOrigin();
             if (cb) cb();
         });
     });
@@ -123,9 +126,9 @@ Project.prototype.generateToolpath = function(id, cb) {
         width: this.mesh.width,
         depth: this.mesh.depth,
         offset: {
-            x: this.mesh.min.x,
-            y: this.mesh.max.y,
-            z: this.mesh.max.z,
+            x: this.mesh.min.x-this.mesh.origin.x,
+            y: this.mesh.max.y-this.mesh.origin.y,
+            z: this.mesh.max.z-this.mesh.origin.z,
         },
         imperial: this.imperial,
     }, function(r) {
@@ -220,4 +223,63 @@ Project.prototype.open = function(filename, cb) {
             cb();
         });
     });
+};
+
+Project.prototype.calculateOrigin = function() {
+    this.mesh.origin = {};
+
+    switch (this.xyorigin) {
+    case 'fromstl':
+        this.mesh.origin.x = 0;
+        this.mesh.origin.y = 0;
+        break;
+    case 'centre':
+        this.mesh.origin.x = (this.mesh.min.x+this.mesh.max.x)/2;
+        this.mesh.origin.y = (this.mesh.min.y+this.mesh.max.y)/2;
+        break;
+    case 'topleft':
+        this.mesh.origin.x = this.mesh.min.x;
+        this.mesh.origin.y = this.mesh.max.y;
+        break;
+    case 'bottomleft':
+        this.mesh.origin.x = this.mesh.min.x;
+        this.mesh.origin.y = this.mesh.min.y;
+        break;
+    case 'topright':
+        this.mesh.origin.x = this.mesh.max.x;
+        this.mesh.origin.y = this.mesh.max.y;
+        break;
+    case 'bottomright':
+        this.mesh.origin.x = this.mesh.max.x;
+        this.mesh.origin.y = this.mesh.min.y;
+        break;
+    default:
+        throw "illegal xy origin: " + origin;
+    }
+
+    switch (this.zorigin) {
+    case 'fromstl':
+        this.mesh.origin.z = 0;
+        break;
+    case 'top':
+        this.mesh.origin.z = this.mesh.max.z;
+        break;
+    case 'bottom':
+        this.mesh.origin.z = this.mesh.min.z;
+        break;
+    default:
+        throw "illegal z origin: " + origin;
+    }
+};
+
+Project.prototype.setXYOrigin = function(origin) {
+    this.xyorigin = origin;
+    this.dirty = true;
+    this.calculateOrigin();
+};
+
+Project.prototype.setZOrigin = function(origin) {
+    this.zorigin = origin;
+    this.dirty = true;
+    this.calculateOrigin();
 };

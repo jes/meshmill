@@ -8,17 +8,20 @@ function showHeightmap(file) {
     var height = project.mesh.height;
     var depth = project.mesh.depth;
 
-    var middlex = (project.mesh.min.x+project.mesh.max.x)/2;
-    var middley = (project.mesh.min.y+project.mesh.max.y)/2;
-    var middlez = (project.mesh.min.z+project.mesh.max.z)/2;
-
-    HeightmapViewer(file, width, height, depth, project.mesh.min.x-middlex, project.mesh.min.y-middley, project.mesh.min.z-middlez);
+    HeightmapViewer(file, {
+        x:width, y:height, z:depth, // size
+    }, { // offset
+        x: project.mesh.min.x,
+        y: project.mesh.min.y,
+        z: project.mesh.min.z,
+    },
+    project.mesh.origin);
 }
 
 function showToolpath(file) {
-    var middlex = (project.mesh.min.x+project.mesh.max.x)/2;
-    var middley = (project.mesh.min.y+project.mesh.max.y)/2;
-    var middlez = (project.mesh.min.z+project.mesh.max.z)/2;
+    var middlex = (project.mesh.min.x+project.mesh.max.x)/2 - project.mesh.origin.x;
+    var middley = (project.mesh.min.y+project.mesh.max.y)/2 - project.mesh.origin.y;
+    var middlez = (project.mesh.min.z+project.mesh.max.z)/2 - project.mesh.origin.z;
 
     showHeightmap(project.heightmap);
     ToolpathViewer(file, middlex, middley, middlez);
@@ -59,10 +62,13 @@ function showModel() {
     redrawTabs();
 }
 
+// TODO: this function is used for both reloading the STL from disk and re-rendering the STL
+// at a new origin - these need to be split up eventually because sometimes we want to re-render
+// the STL without reloading the original file
 function loadSTL() {
     project.loadSTL($('#stlfile')[0].files[0].path, function() {
         updateModel();
-        STLViewer(project.stl);
+        STLViewer(project.stl, project.mesh.origin);
     });
 }
 
@@ -114,6 +120,18 @@ $('#stlfile').change(function() {
 
 $('#reloadstl').click(function() {
     loadSTL();
+});
+
+$('#xyorigin').change(function() {
+    project.setXYOrigin($('#xyorigin').val());
+    if (project.heightmap) showHeightmap(project.heightmap);
+    else if (project.stl) STLViewer(project.stl, project.mesh.origin);
+});
+
+$('#zorigin').change(function() {
+    project.setZOrigin($('#zorigin').val());
+    if (project.heightmap) showHeightmap(project.heightmap);
+    else if (project.stl) STLViewer(project.stl, project.mesh.origin);
 });
 
 $('#render-heightmap').click(function() {
@@ -312,7 +330,7 @@ function openProject(filename) {
                 addJobTab(i);
             showModel();
             if (project.heightmap) showHeightmap(project.heightmap);
-            else if (project.stl) STLViewer(project.stl);
+            else if (project.stl) STLViewer(project.stl, project.mesh.origin);
         });
     });
 }

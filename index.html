@@ -17,13 +17,31 @@
             <div id="options">
                 <div id="model-options">
                     Model: <input id="stlfile" type="file"><br>
-                    <small><button id="reloadstl">Reload from disk</button></small>
+                    <small><button id="reloadstl">Reload from disk</button></small><br>
+                    <span id="triangles"></span> triangles
 
                     <hr>
 
-                    <span id="triangles"></span> triangles<br>
+                    <table>
+                    <tr><td class="formlabel">XY origin:</td><td colspan="2"><select id="xyorigin">
+                        <option value="fromstl">From STL model</option>
+                        <option value="centre">Centre</option>
+                        <option value="topleft">Top left</option>
+                        <option value="bottomleft">Bottom left</option>
+                        <option value="topright">Top right</option>
+                        <option value="bottomright">Bottom right</option>
+                        <!-- TODO: custom coordinates? -->
+                    </select></td></tr>
+                    <tr><td class="formlabel">Z origin:</td><td colspan="2"><select id="zorigin">
+                        <option value="fromstl">From STL model</option>
+                        <option value="top">Top surface</option>
+                        <option value="bottom">Bottom surface</option>
+                        <!-- TODO: custom coordinates? -->
+                    </select></td></tr>
+                    </table>
+
                     Bounds:<br>
-                    <span id="bounds"></span><br>
+                    <span id="bounds"></span>
 
                     <hr>
                     <table>

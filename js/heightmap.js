@@ -1,15 +1,15 @@
 /* based on https://stackoverflow.com/q/70609456 */
 
-function HeightmapViewer(file, x_mm, y_mm, z_mm, xoff, yoff, zoff) {
+function HeightmapViewer(file, size, offset, origin) {
     var img = new Image();
     img.src = file + "?" + Math.random(); // XXX: avoid cache: but why are local files being cached?
     img.onload = function () {
         var w = img.width;
         var h = img.height;
 
-        var x_mmperpx = x_mm / w;
-        var y_mmperpx = y_mm / h;
-        var z_mmperbrightness = z_mm / 255;
+        var x_mmperpx = size.x / w;
+        var y_mmperpx = size.y / h;
+        var z_mmperbrightness = size.z / 255;
 
         var canvas = document.createElement('canvas');
         canvas.width = w;
@@ -23,9 +23,9 @@ function HeightmapViewer(file, x_mm, y_mm, z_mm, xoff, yoff, zoff) {
 
         // add the coordinate for (x,y) to vertices[idx .. idx+2]
         var addVertex = function(x,y,idx) {
-            vertices[idx] = x*x_mmperpx + xoff;
-            vertices[idx+1] = (h-y-1)*y_mmperpx + yoff;
-            vertices[idx+2] = pixel.data[(y*w+x)*4] * z_mmperbrightness + zoff;
+            vertices[idx] = x*x_mmperpx + offset.x;
+            vertices[idx+1] = (h-y-1)*y_mmperpx + offset.y;
+            vertices[idx+2] = pixel.data[(y*w+x)*4] * z_mmperbrightness + offset.z;
         };
 
         // add each square from the heightmap as 2 triangles
@@ -57,6 +57,8 @@ function HeightmapViewer(file, x_mm, y_mm, z_mm, xoff, yoff, zoff) {
         geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         geom.computeVertexNormals(true);
         
-        showScene(geom);
+        showScene(geom, {
+            origin: origin,
+        });
     };
 }

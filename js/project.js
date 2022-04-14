@@ -21,7 +21,7 @@ function Project(cb) {
 // TODO: clone last job instead of starting afresh
 Project.prototype.addJob = function() {
     this.dirty = true;
-    this.jobs.push({
+    let defaultJob = {
         tool: {
             shape: 'ball',
             diameter: 6,
@@ -43,7 +43,17 @@ Project.prototype.addJob = function() {
             clearbottom: false,
         },
         gcodefile: null,
-    });
+    };
+
+    let clone = function(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    };
+
+    // copy last job if any
+    let newJob = this.jobs.length ? clone(this.jobs[this.jobs.length-1]) : defaultJob;
+
+    this.jobs.push(newJob);
+
     return this.jobs.length-1;
 };
 

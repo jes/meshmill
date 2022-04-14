@@ -193,7 +193,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     // TODO: write outputs to project folder; also, write to a
     // temporary file until successful, then move to the project
     // folder
-    let gcodeFile = tmp.fileSync().name;
+    let gcodeFile = tmp.fileSync({prefix:'meshmill', postfix:'.gcode'}).name;
     tmpnames.push(gcodeFile);
     let gcodeStream = fs.createWriteStream(gcodeFile);
     gcodeStream.on('open', function() {
@@ -305,7 +305,7 @@ ipcMain.on('confirm-dialog', (event,arg,replychan) => {
 });
 
 ipcMain.on('tmpdir', (event,arg,replychan) => {
-    var dir = tmp.dirSync().name;
+    var dir = tmp.dirSync({prefix:'meshmill'}).name;
     tmpnames.push(dir);
     win.webContents.send(replychan, dir);
 });

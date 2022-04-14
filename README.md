@@ -59,10 +59,6 @@ and cutting tools.
 7. Set your cutting parameters and click "Generate toolpath". Once it is generated it will be displayed on
 top of the model in purple.
 
-**Note** that if you now edit the parameters and generate another toolpath, the
-first one will still be displayed. This is a known bug, ignore it for now. If you want to clear out the
-toolpaths, go to the "MODEL" tab and re-render the heightmap.
-
 8. Once you're happy with how your toolpath looks, use the "Save G-code" button to save it somewhere.
 
 ## Development

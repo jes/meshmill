@@ -309,7 +309,6 @@ function openProject(filename) {
             for (var i = 0; i < project.jobs.length; i++)
                 addJobTab(i);
             showModel();
-            console.log(project);
             if (project.heightmap) showHeightmap(project.heightmap);
             else if (project.stl) STLViewer(project.stl);
         });

@@ -156,7 +156,6 @@ Project.prototype.save = function(filename) {
     // XXX: could workingDir() plausibly coincide with some text
     // that happens to exist in places we don't want to replace it?
     let newjson = json.replaceAll(this.workingDir(), "$TMPDIR$");
-    console.log(newjson);
 
     // 1. write out json of the state
     window.api.send('write-file', {
@@ -192,7 +191,6 @@ Project.prototype.open = function(filename, cb) {
         file: filename,
         dir: this.workingDir(),
     }, function(err) {
-        console.log("untarred to " + project.workingDir());
         if (err) {
             alert(err);
             return;
@@ -215,7 +213,6 @@ Project.prototype.open = function(filename, cb) {
             }
 
             // 3. done!
-            console.log("FINISHED LOADING");
             project.dirty = false;
             cb();
         });

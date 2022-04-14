@@ -130,8 +130,6 @@ ipcMain.on('render-heightmap', (event,arg,replychan) => {
     let opts = ['pngcam-render', '--border', '0', '--width', arg.width];
     if (arg.bottom) opts.push('--bottom');
 
-    console.log("Render heightmap for " + arg.stl);
-
     opts.push(arg.stl);
     // TODO: write outputs to project folder; also, write to a
     // temporary file until successful, then move to the project
@@ -260,7 +258,7 @@ ipcMain.on('save-file', (event,arg) => {
 
 ipcMain.on('copy-file', (event,arg,replychan) => {
     fs.copyFile(arg.src, arg.dst, 0, function(err) {
-            if (err) console.log(err);
+        if (err) console.log(err);
         let resp = err ? null : arg.dst;
         win.webContents.send(replychan, resp);
     });
@@ -316,15 +314,12 @@ ipcMain.on('tar-up', (event,arg,replychan) => {
 });
 
 ipcMain.on('untar', (event,arg,replychan) => {
-    console.log("untar");
-    console.log(arg);
     tar.extract({
         file: arg.file,
         cwd: arg.dir,
     }).then(_ => {
         win.webContents.send(replychan, null);
     }).catch(err => {
-        console.log("untar error");
         console.log(err);
         win.webContents.send(replychan, err);
     });

@@ -55,6 +55,8 @@ Project.prototype.addJob = function() {
     // copy last job if any
     let newJob = this.jobs.length ? clone(this.jobs[this.jobs.length-1]) : defaultJob;
 
+    newJob.gcodefile = null;
+
     this.jobs.push(newJob);
 
     return this.jobs.length-1;

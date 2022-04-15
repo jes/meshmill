@@ -61,7 +61,13 @@ function showModel() {
     updateModel();
     updateHeightmap();
     updateUnits();
+    drawModel();
     redrawTabs();
+}
+
+function drawModel() {
+    if (project.heightmap) showHeightmap(project.heightmap);
+    else if (project.stl) STLViewer(project.stl, project.mesh.origin);
 }
 
 // TODO: this function is used for both reloading the STL from disk and re-rendering the STL
@@ -126,14 +132,12 @@ $('#reloadstl').click(function() {
 
 $('#xyorigin').change(function() {
     project.setXYOrigin($('#xyorigin').val());
-    if (project.heightmap) showHeightmap(project.heightmap);
-    else if (project.stl) STLViewer(project.stl, project.mesh.origin);
+    drawModel();
 });
 
 $('#zorigin').change(function() {
     project.setZOrigin($('#zorigin').val());
-    if (project.heightmap) showHeightmap(project.heightmap);
-    else if (project.stl) STLViewer(project.stl, project.mesh.origin);
+    drawModel();
 });
 
 $('#render-heightmap').click(function() {
@@ -187,7 +191,13 @@ function showJob(id) {
 
     updateJob();
     updateUnits();
+    drawJob();
     redrawTabs();
+}
+
+function drawJob() {
+    if (project.jobs[currentjob].gcodefile) showToolpath(project.jobs[currentjob].gcodefile);
+    else drawModel();
 }
 
 function updateJob() {
@@ -225,8 +235,7 @@ $('#generate-toolpath').click(function() {
     project.generateToolpath(currentjob, function(file) {
         progressEnd();
         updateJob();
-        if (file)
-            showToolpath(file);
+        drawJob();
         // TODO: show cycle time estimate
     });
 });
@@ -331,8 +340,6 @@ function openProject(filename) {
             for (var i = 0; i < project.jobs.length; i++)
                 addJobTab(i);
             showModel();
-            if (project.heightmap) showHeightmap(project.heightmap);
-            else if (project.stl) STLViewer(project.stl, project.mesh.origin);
         });
     });
 }

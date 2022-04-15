@@ -68,6 +68,7 @@ function showModel() {
 function drawModel() {
     if (project.heightmap) showHeightmap(project.heightmap);
     else if (project.stl) STLViewer(project.stl, project.mesh.origin);
+    else showScene();
 }
 
 // TODO: this function is used for both reloading the STL from disk and re-rendering the STL

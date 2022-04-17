@@ -103,7 +103,7 @@ const template = [
             {
                 label: 'Github project',
                 click: async () => {
-                    await require('electron').openExternal('https://github.com/jes/meshmill')
+                    await require('electron').shell.openExternal('https://github.com/jes/meshmill')
                 }
             },
 
@@ -112,6 +112,7 @@ const template = [
                 click: async () => {
                     openAboutWindow({
                         icon_path: path.join(__dirname, 'img/logo.png'),
+                        css_path: path.join(__dirname, 'css/about.css'),
                         product_name: 'Meshmill',
                         homepage: 'https://github.com/jes/meshmill',
                         bug_report_url: 'https://github.com/jes/meshmill/issues',

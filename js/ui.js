@@ -67,7 +67,7 @@ function showModel() {
 
 function drawModel() {
     if (project.heightmap) showHeightmap(project.heightmap);
-    else if (project.stl) STLViewer(project.stl, project.mesh.origin);
+    else if (project.stl) STLViewer(project.stl, project.mesh.origin); // TODO: don't recentre the view unless the model is genuinely new
     else showScene();
 }
 

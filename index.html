@@ -106,7 +106,7 @@
                     <button id="toolpath-cancel">Stop</button> <progress max="100" id="toolpath-pct"></progress><br>
                     <span id="toolpath-eta"></span><br>
                     <button id="save-gcode">Save G-code</button><br>
-                    Cycle time estimate: <span id="cycletime">45m23s</span><br>
+                    <div class="has-tooltip"><div class="tooltip">Rough estimate of how long it will take for the job to complete.</div></div>Cycle time estimate: <span id="cycletime">?</span><br>
                     <small><button id="deletejob">Delete job</button></small><br>
                 </div>
             </div>
@@ -118,6 +118,7 @@
         <script src="js/lib/STLLoader.js"></script>
         <script src="js/lib/OrbitControls.js"></script>
 		<script src="js/lib/jquery-3.6.0.min.js"></script>
+        <script src="js/fmt.js"></script>
         <script src="js/project.js"></script>
         <script src="js/settings.js"></script>
         <script src="js/heightmap.js"></script>

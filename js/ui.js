@@ -248,7 +248,6 @@ $('#generate-toolpath').click(function() {
         progressEnd();
         updateJob();
         drawJob();
-        // TODO: show cycle time estimate
     });
 });
 
@@ -315,6 +314,10 @@ $('#addjob-tab').click(function() {
     showJob(id);
 });
 
+window.api.receive('cycle-time', function(t) {
+    $('#cycletime').text(timefmt(t*1000));
+});
+
 /* menu actions */
 
 window.api.receive('new-project', function() {
@@ -370,21 +373,6 @@ function confirmDialog(msg, yes, no, cb) {
         yes: yes,
         no: no,
     }, cb);
-}
-
-function formatFloat(f) {
-    let dp = 2;
-    let n = 0.1;
-
-    if (f < 0) return "-" + formatFloat(-f);
-    if (f < 0.0000001) return "0.00";
-
-    while (f < n) {
-        n /= 10;
-        dp++;
-    }
-
-    return f.toFixed(dp);
 }
 
 window.api.receive('want-close', function() {

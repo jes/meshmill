@@ -214,7 +214,10 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
         '--x-offset', arg.offset.x,
         '--y-offset', arg.offset.y,
         '--z-offset', arg.offset.z,
+        '--max-vel', settings.maxvel,
+        '--max-accel', settings.maxaccel,
     ];
+    console.log(opts);
     if (arg.roughingonly) opts.push('--roughing-only');
     if (arg.rampentry) opts.push('--ramp-entry');
     if (arg.omittop) opts.push('--omit-top');
@@ -239,6 +242,11 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
             let match = (""+data).match(/(\d+)%/);
             if (match) {
                 win.webContents.send('progress', match[1]);
+            }
+
+            match = (""+data).match(/Cycle time estimate: ([0-9.]+) secs/);
+            if (match) {
+                win.webContents.send('cycle-time', parseFloat(match[1]));
             }
         });
 

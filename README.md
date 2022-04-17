@@ -94,7 +94,6 @@ If you want to improve Meshmill but don't know where to start, you could look at
  * implement Ramp entry
  * make Pngcam multi-threaded, or otherwise improve performance
  * draw diagrams to put in the tooltips to explain concepts like step over, step down, nominal deviation, etc.
- * implement cycle time calculation
  * implement support for rotary carving
 
 ## Contact me

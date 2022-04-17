@@ -3,11 +3,6 @@ var progresstarget;
 var progressstarted;
 var progressstate;
 
-function timefmt(millis) {
-    // TODO: hours, minutes, etc.
-    return (1+Math.round(millis/1000)) + " secs";
-}
-
 function progress(pct) {
     $(`#${progresstarget}-pct`).val(pct);
     if (pct == null) {
@@ -28,7 +23,7 @@ function progressEta() {
             let howmuch = pct/100;
             let timefor100 = howlong/howmuch;
             let remaining = timefor100 - howlong;
-            $(`#${progresstarget}-eta`).text("ETA: " + timefmt(remaining));
+            $(`#${progresstarget}-eta`).text("ETA: " + timefmt(1000+remaining));
         } else {
             $(`#${progresstarget}-eta`).text("ETA: ?");
         }

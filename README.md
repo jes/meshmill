@@ -2,7 +2,7 @@
 
 ![Screenshot](img/screenshot.png)
 
-Meshmill is open source 3D CAM software.
+Meshmill is open source 3D CAM software for Linux.
 
 *** This is not even beta-quality software. Use it at your own peril. ***
 

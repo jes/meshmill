@@ -4,7 +4,7 @@
 
 Meshmill is open source 3D CAM software for Linux.
 
-*** This is not even beta-quality software. Use it at your own peril. ***
+***This is not even beta-quality software. Use it at your own peril.***
 
 It aims to focus on:
 
@@ -19,18 +19,17 @@ At the expense of:
  * high-quality toolpaths
 
 I created Meshmill because I was frustrated with how difficult it was to get other open source
-3D CAM software to work. Maybe once we have ease of installation and ease of use sorted, we can
-address the rest.
+3D CAM software to work. Maybe once we have ease of use sorted we can address the rest.
 
 Hopefully we've already ticked "ease of installation" and "true 3D toolpaths", which should
 make it actually useful in some cases already.
-To attack "ease of use", I want to add helpful tooltips to every input element, I want to add
+To attack "ease of use", I want to add
 "workflow hints" that point you to the next button you're likely to want to interact with, and
 I want to add diagrams that make crystal clear what each setting is actually adjusting.
 
 ## Important stuff please read
 
-* It has lots of bugs and UI glitches. I know of many of them, but if you spot one and you want to help out, please
+* If you spot bugs and you want to help out, please
 create a Github Issue, or send me an email if you're not on Github: james@incoherency.co.uk.
 
 * Be careful with the generated G-code. Before running it, check that it's not going to crash your machine, break your tool, or
@@ -43,9 +42,9 @@ paths are something close to what Meshmill rendered.
 
 1. Download a release from the Releases page.
 
-2. `chmod +x meshmill-0.0.2.AppImage`
+2. `chmod +x meshmill-0.0.3.AppImage`
 
-3. `./meshmill-0.0.2.AppImage`
+3. `./meshmill-0.0.3.AppImage`
 
 4. Load your STL file in the "MODEL" tab.
 

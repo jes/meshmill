@@ -218,6 +218,15 @@ function updateJob() {
     j.path.omittop = $('#omittop').prop('checked');
     j.path.clearbottom = $('#clearbottom').prop('checked');
 
+    if (j.path.stepover > j.tool.diameter) {
+        $('#surfacedeviation').html("&infin;");
+    } else {
+        let r = j.tool.diameter/2;
+        let x = j.path.stepover/2;
+        let dev = r - Math.sqrt(r*r - x*x);
+        $('#surfacedeviation').text(formatFloat(dev));
+    }
+
     if (project.heightmap) {
         $('#generate-toolpath').prop("disabled", false);
     } else {
@@ -259,6 +268,7 @@ $('#deletejob').click(function() {
 var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'stepover', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop'];
 for (var i = 0; i < inputs.length; i++) {
     $('#' + inputs[i]).change(updateJob);
+    $('#' + inputs[i]).keyup(updateJob);
 }
 
 /* tabs */
@@ -358,6 +368,21 @@ function confirmDialog(msg, yes, no, cb) {
         yes: yes,
         no: no,
     }, cb);
+}
+
+function formatFloat(f) {
+    let dp = 2;
+    let n = 0.1;
+
+    if (f == 0) return "0.00";
+    if (f < 0) return "-" + formatFloat(-f);
+
+    while (f < n) {
+        n /= 10;
+        dp++;
+    }
+
+    return f.toFixed(dp);
 }
 
 window.api.receive('want-close', function() {

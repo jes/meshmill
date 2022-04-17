@@ -1,4 +1,4 @@
-# Meshmill
+![Meshmill](img/logo.png)
 
 ![Screenshot](img/screenshot.png)
 

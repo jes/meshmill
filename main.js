@@ -111,7 +111,7 @@ const template = [
                 label: 'About Meshmill',
                 click: async () => {
                     openAboutWindow({
-                        icon_path: '/home/jes/2993.png',
+                        icon_path: path.join(__dirname, 'img/logo.png'),
                         product_name: 'Meshmill',
                         homepage: 'https://github.com/jes/meshmill',
                         bug_report_url: 'https://github.com/jes/meshmill/issues',

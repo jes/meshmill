@@ -274,7 +274,7 @@ for (var i = 0; i < inputs.length; i++) {
 /* tabs */
 
 function addJobTab(id) {
-    $('#jobtabs').append(`<button class="tab" id="job-${id}-tab">JOB ${id+1}</button><br>`);
+    $('#jobtabs').append(`<button class="tab" id="job-${id}-tab">JOB ${id+1}</button>`);
     $(`#job-${id}-tab`).click(function() {
         showJob(id);
     });

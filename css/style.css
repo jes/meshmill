@@ -17,6 +17,11 @@ html, body, input, button, select {
 }
 
 #tabs, #jobtabs {
+    display: flex;
+    flex-direction: column;
+}
+
+#tabs, #jobtabs {
     border-right: solid 1px black;
     flex-grow: 0;
     min-width: 100px;

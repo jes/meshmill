@@ -30,6 +30,10 @@ html, body, input, button, select {
     margin-right: 5px;
 }
 
+.tab-active {
+    background: #0cf4c7
+}
+
 #options {
     border-right: solid 1px black;
     flex-grow: 0;

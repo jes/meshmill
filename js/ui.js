@@ -289,16 +289,16 @@ function redrawTabs() {
     onWindowResize();
 
     if (currentjob == null) {
-        $('#model-tab').css('background','red');
+        $('#model-tab').addClass('tab-active');
     } else {
-        $('#model-tab').css('background','');
+        $('#model-tab').removeClass('tab-active');
     }
 
     for (var i = 0; i < project.jobs.length; i++) {
         if (i == currentjob) {
-            $(`#job-${i}-tab`).css('background','red');
+            $(`#job-${i}-tab`).addClass('tab-active');
         } else {
-            $(`#job-${i}-tab`).css('background','');
+            $(`#job-${i}-tab`).removeClass('tab-active');
         }
     }
 }

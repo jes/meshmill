@@ -10,6 +10,11 @@ html, body, input, button, select {
     font-family: sans-serif;
 }
 
+input[type="text"] {
+    width: 80px;
+    text-align: right;
+}
+
 #app {
     display: flex;
     flex-direction: row;
@@ -33,10 +38,11 @@ html, body, input, button, select {
     height: 90px;
     margin-left: 5px;
     margin-right: 5px;
+    font-weight: bold;
 }
 
 .tab-active {
-    background: #0cf4c7
+    background: #0cf4c7;
 }
 
 #options {

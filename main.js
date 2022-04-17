@@ -217,7 +217,6 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
         '--max-vel', settings.maxvel,
         '--max-accel', settings.maxaccel,
     ];
-    console.log(opts);
     if (arg.roughingonly) opts.push('--roughing-only');
     if (arg.rampentry) opts.push('--ramp-entry');
     if (arg.omittop) opts.push('--omit-top');

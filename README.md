@@ -90,11 +90,12 @@ If you want to improve Meshmill but don't know where to start, you could look at
  * port Pngcam to Javascript so that it is more easily packaged for Windows
  * make Pngcam generate spiral toolpaths (or any others you find useful)
  * make Pngcam generate heightmaps with higher colour depth - currently there are only 256 height levels (we could abuse the RGB channels to get 24-bit colour depth, but maybe there's a nicer way; alternatively if we port it to Javascript then we can just keep heightmaps as Float32Arrays and not worry about it)
- * make Pngcam take in a heightmap of the existing stock, and write out a heightmap of what remains after the job, so that we can save on unnecessary air-cutting roughing passes, but still enable roughing so that we don't risk enormous tool engagement when a second job uses a smaller tool than the first
+ * make Pngcam take in a heightmap of the existing stock, and write out a heightmap of what remains after the job, so that we can save on unnecessary air-cutting roughing passes, but still enable roughing so that we don't risk enormous tool engagement when a second job uses a smaller tool than the first; also show these in the 3d view
  * implement Ramp entry
  * make Pngcam multi-threaded, or otherwise improve performance
  * draw diagrams to put in the tooltips to explain concepts like step over, step down, nominal deviation, etc.
  * implement support for rotary carving
+ * an interesting example part to load up before the user opens their own model
 
 ## Contact me
 

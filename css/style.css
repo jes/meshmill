@@ -97,6 +97,7 @@ td.formlabel {
     color: #fff;
     padding: 10px;
     border-radius: 6px;
+    border: solid 1px #222;
     font-weight: normal;
     font-size: 1.2em;
     transition-delay: 0ms; /* time until tooltip disappears when moving away */

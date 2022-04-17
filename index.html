@@ -40,7 +40,7 @@
                     </select></td></tr>
                     </table>
 
-                    <div class="has-tooltip"><div class="tooltip">The bounding box of the part. For each axis, the minimum, maximum, and total size is shown.</div></div>Bounds:<br>
+                    <div class="has-tooltip"><div class="tooltip">The bounding box of the model. For each axis, the minimum, maximum, and total size is shown.</div></div>Bounds:<br>
                     <span id="bounds"></span>
 
                     <hr>
@@ -70,7 +70,7 @@
                     <tr><td class="formlabel">Tool diameter:</td><td><input type="text" id="tooldiameter"></input></td><td class="unit-mm"></td></tr>
                     <tr><td class="formlabel">X/Y feed rate:</td><td><input type="text" id="xyfeed"></input></td><td class="unit-mmmin"></td></tr>
                     <tr><td class="formlabel">Z feed rate:</td><td><input type="text" id="zfeed"></input></td><td class="unit-mmmin"></td></tr>
-                    <tr><td class="formlabel">Rapid Z clearance:</td><td><input type="text" id="safez"></input></td><td class="unit-mm"></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Height to move above the part for rapid moves. This is relative to the top surface of the part.</div></div>Rapid Z clearance:</td><td><input type="text" id="safez"></input></td><td class="unit-mm"></td></tr>
                     <tr><td class="formlabel">Spindle:</td><td><input type="text" id="rpm"></input></td><td>rpm</td></tr>
                     </table>
 
@@ -81,22 +81,22 @@
                         <option value="horizontal">Horizontal (along X)</option>
                         <option value="vertical">Vertical (along Y)</option>
                     </select></td></tr>
-                    <tr><td class="formlabel">Step over:</td><td><input type="text" id="stepover"></input></td><td class="unit-mm"></td></tr>
-                    <tr><td class="formlabel">Nominal deviation:</td><td><span id="surfacedeviation"></span></td><td class="unit-mm"></td></tr>
-                    <tr><td class="formlabel">Step down:</td><td><input type="text" id="stepdown"></input></td><td class="unit-mm"></td></tr>
-                    <tr><td class="formlabel">Clearance:</td><td><input type="text" id="clearance"></input></td><td class="unit-mm"></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Perpendicular distance between consecutive passes.</div></div>Step over:</td><td><input type="text" id="stepover"></input></td><td class="unit-mm"></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Maximum deviation of a flat surface, if cut by a ball-nose end mill with the given diameter and given step over.</div></div>Nominal deviation:</td><td><span id="surfacedeviation"></span></td><td class="unit-mm"></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Maximum depth of cut for a single pass. Where the required depth exceeds this amount, it will be achieved with multiple passes.</div></div>Step down:</td><td><input type="text" id="stepdown"></input></td><td class="unit-mm"></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Distance to keep tool away from finished model geometry. This leaves behind material for a finishing pass to clean up.</div></div>Stock to leave:</td><td><input type="text" id="clearance"></input></td><td class="unit-mm"></td></tr>
                     </table>
 
                     <hr>
 
                     <table>
-                    <tr><td class="formlabel"><label for="roughingonly">Roughing only</label></td>
+                    <tr><td class="formlabel"><label for="roughingonly"><div class="has-tooltip"><div class="tooltip">Only generate roughing passes. Don't generate the finishing pass.</div></div>Roughing only</label></td>
                     <td><input type="checkbox" id="roughingonly"></td></tr>
-                    <tr><td class="formlabel"><label for="rampentry">Ramp entry (UNIMPLEMENTED)</label></td>
+                    <tr><td class="formlabel"><label for="rampentry"><div class="has-tooltip"><div class="tooltip">Reduce plunge forces by ramping the cutter diagonally where possible.</div></div>Ramp entry (UNIMPLEMENTED)</label></td>
                     <td><input type="checkbox" id="rampentry"></td></tr>
-                    <tr><td class="formlabel"><label for="omittop">Omit top (UNIMPLEMENTED)</label></td>
+                    <tr><td class="formlabel"><label for="omittop"><div class="has-tooltip"><div class="tooltip">Don't cut the top surface of the part. This saves wasting time on slowly moving the cutter back and forth across flat top surfaces.</div></div>Omit top (UNIMPLEMENTED)</label></td>
                     <td><input type="checkbox" id="omittop"></td></tr>
-                    <tr><td class="formlabel"><label for="clearbottom">Clear bottom</label></td>
+                    <tr><td class="formlabel"><label for="clearbottom"><div class="has-tooltip"><div class="tooltip">Where the model geometry can be more faithfully reproduced by cutting below the part, cut below the part. This allows you to cut straight sides with a ball-nose end mill without leaving a radius at the bottom.</div></div>Clear bottom</label></td>
                     <td><input type="checkbox" id="clearbottom"></td></tr>
                     </table>
 

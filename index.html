@@ -16,7 +16,7 @@
 
             <div id="options">
                 <div id="model-options">
-                    Model: <input id="stlfile" type="file"><br>
+                    STL model: <input id="stlfile" type="file"><br>
                     <small><button id="reloadstl">Reload from disk</button></small><br>
                     <span id="triangles"></span> triangles
 
@@ -40,19 +40,19 @@
                     </select></td></tr>
                     </table>
 
-                    Bounds:<br>
+                    <div class="has-tooltip"><div class="tooltip">The bounding box of the part. For each axis, the minimum, maximum, and total size is shown.</div></div>Bounds:<br>
                     <span id="bounds"></span>
 
                     <hr>
                     <table>
-                    <tr><td class="formlabel">XY Resolution:</td><td><input type="text" id="resolution"></td><td class="unit-mm"></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">The physical size represented by each pixel of the heightmap.</div></div>XY Resolution:</td><td><input type="text" id="resolution"></td><td class="unit-mm"></td></tr>
                     <tr><td class="formlabel">Heightmap:</td><td><span id="heightmapsize"></span> px</td><td><span id="heightmapwarning">WARNING: Large</span></td></tr>
                     <tr><td class="formlabel"><label for="bottomside">Bottom side</label></td><td><input type="checkbox" id="bottomside"></td></tr>
                     </table>
 
                     <hr>
 
-                    <button id="render-heightmap">Render heightmap</button><br>
+                    <button id="render-heightmap">Process surface</button><br>
                     <button id="model-cancel">Stop</button> <progress max="100" id="model-pct"></progress><br>
                     <span id="model-eta"></span><br>
 

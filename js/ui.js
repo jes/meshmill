@@ -90,17 +90,17 @@ function updateModel() {
         if (w*h > LARGE_HEIGHTMAP_PX) $('#heightmapwarning').show();
 
         var fmt = function(f) {
-            return Math.round(f*100)/100;
+            return formatFloat(f);
         }
         $('#triangles').text(project.mesh.triangles);
-        $('#bounds').html(`X: ${fmt(project.mesh.min.x)} to ${fmt(project.mesh.max.x)} (${fmt(project.mesh.width)})<br>Y: ${fmt(project.mesh.min.y)} to ${fmt(project.mesh.max.y)} (${fmt(project.mesh.height)})<br>Z: ${fmt(project.mesh.min.z)} to ${fmt(project.mesh.max.z)} (${fmt(project.mesh.depth)})`);
+        $('#bounds').html(`<span style="color:red">X</span>: ${fmt(project.mesh.min.x-project.mesh.origin.x)} to ${fmt(project.mesh.max.x-project.mesh.origin.x)} (${fmt(project.mesh.width)})<br><span style="color:green">Y</span>: ${fmt(project.mesh.min.y-project.mesh.origin.y)} to ${fmt(project.mesh.max.y-project.mesh.origin.y)} (${fmt(project.mesh.height)})<br><span style="color:blue">Z</span>: ${fmt(project.mesh.min.z-project.mesh.origin.z)} to ${fmt(project.mesh.max.z-project.mesh.origin.z)} (${fmt(project.mesh.depth)})`);
 
         $('#reloadstl').prop("disabled",false);
         $('#render-heightmap').prop("disabled",false);
     } else {
         $('#heightmapsize').text('?');
         $('#triangles').text(0);
-        $('#bounds').html('X:<br>Y:<br>Z:<br>');
+        $('#bounds').html('');
         $('#reloadstl').prop("disabled",true);
         $('#render-heightmap').prop("disabled",true);
     }
@@ -133,11 +133,13 @@ $('#reloadstl').click(function() {
 
 $('#xyorigin').change(function() {
     project.setXYOrigin($('#xyorigin').val());
+    updateModel();
     drawModel();
 });
 
 $('#zorigin').change(function() {
     project.setZOrigin($('#zorigin').val());
+    updateModel();
     drawModel();
 });
 
@@ -374,8 +376,8 @@ function formatFloat(f) {
     let dp = 2;
     let n = 0.1;
 
-    if (f == 0) return "0.00";
     if (f < 0) return "-" + formatFloat(-f);
+    if (f < 0.0000001) return "0.00";
 
     while (f < n) {
         n /= 10;

@@ -9,7 +9,7 @@ function HeightmapViewer(file, size, offset, origin, cb) {
 
         var x_mmperpx = size.x / w;
         var y_mmperpx = size.y / h;
-        var z_mmperbrightness = size.z / 255;
+        var z_mmperbrightness = size.z / 16777215;
 
         var canvas = document.createElement('canvas');
         canvas.width = w;
@@ -25,7 +25,13 @@ function HeightmapViewer(file, size, offset, origin, cb) {
         var addVertex = function(x,y,idx) {
             vertices[idx] = x*x_mmperpx + offset.x;
             vertices[idx+1] = (h-y-1)*y_mmperpx + offset.y;
-            vertices[idx+2] = pixel.data[(y*w+x)*4] * z_mmperbrightness + offset.z;
+
+            var r = pixel.data[(y*w+x)*4];
+            var g = pixel.data[(y*w+x)*4+1];
+            var b = pixel.data[(y*w+x)*4+2];
+            var height = r*65536 + g*256 + b;
+
+            vertices[idx+2] = height * z_mmperbrightness + offset.z;
         };
 
         // add each square from the heightmap as 2 triangles

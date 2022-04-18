@@ -367,7 +367,7 @@ sub get_depth {
     my $brightness = $self->get_brightness($x * $self->{x_px_mm}, $y * $self->{y_px_mm});
 
     # brightness=0 is the bottom of the cut, so max. negative Z
-    return ($brightness - 255) * ($self->{depth} / 255);
+    return ($brightness - $self->{max_colour}) * ($self->{depth} / $self->{max_colour});
 }
 
 # scan the heightmap and fill in $self->{min_bright} and $self->{max_bright}
@@ -391,7 +391,7 @@ sub scan_brightness {
     $self->{max_bright} = $maxbright;
 }
 
-# return pixel brightness at (x,y) pixels, 0..255
+# return pixel brightness at (x,y) pixels, 0..255 (or 0..16777215)
 # this also applies normalisation and inversion
 sub get_brightness {
     my ($self, $x, $y) = @_;

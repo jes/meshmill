@@ -221,11 +221,12 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
         '--z-offset', arg.offset.z,
         '--max-vel', settings.maxvel,
         '--max-accel', settings.maxaccel,
+        '--write-stock', arg.write_stock,
     ];
-    if (arg.roughingonly) opts.push('--roughing-only');
-    if (arg.rampentry) opts.push('--ramp-entry');
-    if (arg.omittop) opts.push('--omit-top');
-    if (arg.clearbottom) opts.push('--deep-black');
+    if (arg.job.path.roughingonly) opts.push('--roughing-only');
+    if (arg.job.path.rampentry) opts.push('--ramp-entry');
+    if (arg.job.path.omittop) opts.push('--omit-top');
+    if (arg.job.path.clearbottom) opts.push('--deep-black');
     if (arg.imperial) opts.push('--imperial');
 
     opts.push(arg.heightmap);
@@ -267,6 +268,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
                 } else {
                     win.webContents.send(replychan, {
                         file: gcodeFile,
+                        heightmap_file: arg.write_stock,
                     });
                 }
             });

@@ -53,7 +53,7 @@
                     <hr>
 
                     <button id="render-heightmap">Process surface</button><br>
-                    <button id="model-cancel">Stop</button> <progress max="100" id="model-pct"></progress><br>
+                    <button id="model-cancel">Stop</button> <progress max="100" id="model-pct"></progress>
                     <span id="model-eta"></span><br>
 
                     <hr>
@@ -104,7 +104,7 @@
                     <hr>
 
                     <button id="generate-toolpath">Generate toolpath</button><br>
-                    <button id="toolpath-cancel">Stop</button> <progress max="100" id="toolpath-pct"></progress><br>
+                    <button id="toolpath-cancel">Stop</button> <progress max="100" id="toolpath-pct"></progress>
                     <span id="toolpath-eta"></span><br>
                     <button id="save-gcode">Save G-code</button><br>
                     <div class="has-tooltip"><div class="tooltip">Rough estimate of how long it will take for the job to complete.</div></div>Cycle time estimate: <span id="cycletime">?</span><br>
@@ -112,7 +112,10 @@
                 </div>
             </div>
 
-            <div id="scene"></div>
+            <div id="scene">
+                <div id="scene-view"></div>
+                <div id="toolpath-scene-controls"><label for="show-toolpath">Show toolpath</label><input type="checkbox" id="show-toolpath" checked></div>
+            </div>
         </div>
 
 		<script src="js/lib/three.min.js"></script>

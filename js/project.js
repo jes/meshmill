@@ -47,6 +47,7 @@ Project.prototype.addJob = function() {
             clearbottom: false,
         },
         gcodefile: null,
+        outputheightmap: null,
     };
 
     let clone = function(obj) {
@@ -57,6 +58,7 @@ Project.prototype.addJob = function() {
     let newJob = this.jobs.length ? clone(this.jobs[this.jobs.length-1]) : defaultJob;
 
     newJob.gcodefile = null;
+    newJob.outputheightmap = null;
 
     this.jobs.push(newJob);
 
@@ -134,10 +136,12 @@ Project.prototype.generateToolpath = function(id, cb) {
             z: this.mesh.max.z-this.mesh.origin.z,
         },
         imperial: this.imperial,
+        write_stock: this.workingDir() + "/job-" + this.jobs[id] + ".png",
     }, function(r) {
         if (r.error)
             alert(r.error);
         project.jobs[id].gcodefile = r.file;
+        project.jobs[id].outputheightmap = r.heightmap_file;
         cb(r.file);
     });
 };

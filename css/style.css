@@ -56,7 +56,18 @@ input[type="text"] {
 
 #scene {
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#scene-view {
     background: #444;
+    width: 100%;
+    flex-grow: 1;
+}
+
+#toolpath-scene-controls {
+    flex-grow: 0;
 }
 
 #heightmap-img {

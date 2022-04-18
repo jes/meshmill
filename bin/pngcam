@@ -31,6 +31,14 @@ sub new {
 
     $self->{max_colour} = $self->{rgb} ? 16777215 : 255;
 
+    if ($self->{write_stock}) {
+        $self->{write_stock_image} = GD::Image->new($self->{pxwidth}, $self->{pxheight}, 1);
+
+        # clear to white
+        my $white = $self->{image}->colorAllocate(255,255,255);
+        $self->{write_stock_image}->filledRectangle(0, 0, $self->{pxwidth}, $self->{pxheight}, $white);
+    }
+
     return $self;
 }
 
@@ -72,6 +80,9 @@ sub run {
 
     # stop spindle
     print "M5\n";
+
+    # save stock heightmap
+    $self->{write_stock_image}->_file($self->{write_stock}) if $self->{write_stock};
 }
 
 # direction = 'h' or 'v'
@@ -200,8 +211,10 @@ sub one_pass {
     }
     if ($self->{roughing_only}) {
         @path = @extrapath;
+        $self->plot_stock(@extrapath) if $self->{write_stock};
     } else {
         @path = (@extrapath, @path);
+        $self->plot_stock(@path) if $self->{write_stock};
     }
 
     # postprocess path to combine straight lines into a single larger run
@@ -245,7 +258,7 @@ sub one_pass {
         y => 0,
         z => 0,
     };
-    my $cycletime = 100;
+    my $cycletime = 0;
     for my $p (@path) {
         # calculate the maximum feed rate that will not cause movement in either the XY plane or the Z axis to exceed their configured feed rates
         my $dx = $p->{x} - $last->{x};
@@ -312,7 +325,6 @@ sub cut_depth {
 
     my $black_probe_depth = -$self->{depth} - $tool_radius + $self->{clearance};
 
-    # TODO: ignore samples where the colour is magenta
     my @depths = ($black_probe_depth - 1);
 
     # attempt to sample every pixel in the circular footprint under the tool
@@ -441,6 +453,84 @@ sub movetime {
     return $secs;
 }
 
+# plot the heightmap of the stock after @path has been cut
+sub plot_stock {
+    my ($self, @path) = @_;
+
+    print "PLOT STOCK\n";
+
+    my ($x,$y,$z) = 0;
+
+    my $img = $self->{write_stock_image};
+
+    my $last = shift @path;
+    for my $p (@path) {
+        print "PLOT $p->{x}, $p->{y}, $p->{z}\n";
+        $self->plot_move($img, $last, $p);
+        $last = $p;
+    }
+}
+
+# plot a single move
+sub plot_move {
+    my ($self, $img, $p1, $p2) = @_;
+
+    # TODO: line movement from $p1 to $p2
+
+    my $tool_radius = $self->{tool_diameter} / 2;
+
+    my $x = $p2->{x};
+    my $y = $p2->{y};
+    my $z = $p2->{z};
+
+    # plot the depth for every pixel within the tool radius of ($x,$y);
+    for (my $sy = -$tool_radius; $sy <= $tool_radius; $sy += (1 / $self->{y_px_mm})) {
+        for (my $sx = -$tool_radius; $sx <= $tool_radius; $sx += (1 / $self->{x_px_mm})) {
+            my $rx = sqrt($sx*$sx + $sy*$sy); # rx is radius from centre of ball in x/y plane
+            next if $rx > $tool_radius;
+
+            my $zoffset = 0;
+            if ($self->{tool_shape} eq 'ball') {
+                # ball end mill: spherical shape
+                $zoffset = $tool_radius - sqrt($tool_radius*$tool_radius - $rx*$rx);
+            }
+
+            $self->plot_pixel($img, $x+$sx, $y+$sy, $z+$zoffset);
+        }
+    }
+}
+
+# plot a single pixel in the heightmap
+sub plot_pixel {
+    my ($self, $img, $x, $y, $z) = @_;
+
+    return if $z > 0; # non-cut moves do nothing to the stock
+    $z = -$self->{depth} if $z < -$self->{depth}; # heightmap can't represent deeper than the bottom
+
+    # this is the inverse of $self->get_depth();
+    $x = int($x * $self->{x_px_mm});
+    $y = int(-$y * $self->{y_px_mm});
+    my $brightness = int(($z * $self->{max_colour}) / $self->{depth} + $self->{max_colour});
+
+    my $cur_col = $img->getPixel($x,$y);
+    my ($r,$g,$b) = $img->rgb($cur_col);
+    my $h = $self->{rgb} ? 65536*$r+256*$g+$b : $r;
+    return if $h < $brightness; # do nothing if existing brightness is darker than what we're going to draw
+
+    my $col;
+    if ($self->{rgb}) {
+        my $r = ($brightness/65536)%256;
+        my $g = ($brightness/256)%256;
+        my $b = $brightness%256;
+        $col = $img->colorAllocate($r, $g, $b);
+    } else {
+        print "plot $brightness at ($x,$y)\n";
+        $col = $img->colorAllocate($brightness, $brightness, $brightness);
+    }
+
+    $img->setPixel($x, $y, $col);
+}
+
 1;
 #!/usr/bin/perl
 
@@ -481,6 +571,8 @@ my $normalise;
 my $normalise_ignore_black;
 my $imperial;
 my $rgb;
+my $read_stock;
+my $write_stock;
 
 my $maxvel = 4000;
 my $maxaccel = 50;
@@ -518,6 +610,8 @@ GetOptions(
     'normalise-ignore-black' => \$normalise_ignore_black,
     'imperial' => \$imperial,
     'rgb' => \$rgb,
+    'read-stock=s' => \$read_stock,
+    'write-stock=s' => \$write_stock,
 
     'max-vel=f' => \$maxvel,
     'max-accel=f' => \$maxaccel,
@@ -568,6 +662,8 @@ my $pngcam = Pngcam->new(
     normalise_ignore_black => $normalise_ignore_black,
     imperial => $imperial,
     rgb => $rgb,
+    read_stock => $read_stock,
+    write_stock => $write_stock,
 
     maxvel => $maxvel,
     maxaccel => $maxaccel,
@@ -699,6 +795,14 @@ Heightmap options:
     --rgb
         Use R,G,B channels independently to get 24 bits of height data instead of 8.
         Default: greyscale
+
+    --read-stock PNGFILE
+        Read stock heightmap from PNGFILE, to save cutting air in roughing passes.
+        Default: none
+
+    --write-stock PNGFILE
+        Write output heightmap to PNGFILE, to use with --read-stock.
+        Default: none
 
 Cycle time options:
 

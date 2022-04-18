@@ -19,13 +19,13 @@ function showHeightmap(file, cb) {
     cb);
 }
 
-function showToolpath(file) {
+function showToolpath(file, heightmapfile) {
     var middlex = (project.mesh.min.x+project.mesh.max.x)/2 - project.mesh.origin.x;
     var middley = (project.mesh.min.y+project.mesh.max.y)/2 - project.mesh.origin.y;
     var middlez = (project.mesh.min.z+project.mesh.max.z)/2 - project.mesh.origin.z;
 
-    showHeightmap(project.heightmap, function() {
-        ToolpathViewer(file, middlex, middley, middlez);
+    showHeightmap(heightmapfile, function() {
+        if ($('#show-toolpath').prop('checked')) ToolpathViewer(file, middlex, middley, middlez);
     });
 }
 
@@ -52,6 +52,7 @@ function showModel() {
     currentjob = null;
     $('#model-options').show();
     $('#toolpath-options').hide();
+    $('#toolpath-scene-controls').hide();
 
     $('#resolution').val(project.resolution);
 
@@ -171,6 +172,7 @@ function showJob(id) {
     currentjob = id;
     $('#model-options').hide();
     $('#toolpath-options').show();
+    $('#toolpath-scene-controls').show();
 
     let job = project.getJob(id);
     $('#toolshape').val(job.tool.shape);
@@ -200,7 +202,7 @@ function showJob(id) {
 }
 
 function drawJob() {
-    if (project.jobs[currentjob].gcodefile) showToolpath(project.jobs[currentjob].gcodefile);
+    if (project.jobs[currentjob].gcodefile) showToolpath(project.jobs[currentjob].gcodefile, project.jobs[currentjob].outputheightmap);
     else drawModel();
 }
 
@@ -267,6 +269,8 @@ $('#deletejob').click(function() {
         showModel();
     }
 });
+
+$('#show-toolpath').change(drawJob);
 
 var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'stepover', 'stepforward', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop', 'clearbottom'];
 for (var i = 0; i < inputs.length; i++) {

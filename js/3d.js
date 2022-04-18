@@ -5,7 +5,7 @@ var scene;
 var scenemiddle;
 
 function showScene(geometry, opts) {
-    container = document.getElementById('scene');
+    container = document.getElementById('scene-view');
     while(container.firstChild) container.removeChild(container.firstChild);
 
     if (!geometry) return;

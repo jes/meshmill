@@ -40,7 +40,7 @@ paths are something close to what Meshmill rendered.
 
 ## How to use it
 
-1. Download a release from the Releases page.
+1. Download a release from the [Releases](https://github.com/jes/meshmill/releases) page.
 
 2. `chmod +x meshmill-0.0.3.AppImage`
 

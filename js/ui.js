@@ -181,6 +181,7 @@ function showJob(id) {
     $('#rpm').val(job.controller.rpm);
     $('#direction').val(job.path.direction);
     $('#stepover').val(job.path.stepover);
+    $('#stepforward').val(job.path.stepforward);
     $('#stepdown').val(job.path.stepdown);
     $('#clearance').val(job.path.clearance);
 
@@ -213,6 +214,7 @@ function updateJob() {
     j.controller.rpm = parseFloat($('#rpm').val());
     j.path.direction = $('#direction').val();
     j.path.stepover = parseFloat($('#stepover').val());
+    j.path.stepforward = parseFloat($('#stepforward').val());
     j.path.stepdown = parseFloat($('#stepdown').val());
     j.path.clearance = parseFloat($('#clearance').val());
     j.path.roughingonly = $('#roughingonly').prop('checked');
@@ -266,7 +268,7 @@ $('#deletejob').click(function() {
     }
 });
 
-var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'stepover', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop'];
+var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'stepover', 'stepforward', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop', 'clearbottom'];
 for (var i = 0; i < inputs.length; i++) {
     $('#' + inputs[i]).change(updateJob);
     $('#' + inputs[i]).keyup(updateJob);

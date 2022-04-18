@@ -207,7 +207,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
         '--tool-diameter', arg.job.tool.diameter,
         '--step-down', arg.job.path.stepdown,
         '--step-over', arg.job.path.stepover,
-        '--step-forward', arg.job.path.stepover, // TODO: should this be configurable? always equivalent to 1 px? something else?
+        '--step-forward', arg.job.path.stepforward,
         '--xy-feed-rate', arg.job.controller.xyfeed,
         '--z-feed-rate', arg.job.controller.zfeed,
         '--speed', arg.job.controller.rpm,

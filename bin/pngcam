@@ -21,16 +21,10 @@ sub new {
     ($self->{pxwidth}, $self->{pxheight}) = $self->{image}->getBounds;
 
     my $aspect_ratio = $self->{pxwidth} / $self->{pxheight};
-    if (!defined $self->{width}) {
-        $self->{width} = $self->{height} * $aspect_ratio;
-    }
-    if (!defined $self->{height}) {
-        $self->{height} = $self->{width} / $aspect_ratio;
-    }
-
-    if (!defined $self->{step_forward}) {
-        $self->{step_forward} = $self->{step_over};
-    }
+    $self->{width} //= $self->{height} * $aspect_ratio;
+    $self->{height} //= $self->{width} / $aspect_ratio;
+    $self->{step_forward} //= $self->{step_over};
+    $self->{step_forward} = $self->{step_over} if $self->{step_forward} <= 0;
 
     $self->{x_px_mm} = $self->{pxwidth} / $self->{width};
     $self->{y_px_mm} = $self->{pxheight} / $self->{height};
@@ -48,6 +42,7 @@ sub run {
         print STDERR "$self->{pxwidth}x$self->{pxheight} px depth map. $self->{width}x$self->{height} $unit work piece.\n";
         print STDERR "X resolution is $self->{x_px_mm} px/$unit. Y resolution is $self->{y_px_mm} px/$unit.\n";
         print STDERR "Step-over is $self->{step_over} $unit = " . sprintf("%.2f", $self->{step_over} * $self->{x_px_mm}) . " px in X and " . sprintf("%.2f", $self->{step_over} * $self->{y_px_mm}) . " px in Y\n";
+        print STDERR "Step-forward is $self->{step_forward} $unit = " . sprintf("%.2f", $self->{step_forward} * $self->{x_px_mm}) . " px in X and " . sprintf("%.2f", $self->{step_forward} * $self->{y_px_mm}) . " px in Y\n";
         print STDERR "\n";
     }
 

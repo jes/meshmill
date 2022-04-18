@@ -68,7 +68,7 @@
                     </select></td></tr>
 
                     <tr><td class="formlabel">Tool diameter:</td><td><input type="text" id="tooldiameter"></input></td><td class="unit-mm"></td></tr>
-                    <tr><td class="formlabel">X/Y feed rate:</td><td><input type="text" id="xyfeed"></input></td><td class="unit-mmmin"></td></tr>
+                    <tr><td class="formlabel">XY feed rate:</td><td><input type="text" id="xyfeed"></input></td><td class="unit-mmmin"></td></tr>
                     <tr><td class="formlabel">Z feed rate:</td><td><input type="text" id="zfeed"></input></td><td class="unit-mmmin"></td></tr>
                     <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Height to move above the part for rapid moves. This is relative to the top surface of the part.</div></div>Rapid Z clearance:</td><td><input type="text" id="safez"></input></td><td class="unit-mm"></td></tr>
                     <tr><td class="formlabel">Spindle:</td><td><input type="text" id="rpm"></input></td><td>rpm</td></tr>
@@ -83,6 +83,7 @@
                     </select></td></tr>
                     <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Perpendicular distance between consecutive passes.</div></div>Step over:</td><td><input type="text" id="stepover"></input></td><td class="unit-mm"></td></tr>
                     <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Maximum deviation of a flat surface, if cut by a ball-nose end mill with the given diameter and given step over.</div></div>Nominal deviation:</td><td><span id="surfacedeviation"></span></td><td class="unit-mm"></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Distance between consecutive sample points of the heightmap. If this value is too large then it can cut straight through small protrusions, and it can skip over small dips. There is no gain from setting this value smaller than the "XY resolution" of the surface heightmap.</div></div>Step forward:</td><td><input type="text" id="stepforward"></input></td><td class="unit-mm"></td></tr>
                     <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Maximum depth of cut for a single pass. Where the required depth exceeds this amount, it will be achieved with multiple passes.</div></div>Step down:</td><td><input type="text" id="stepdown"></input></td><td class="unit-mm"></td></tr>
                     <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Distance to keep tool away from finished model geometry. This leaves behind material for a finishing pass to clean up.</div></div>Stock to leave:</td><td><input type="text" id="clearance"></input></td><td class="unit-mm"></td></tr>
                     </table>

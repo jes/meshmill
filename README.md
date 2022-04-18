@@ -62,6 +62,8 @@ top of the model in purple.
 
 ## Development
 
+The GUI is made using Electron. The backend is Perl, using GD to handle images.
+
 I recommend using [nvm](https://github.com/nvm-sh/nvm) to manage nodejs.
 
     $ nvm install --lts

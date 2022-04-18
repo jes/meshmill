@@ -183,7 +183,11 @@ ipcMain.on('render-heightmap', (event,arg,replychan) => {
     });
     
     render.on('close', (code) => {
-        if (code !== 0) {
+        if (code == null) {
+            win.webContents.send(replychan, {
+                file: null,
+            });
+        } else if (code !== 0) {
             win.webContents.send(replychan, {
                 error: `pngcam-render exited with code ${code}`,
             });
@@ -252,7 +256,11 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
 
         pngcam.on('close', (code) => {
             gcodeStream.end(function() {
-                if (code !== 0) {
+                if (code == null) {
+                    win.webContents.send(replychan, {
+                        file: null,
+                    });
+                } else if (code !== 0) {
                     win.webContents.send(replychan, {
                         error: `pngcam exited with code ${code}`,
                     });

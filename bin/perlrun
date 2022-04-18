@@ -4,4 +4,4 @@
 
 dir=`dirname $0`
 
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$dir/ PERL5LIB=$dir/lib $dir/"$@"
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$dir/ PERL5LIB=$dir/lib exec $dir/"$@"

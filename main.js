@@ -160,7 +160,7 @@ app.on('window-all-closed', () => {
 var running;
 
 ipcMain.on('render-heightmap', (event,arg,replychan) => {
-    let opts = ['pngcam-render', '--border', '0', '--width', arg.width];
+    let opts = ['pngcam-render', '--border', '0', '--width', arg.width, '--rgb'];
     if (arg.bottom) opts.push('--bottom');
 
     opts.push(arg.stl);
@@ -198,6 +198,7 @@ ipcMain.on('render-heightmap', (event,arg,replychan) => {
 ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     let opts = [
         'pngcam',
+        '--rgb',
         '--tool-shape', arg.job.tool.shape,
         '--tool-diameter', arg.job.tool.diameter,
         '--step-down', arg.job.path.stepdown,

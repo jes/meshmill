@@ -59,7 +59,11 @@ sub new {
     # calculate pixels per mm
     $self->{x_px_mm} = $self->{width} / $self->{mmwidth};
     $self->{y_px_mm} = $self->{height} / $self->{mmheight};
-    $self->{z_px_mm} = 255 / ($self->{maxz} - $self->{minz}); # 0..255 isn't really "pixels" but meh
+    if ($self->{rgb}) {
+        $self->{z_px_mm} = 16777215 / ($self->{maxz} - $self->{minz}); # not really "pixels" but meh
+    } else {
+        $self->{z_px_mm} = 255 / ($self->{maxz} - $self->{minz}); # not really "pixels" but meh
+    }
 
     return $self;
 }
@@ -174,9 +178,21 @@ sub plot {
     my $col = $self->{image}->getPixel($x, $y);
     my ($r,$g,$b) = $self->{image}->rgb($col);
 
-    return if $r > $z; # do nothing if existing brightness is brighter than what we're going to draw
+    my $h = $self->{rgb} ? 65536*$r+256*$g+$b : $r;
 
-    my $newcol = $self->{image}->colorAllocate($z, $z, $z);
+    return if $h > $z; # do nothing if existing brightness is brighter than what we're going to draw
+
+    if ($self->{rgb}) {
+        $r = int($z/65536);
+        $g = int($z/256)%256;
+        $b = $z%256;
+    } else {
+        $r = $z;
+        $g = $z;
+        $b = $z;
+    }
+
+    my $newcol = $self->{image}->colorAllocate($r, $g, $b);
     $self->{image}->setPixel($x, $y, $newcol);
 }
 
@@ -837,6 +853,7 @@ my $height;
 my $border = 32; # px
 my $bottom;
 my $png;
+my $rgb;
 
 my $quiet;
 
@@ -846,6 +863,7 @@ GetOptions(
     'height=f' => \$height,
     'bottom' => \$bottom,
     'png=s' => \$png,
+    'rgb' => \$rgb,
 
     'quiet' => \$quiet,
 
@@ -866,6 +884,7 @@ my $render = Pngcam::Render->new(
     width => $width,
     height => $height,
     bottom => $bottom,
+    rgb => $rgb,
 
     quiet => $quiet,
 );
@@ -902,6 +921,10 @@ Options:
     --png PNGFILE
         Set the name of the output file. If none is give, this will just be the STL file with ".png" appended.
         Default: STLFILE.png
+
+    --rgb
+        Use R,G,B channels independently to get 24 bits of height data instead of 8.
+        Default: greyscale
 
     --quiet
         Suppress output of dimensions, resolutions, and progress.

@@ -20,13 +20,13 @@ input[type="text"] {
     height: 100%;
 }
 
-#tabs, #jobtabs {
-    display: flex;
-    flex-direction: column;
+#tabs {
+    border-right: solid 1px black;
 }
 
 #tabs, #jobtabs {
-    border-right: solid 1px black;
+    display: flex;
+    flex-direction: column;
     flex-grow: 0;
     min-width: 100px;
     overflow: auto;

@@ -130,6 +130,7 @@ Menu.setApplicationMenu(menu);
 
 const createWindow = () => {
   win = new BrowserWindow({
+    title: "Meshmill",
     width: 1200,
     height: 700,
     minWidth: 500,

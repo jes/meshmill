@@ -377,12 +377,20 @@ function newProject(cb) {
 }
 newProject();
 
+var dialogWaiting = false;
 function confirmDialog(msg, yes, no, cb) {
+    if (dialogWaiting)
+        return;
+
+    dialogWaiting = true;
     window.api.send('confirm-dialog', {
         text: msg,
         yes: yes,
         no: no,
-    }, cb);
+    }, function(r) {
+        dialogWaiting = false;
+        cb(r);
+    });
 }
 
 window.api.receive('want-close', function() {

@@ -228,6 +228,11 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     if (arg.job.path.omittop) opts.push('--omit-top');
     if (arg.job.path.clearbottom) opts.push('--deep-black');
     if (arg.imperial) opts.push('--imperial');
+    if (arg.read_stock) {
+        opts.push('--read-stock');
+        opts.push(arg.read_stock);
+        console.log(opts);
+    }
 
     opts.push(arg.heightmap);
     // TODO: write outputs to project folder; also, write to a

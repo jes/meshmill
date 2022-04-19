@@ -31,6 +31,10 @@ sub new {
 
     $self->{max_colour} = $self->{rgb} ? 16777215 : 255;
 
+    if ($self->{read_stock}) {
+        $self->{read_stock_image} = GD::Image->newFromPng($self->{read_stock}, 1);
+    }
+
     if ($self->{write_stock}) {
         $self->{write_stock_image} = GD::Image->new($self->{pxwidth}, $self->{pxheight}, 1);
 
@@ -158,7 +162,7 @@ sub one_pass {
     for (my $zheight = -$self->{step_down}; $zheight > $deepest; $zheight -= $self->{step_down}) {
         my $cutting = 0;
         for my $p (@path) {
-            if ($p->{z} < $zheight) {
+            if ($p->{z} < $zheight && (!$self->{read_stock} || $p->{z}+$self->{step_down} < $self->cut_depth($p->{x}, -$p->{y}, img => $self->{read_stock_image}))) {
                 # if we're not already cutting into the work, and the new point isn't adjacent to the last one, move the tool up and over
                 if (!$cutting && !$self->adjacent_points($last->{x}, $last->{y}, $p->{x}, $p->{y})) {
                     push @extrapath, {
@@ -322,7 +326,11 @@ sub adjacent_points {
 
 # return the required depth centred at (x,y) mm, taking into account the tool size and shape and work clearance
 sub cut_depth {
-    my ($self, $x, $y) = @_;
+    my ($self, $x, $y, %opts) = @_;
+
+    # TODO: when this function is used for calculating how far we've already cut in the read_stock:
+    # - clearance should be 0
+    # - the "deep_black" stuff shouldn't apply
 
     my $tool_radius = $self->{tool_diameter}/2 + $self->{clearance};
 
@@ -345,8 +353,8 @@ sub cut_depth {
             }
 
             # only add this depth sample if we're not in deep-black mode, or if this point isn't black
-            if (!$self->{deep_black} || !$self->is_black($x+$sx, $y+$sy)) {
-                push @depths, $self->get_depth($x+$sx, $y+$sy)+$zoffset;
+            if (!$self->{deep_black} || !$self->is_black($x+$sx, $y+$sy, %opts)) {
+                push @depths, $self->get_depth($x+$sx, $y+$sy, %opts)+$zoffset;
             }
         }
     }
@@ -363,18 +371,18 @@ sub cut_depth {
 
 # return 1 if the pixel at (x,y) mm is black, 0 otherwise
 sub is_black {
-    my ($self, $x, $y) = @_;
+    my ($self, $x, $y, %opts) = @_;
 
-    my $brightness = $self->get_brightness($x * $self->{x_px_mm}, $y * $self->{y_px_mm});
+    my $brightness = $self->get_brightness($x * $self->{x_px_mm}, $y * $self->{y_px_mm}, %opts);
 
     return ($brightness == 0);
 }
 
 # return the depth at (x,y) mm
 sub get_depth {
-    my ($self, $x, $y) = @_;
+    my ($self, $x, $y, %opts) = @_;
 
-    my $brightness = $self->get_brightness($x * $self->{x_px_mm}, $y * $self->{y_px_mm});
+    my $brightness = $self->get_brightness($x * $self->{x_px_mm}, $y * $self->{y_px_mm}, %opts);
 
     # brightness=0 is the bottom of the cut, so max. negative Z
     return ($brightness - $self->{max_colour}) * ($self->{depth} / $self->{max_colour});
@@ -404,7 +412,7 @@ sub scan_brightness {
 # return pixel brightness at (x,y) pixels, 0..255 (or 0..16777215)
 # this also applies normalisation and inversion
 sub get_brightness {
-    my ($self, $x, $y) = @_;
+    my ($self, $x, $y, %opts) = @_;
 
     $x = floor($x);
     $y = floor($y);
@@ -422,9 +430,14 @@ sub get_brightness {
     # ceil(x),floor(y)
     # ceil(x),ceil(y)
 
-    my $col = $self->{image}->getPixel($x, $y);
-    my ($r,$g,$b) = $self->{image}->rgb($col);
+    my $img = $opts{img} // $self->{image};
+
+    my $col = $img->getPixel($x, $y);
+    my ($r,$g,$b) = $img->rgb($col);
     my $brightness = $self->{rgb} ? $r*65536+$g*256+$b : ($r+$g+$b)/3;
+
+    # TODO: when this function is used for calculating how far we've already cut in the read_stock:
+    # - no normalisation
 
     if ($self->{normalise}) {
         if (!$self->{normalise_ignore_black} || $brightness != 0) {
@@ -525,9 +538,13 @@ sub plot_pixel {
     $z = -$self->{depth} if $z < -$self->{depth}; # heightmap can't represent deeper than the bottom
 
     # this is the inverse of $self->get_depth();
-    $x = int($x * $self->{x_px_mm} + 0.5);
-    $y = int(-$y * $self->{y_px_mm} + 0.5);
+    $x = floor($x * $self->{x_px_mm});
+    $y = floor(-$y * $self->{y_px_mm});
     my $brightness = int(($z * $self->{max_colour}) / $self->{depth} + $self->{max_colour});
+    $brightness = $self->{max_colour}-$brightness if $self->{invert};
+
+    $x = $self->{pxwidth}-1-$x if $self->{x_flip};
+    $y = $self->{pxheight}-1-$y if $self->{y_flip};
 
     my $cur_col = $img->getPixel($x,$y);
     my ($r,$g,$b) = $img->rgb($cur_col);

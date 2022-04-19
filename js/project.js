@@ -136,7 +136,8 @@ Project.prototype.generateToolpath = function(id, cb) {
             z: this.mesh.max.z-this.mesh.origin.z,
         },
         imperial: this.imperial,
-        write_stock: this.workingDir() + "/job-" + this.jobs[id] + ".png",
+        write_stock: this.workingDir() + "/job-" + id + ".png",
+        read_stock: (id > 0 ? this.jobs[id-1].outputheightmap : null),
     }, function(r) {
         if (r.error)
             alert(r.error);

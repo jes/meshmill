@@ -358,7 +358,7 @@ ipcMain.on('close', (event,arg) => {
 });
 
 ipcMain.on('confirm-dialog', (event,arg,replychan) => {
-    dialog.showMessageBox({
+    dialog.showMessageBox(win, {
         buttons: [arg.yes, arg.no],
         message: arg.text,
     }).then((response) => {

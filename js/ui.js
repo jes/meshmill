@@ -193,6 +193,12 @@ function showJob(id) {
     $('#omittop').prop('checked', job.path.omittop);
     $('#clearbottom').prop('checked', job.path.clearbottom);
 
+    if (job.cycletime !== null) {
+        $('#cycletime').text(timefmt(job.cycletime*1000));
+    } else {
+        $('#cycletime').text("?");
+    }
+
     progresstarget = 'toolpath';
     progressReset();
 
@@ -251,6 +257,7 @@ $('#generate-toolpath').click(function() {
     progressStart();
     project.generateToolpath(currentjob, function(file) {
         progressEnd();
+        showJob(currentjob);
         updateJob();
         drawJob();
     });
@@ -319,10 +326,6 @@ $('#addjob-tab').click(function() {
     let id = project.addJob();
     addJobTab(id);
     showJob(id);
-});
-
-window.api.receive('cycle-time', function(t) {
-    $('#cycletime').text(timefmt(t*1000));
 });
 
 /* menu actions */

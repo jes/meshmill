@@ -249,6 +249,8 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
         });
         running = pngcam;
 
+        let cycletime = null;
+
         pngcam.stderr.on('data', (data) => {
             process.stderr.write(""+data);
             let match = (""+data).match(/(\d+)%/);
@@ -258,7 +260,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
 
             match = (""+data).match(/Cycle time estimate: ([0-9.]+) secs/);
             if (match) {
-                win.webContents.send('cycle-time', parseFloat(match[1]));
+                cycletime = parseFloat(match[1]);
             }
         });
 
@@ -276,6 +278,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
                     win.webContents.send(replychan, {
                         file: gcodeFile,
                         heightmap_file: arg.write_stock,
+                        cycletime: cycletime,
                     });
                 }
             });

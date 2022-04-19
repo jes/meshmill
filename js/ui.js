@@ -362,13 +362,19 @@ window.api.receive('open-project', function(filename) {
 });
 
 function openProject(filename) {
-    newProject(function(project) {
-        project.open(filename, function() {
-            for (var i = 0; i < project.jobs.length; i++)
-                addJobTab(i);
-            showModel();
+    if (filename.toLowerCase().endsWith(".stl")) {
+        newProject(function(project) {
+            project.loadSTL(filename, showModel);
         });
-    });
+    } else {
+        newProject(function(project) {
+            project.open(filename, function() {
+                for (var i = 0; i < project.jobs.length; i++)
+                    addJobTab(i);
+                showModel();
+            });
+        });
+    }
 }
 
 function newProject(cb) {

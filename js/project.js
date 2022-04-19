@@ -3,6 +3,7 @@ let SAVE_FIELDS = ['jobs', 'stl', 'heightmap', 'mesh', 'resolution', 'bottomside
 function Project(cb) {
     this.jobs = [];
     this.stl = '';
+    this.stl_original = null;
     this.heightmap = null;
     this.mesh = {};
     this.resolution = 0.25;
@@ -84,15 +85,13 @@ Project.prototype.loadSTL = function(file, cb) {
 
     var project = this;
 
-    // TODO: we need to keep track of the original path on disk,
-    // so that "reload from disk" has any chance of working after
-    // we re-open the project
     window.api.send('copy-file', {
         src: file,
         dst: workingfile,
     }, function(newfile) {
         if (!newfile) throw "Couldn't copy " + file + " to " + workingfile;
         project.stl = workingfile;
+        project.stl_original = file;
         (new THREE.STLLoader()).load(project.stl, function (geometry) {
             geometry.computeBoundingBox();
             var bb = geometry.boundingBox;

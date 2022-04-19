@@ -76,8 +76,8 @@ function drawModel() {
 // TODO: this function is used for both reloading the STL from disk and re-rendering the STL
 // at a new origin - these need to be split up eventually because sometimes we want to re-render
 // the STL without reloading the original file
-function loadSTL() {
-    project.loadSTL($('#stlfile')[0].files[0].path, function() {
+function loadSTL(path) {
+    project.loadSTL(path, function() {
         updateModel();
         STLViewer(project.stl, project.mesh.origin);
     });
@@ -126,11 +126,12 @@ function updateHeightmap() {
 }
 
 $('#stlfile').change(function() {
-    loadSTL();
+    loadSTL($('#stlfile')[0].files[0].path);
 });
 
 $('#reloadstl').click(function() {
-    loadSTL();
+    if (project.stl_original)
+        loadSTL(project.stl_original);
 });
 
 $('#xyorigin').change(function() {

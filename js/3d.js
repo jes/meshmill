@@ -3,6 +3,7 @@ var camera;
 var renderer;
 var scene;
 var scenemiddle;
+var controls;
 
 function showScene(geometry, opts) {
     container = document.getElementById('scene-view');
@@ -54,7 +55,7 @@ function showScene(geometry, opts) {
     addOriginVisualisation(scene, origin, largestDimension / 2);
 
     // TODO: prevent gimbal lock
-    var controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.rotateSpeed = 0.25;
     controls.dampingFactor = 0.99;
@@ -62,16 +63,15 @@ function showScene(geometry, opts) {
     controls.zoomSpeed = 2;
     controls.autoRotate = false;
 
-    var animate = function () {
-        requestAnimationFrame(animate);
-        controls.update();
-        renderer.render(scene, camera);
-    }; 
-
-    animate();
-
     onWindowResize();
 }
+
+function scene_animate() {
+    requestAnimationFrame(scene_animate);
+    if (controls) controls.update();
+    if (renderer && scene && camera) renderer.render(scene, camera);
+}
+scene_animate();
 
 function STLViewer(model, origin) {
     (new THREE.STLLoader()).load(model, function (geometry) {

@@ -55,6 +55,7 @@ function showModel() {
     $('#toolpath-scene-controls').hide();
 
     $('#resolution').val(project.resolution);
+    $('#bottomside').prop('checked', project.bottomside);
 
     progresstarget = 'model';
     progressReset();
@@ -187,10 +188,10 @@ function showJob(id) {
     $('#stepdown').val(job.path.stepdown);
     $('#clearance').val(job.path.clearance);
 
-    $('#roughingonly').val(job.path.roughingonly);
-    $('#rampentry').val(job.path.rampentry);
-    $('#omittop').val(job.path.omittop);
-    $('#clearbottom').val(job.path.clearbottom);
+    $('#roughingonly').prop('checked', job.path.roughingonly);
+    $('#rampentry').prop('checked', job.path.rampentry);
+    $('#omittop').prop('checked', job.path.omittop);
+    $('#clearbottom').prop('checked', job.path.clearbottom);
 
     progresstarget = 'toolpath';
     progressReset();

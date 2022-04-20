@@ -11,7 +11,7 @@ use warnings;
 use FindBin;
 use GD;
 use List::Util qw(min max);
-use POSIX qw(floor);
+use Math::Trig;
 
 sub new {
     my ($pkg, %opts) = @_;
@@ -118,6 +118,8 @@ sub one_pass {
         $xlimit = $self->{width}+$self->{step_over};
         $ylimit = $self->{height}+$self->{step_forward};
     }
+    $xlimit -= 1/ $self->{x_px_mm};
+    $ylimit -= 1/ $self->{x_px_mm};
 
     my $extralimit = $self->{beyond_edges} ? $self->{tool_diameter}/2 : 0;
     my $zero  =0;
@@ -130,10 +132,14 @@ sub one_pass {
     # generate path to set Z position at each X/Y position encountered
     while ($x >= $zero && $y >= $zero && $x < $xlimit && $y < $ylimit) {
         while ($x >= $zero && $y >= $zero && $x < $xlimit && $y < $ylimit) {
+            my $px = $x;
+            my $py = $y;
+            $px = $self->{width}+$extralimit if $px > $self->{width}+$extralimit;
+            $py = $self->{height}+$extralimit if $py > $self->{height}+$extralimit;
             my $p = {
-                x => $x,
-                y => -$y, # note: negative
-                z => $self->cut_depth($x, $y),
+                x => $px,
+                y => -$py, # note: negative
+                z => $self->cut_depth($px, $py),
                 G => 'G1',
             };
             push @path, $p;
@@ -267,6 +273,12 @@ sub one_pass {
             $i++;
         }
     }
+
+    # postprocess path to ramp plunges
+    @path = $self->ramp_entry(@path) if $self->{ramp_entry};
+
+    # postprocess path to omit top
+    @path = $self->omit_top(@path) if $self->{omit_top};
 
     print STDERR "\nWriting output..." if !$self->{quiet};
 
@@ -608,6 +620,153 @@ sub plot_pixel {
     $img->setPixel($x, $y, $col);
 }
 
+# apply ramp entry to @path wherever possible, return the updated path
+sub ramp_entry {
+    my ($self, @path) = @_;
+
+    my $pi = 3.14159265;
+    my $max_plunge_angle = 30 * ($pi/180); # radians from horizontal
+    my $min_ramp_distance = $self->{tool_diameter};
+
+    my @outpath;
+
+    for (my $i = 1; $i < $#path; $i++) {
+        my $last = $path[$i-1];
+        my $p = $path[$i];
+        my $next = $path[$i+1];
+
+        if ($p->{G} =~ /G0/) { # don't ramp on rapids
+            push @outpath, $p;
+            next;
+        }
+
+        my $dxlast = $p->{x} - $last->{x};
+        my $dylast = $p->{y} - $last->{y};
+        my $dzlast = $p->{z} - $last->{z};
+
+        my $dxylast = sqrt($dxlast*$dxlast + $dylast*$dylast);
+
+        my $plunge_angle = atan2(-$dzlast, $dxylast);
+        if ($plunge_angle < $max_plunge_angle) { # already within allowable range
+            push @outpath, $p;
+            next;
+        }
+
+        # TODO: when the next-next move is in the same xy direction (but, e.g., different Z)
+        # then we can consider it as well to see if it provides clearance for a longer ramp
+        my $dxnext = $next->{x} - $p->{x};
+        my $dynext = $next->{y} - $p->{y};
+        my $dznext = $next->{z} - $p->{z};
+
+        my $dxynext = sqrt($dxnext*$dxnext + $dynext*$dynext);
+
+        if ($dxynext < $min_ramp_distance) { # not enough room
+            push @outpath, $p;
+            next;
+        }
+
+        # we need to replace $p with 2 horizontal moves going downwards at
+        # $max_plunge_angle; the first move goes in the direction of
+        # $p -> $next, and the second one goes in the opposite direction, to
+        # land at $p
+        # if there is not enough horizontal distance between $p and $next
+        # then we just ramp in whatever distance there is and accept the
+        # overly-steep angle (should we instead do multiple ramps?)
+
+        # the height we need to go down is $dzlast, and we're starting from $last
+        # so the first leg goes down to z=$p->{z}-$dzlast/2 and the second leg
+        # ends up at $p, so we'll just leave $p unchanged for that
+
+        # how steep is the next leg of the toolpath?
+        my $available_ramp_angle = atan2($dznext, $dxynext);
+
+        # how steep would our ramp need to be to finish before passing the next point?
+        my $available_ramp_distance = $dxynext;
+        my $implied_available_ramp_angle = atan2(-$dzlast/2, $dxynext);
+
+        # use whichever limit forces the ramp angle to be steepest, so that we don't exceed any limit
+        my $ramp_angle = max($available_ramp_angle, $implied_available_ramp_angle, $max_plunge_angle);
+
+        my $ramp_dxy = -($dzlast/2) / tan($ramp_angle);
+        my $k = $ramp_dxy / $dxynext;
+        my $ramp_dx = $k * $dxnext;
+        my $ramp_dy = $k * $dynext;
+
+        my $leg1 = {%$p};
+
+        $leg1->{x} = $last->{x} + $ramp_dx;
+        $leg1->{y} = $last->{y} + $ramp_dy;
+        $leg1->{z} = $p->{z}-$dzlast/2;
+
+        push @outpath, $leg1, $p;
+    }
+
+    return @outpath;
+}
+
+# remove moves that are G1 at Z0, replace them with rapid moves between the actual cuts
+sub omit_top {
+    my ($self, @path) = @_;
+
+    my @outpath;
+
+    my $i = 0;
+    while ($i < @path) {
+        my $p = $path[$i];
+
+        # not a G1 at Z0? leave it alone
+        if ($p->{z} != 0 || $p->{G} ne 'G1') {
+            push @outpath, $p;
+            $i++;
+            next;
+        }
+
+        # TODO: when the total distance skipped over is small enough, don't
+        # bother skipping it, # as the Z hop just wastes time (i.e. where we
+        # would increase the cycle time estimate, leave the path alone)
+
+        # skip over the subsequent G1's at Z0
+        $i++ while $i < $#path && $path[$i+1]{z} == 0 && $path[$i+1]{G} eq 'G1';
+
+        my $p2 = $path[$i];
+
+        # now $p is the frst G1 Z0, and $p2 is the last; we want to leave
+        # $p in the path so that we arrive at Z0, but replace all the
+        # intermediate moves with a rapid up, across, down
+
+        # move to $p
+        push @outpath, $p;
+
+        # up
+        push @outpath, {
+            x => $p->{x},
+            y => $p->{y},
+            z => $self->{rapid_clearance},
+            G => 'G0',
+        };
+
+        # across
+        push @outpath, {
+            x => $p2->{x},
+            y => $p2->{y},
+            z => $self->{rapid_clearance},
+            G => '_G0', # XXX: this will get turned into a G1 but allowed $rapid_feedrate
+        };
+
+        # down
+        push @outpath, {
+            x => $p2->{x},
+            y => $p2->{y},
+            z => 0,
+            G => '_G0', # XXX: this will get turned into a G1 but allowed $rapid_feedrate
+        };
+
+        $i++;
+    }
+
+    return @outpath;
+}
+
 1;
 #!/usr/bin/perl
 
@@ -870,7 +1029,7 @@ Heightmap options:
         Default: treat black (0,0,0) as a hard limit on cut depth
 
     --beyond-edges
-        Let the tool cut beyond the edges of the heightmap if this would allow better reproduction of the shapes within the heightmap.
+        Let the tool cut beyond the edges of the heightmap.
         Default: don't
 
     --omit-top

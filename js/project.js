@@ -46,6 +46,7 @@ Project.prototype.addJob = function() {
             rampentry: false,
             omittop: false,
             clearbottom: false,
+            clearedges: false,
         },
         gcodefile: null,
         outputheightmap: null,

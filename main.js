@@ -169,6 +169,7 @@ ipcMain.on('render-heightmap', (event,arg,replychan) => {
     // TODO: write outputs to project folder; also, write to a
     // temporary file until successful, then move to the project
     // folder
+    console.log(opts);
     let render = spawn(path.join(__dirname,'bin/perlrun'), opts);
     running = render;
 
@@ -229,11 +230,11 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     if (arg.job.path.rampentry) opts.push('--ramp-entry');
     if (arg.job.path.omittop) opts.push('--omit-top');
     if (arg.job.path.clearbottom) opts.push('--deep-black');
+    if (arg.job.path.clearedges) opts.push('--beyond-edges');
     if (arg.imperial) opts.push('--imperial');
     if (arg.read_stock) {
         opts.push('--read-stock');
         opts.push(arg.read_stock);
-        console.log(opts);
     }
 
     opts.push(arg.heightmap);
@@ -244,6 +245,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     tmpnames.push(gcodeFile);
     let gcodeStream = fs.createWriteStream(gcodeFile);
     gcodeStream.on('open', function() {
+        console.log(opts);
         let pngcam = spawn(path.join(__dirname, 'bin/perlrun'), opts, {
             stdio: ['pipe', gcodeStream, 'pipe'], // send stdout to a file
         });

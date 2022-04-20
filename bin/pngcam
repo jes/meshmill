@@ -103,8 +103,6 @@ sub one_pass {
     print "G91 G1 Z$self->{rapid_clearance} F$self->{rapid_feedrate}\n"; # raise up 5mm relative to whatever Z is currently at
     print "G90 G0 X$self->{x_offset} Y$self->{y_offset} F$self->{rapid_feedrate}\n"; # absolute coordinates, move to start point
 
-    my ($x, $y, $z) = (0, 0, 0); # mm
-
     my $xstep = ($direction eq 'h') ? $self->{step_forward} : 0;
     my $ystep = ($direction eq 'v') ? $self->{step_forward} : 0;
 
@@ -121,9 +119,17 @@ sub one_pass {
         $ylimit = $self->{height}+$self->{step_forward};
     }
 
+    my $extralimit = $self->{beyond_edges} ? $self->{tool_diameter}/2 : 0;
+    my $zero  =0;
+    $zero -= $extralimit;
+    $xlimit += $extralimit;
+    $ylimit += $extralimit;
+
+    my ($x, $y, $z) = ($zero, $zero, $zero); # mm
+
     # generate path to set Z position at each X/Y position encountered
-    while ($x >= 0 && $y >= 0 && $x < $xlimit && $y < $ylimit) {
-        while ($x >= 0 && $y >= 0 && $x < $xlimit && $y < $ylimit) {
+    while ($x >= $zero && $y >= $zero && $x < $xlimit && $y < $ylimit) {
+        while ($x >= $zero && $y >= $zero && $x < $xlimit && $y < $ylimit) {
             my $p = {
                 x => $x,
                 y => -$y, # note: negative
@@ -308,7 +314,7 @@ sub one_pass {
     }
 
     # pick up the tool at the end of the path
-    print "G1 Z$self->{rapid_clearance} F$self->{rapid_feedrate}\n";
+    print "G1 Z" . ($self->{rapid_clearance}+$self->{z_offset}) . " F$self->{rapid_feedrate}\n";
 
     print STDERR "\nDone.\n" if !$self->{quiet};
 
@@ -630,6 +636,7 @@ my $route = 'both';
 my $x_offset = 0; # mm
 my $y_offset = 0; # mm
 my $z_offset = 0; # mm
+my $ramp_entry;
 
 my $width; # mm
 my $height; # mm
@@ -638,6 +645,8 @@ my $x_flip;
 my $y_flip;
 my $invert;
 my $deep_black;
+my $beyond_edges;
+my $omit_top;
 my $normalise;
 my $normalise_ignore_black;
 my $imperial;
@@ -669,6 +678,7 @@ GetOptions(
     'x-offset=f' => \$x_offset,
     'y-offset=f' => \$y_offset,
     'z-offset=f' => \$z_offset,
+    'ramp-entry' => \$ramp_entry,
 
     'width=f' => \$width,
     'height=f' => \$height,
@@ -677,6 +687,8 @@ GetOptions(
     'y-flip' => \$y_flip,
     'invert' => \$invert,
     'deep-black' => \$deep_black,
+    'beyond-edges' => \$beyond_edges,
+    'omit-top' => \$omit_top,
     'normalise' => \$normalise,
     'normalise-ignore-black' => \$normalise_ignore_black,
     'imperial' => \$imperial,
@@ -721,6 +733,7 @@ my $pngcam = Pngcam->new(
     x_offset => $x_offset,
     y_offset => $y_offset,
     z_offset => $z_offset,
+    ramp_entry => $ramp_entry,
 
     width => $width,
     height => $height,
@@ -729,6 +742,8 @@ my $pngcam = Pngcam->new(
     y_flip => $y_flip,
     invert => $invert,
     deep_black => $deep_black,
+    beyond_edges => $beyond_edges,
+    omit_top => $omit_top,
     normalise => $normalise,
     normalise_ignore_black => $normalise_ignore_black,
     imperial => $imperial,
@@ -822,6 +837,10 @@ Path generation options:
         Set the offset of Z cordinates.
         Default: 0
 
+    --ramp-entry
+        Add horizontal movements to plunge cuts where possible, to reduce cutting forces.
+        Default: plunge straight down
+
 Heightmap options:
 
     --width MM
@@ -849,6 +868,14 @@ Heightmap options:
         Let the tool cut below the full depth into black (0,0,0) if this would allow better reproduction of the non-black parts of the heightmap.
         Only really applicable with a ball-nose end mill.
         Default: treat black (0,0,0) as a hard limit on cut depth
+
+    --beyond-edges
+        Let the tool cut beyond the edges of the heightmap if this would allow better reproduction of the shapes within the heightmap.
+        Default: don't
+
+    --omit-top
+        Don't bother cutting top surfaces that are at the upper limit of the heightmap.
+        Default: cut them
 
     --normalise
         Measure the minimum and maximum brightness in the heightmap and stretch all brightness so that the full range of cut depth is achieved.

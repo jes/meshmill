@@ -93,12 +93,14 @@
                     <table>
                     <tr><td class="formlabel"><label for="roughingonly"><div class="has-tooltip"><div class="tooltip">Only generate roughing passes. Don't generate the finishing pass. If you only want the finishing pass, set the step down larger than the height of the model.</div></div>Roughing only</label></td>
                     <td><input type="checkbox" id="roughingonly"></td></tr>
-                    <tr><td class="formlabel"><label for="rampentry"><div class="has-tooltip"><div class="tooltip">Reduce plunge forces by ramping the cutter diagonally where possible.</div></div>Ramp entry (UNIMPLEMENTED)</label></td>
+                    <tr><td class="formlabel"><label for="rampentry"><div class="has-tooltip"><div class="tooltip">Reduce plunge forces during roughing by ramping the cutter diagonally where possible.</div></div>Ramp entry</label></td>
                     <td><input type="checkbox" id="rampentry"></td></tr>
-                    <tr><td class="formlabel"><label for="omittop"><div class="has-tooltip"><div class="tooltip">Don't cut the top surface of the part. This saves wasting time on slowly moving the cutter back and forth across flat top surfaces.</div></div>Omit top (UNIMPLEMENTED)</label></td>
+                    <tr><td class="formlabel"><label for="omittop"><div class="has-tooltip"><div class="tooltip">Don't cut the top surface of the part. This saves wasting time on slowly moving the cutter back and forth across flat top surfaces.</div></div>Omit top</label></td>
                     <td><input type="checkbox" id="omittop"></td></tr>
-                    <tr><td class="formlabel"><label for="clearbottom"><div class="has-tooltip"><div class="tooltip">Where the model geometry can be more faithfully reproduced by cutting below the part, cut below the part. This allows you to cut straight sides with a ball-nose end mill without leaving a radius at the bottom.</div></div>Clear bottom</label></td>
+                    <tr><td class="formlabel"><label for="clearbottom"><div class="has-tooltip"><div class="tooltip">Allow cutting below the bottom of the bounding box. This allows you to cut straight sides with a ball-nose end mill without leaving a radius at the bottom.</div></div>Clear bottom</label></td>
                     <td><input type="checkbox" id="clearbottom"></td></tr>
+                    <tr><td class="formlabel"><label for="clearedges"><div class="has-tooltip"><div class="tooltip">Allow cutting beyond the edges of the bounding box. This allows you to cut the outside edges of the model.</div></div>Cut beyond edges</label></td>
+                    <td><input type="checkbox" id="clearedges"></td></tr>
                     </table>
 
                     <hr>

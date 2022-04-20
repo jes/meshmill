@@ -356,11 +356,11 @@ sub cut_depth {
 
     my $tool_radius = $self->{tool_diameter}/2 + $self->{clearance};
 
-    my $black_probe_depth = -$self->{depth} - $tool_radius + $self->{clearance};
+    my $deep_black_depth = -$self->{depth} - $tool_radius + $self->{clearance};
 
-    my @depths = ($black_probe_depth - 1);
+    my $max_depth = $deep_black_depth;
 
-    # attempt to sample every pixel in the circular footprint under the tool
+    # sample every pixel in the circular footprint under the tool
     # TODO: this can get pretty slow, perhaps we should instead sample a fixed number of pixels in a
     # sensible pattern? Also, this seems ripe for a dynamic programming solution, but I can't quite see one
     for (my $sy = -$tool_radius; $sy <= $tool_radius; $sy += (1 / $self->{y_px_mm})) {
@@ -376,16 +376,10 @@ sub cut_depth {
 
             # only add this depth sample if we're not in deep-black mode, or if this point isn't black
             if (!$self->{deep_black} || !$self->is_black($x+$sx, $y+$sy, %opts)) {
-                push @depths, $self->get_depth($x+$sx, $y+$sy, %opts)+$zoffset;
+                my $d = $self->get_depth($x+$sx, $y+$sy, %opts)+$zoffset;
+                $max_depth = $d if $d > $max_depth;
             }
         }
-    }
-
-    my $max_depth = max(@depths);
-
-    # if the cut is all on black colour then just cut to $self->{depth} instead of below
-    if ($max_depth < $black_probe_depth) {
-        $max_depth = -$self->{depth} + $self->{clearance};
     }
 
     return $max_depth;

@@ -1,4 +1,4 @@
-let SAVE_FIELDS = ['jobs', 'stl', 'heightmap', 'mesh', 'resolution', 'bottomside', 'imperial', 'xyorigin', 'zorigin'];
+let SAVE_FIELDS = ['jobs', 'stl', 'heightmap', 'mesh', 'resolution', 'bottomside', 'imperial', 'xyorigin', 'zorigin', 'dirty_model'];
 
 function Project(cb) {
     this.jobs = [];
@@ -11,6 +11,7 @@ function Project(cb) {
     this.imperial = Settings.imperial;
     this.xyorigin = 'fromstl';
     this.zorigin = 'fromstl';
+    this.dirty_model = false;
 
     this.dirty = false;
     this.tmpdir = null;
@@ -51,6 +52,7 @@ Project.prototype.addJob = function() {
         gcodefile: null,
         outputheightmap: null,
         cycletime: null,
+        dirty: true,
     };
 
     let clone = function(obj) {
@@ -78,8 +80,18 @@ Project.prototype.getJob = function(id) {
     return this.jobs[id];
 };
 
-Project.prototype.loadSTL = function(file, cb) {
+Project.prototype.dirtyModel = function() {
     this.dirty = true;
+    this.dirty_model = true;
+};
+
+Project.prototype.dirtyJob = function(id) {
+    this.dirty = true;
+    this.jobs[id].dirty = true;
+};
+
+Project.prototype.loadSTL = function(file, cb) {
+    this.dirtyModel();
     this.heightmap = null;
 
     let workingfile = this.workingDir() + "/mesh.stl";
@@ -109,7 +121,7 @@ Project.prototype.loadSTL = function(file, cb) {
 };
 
 Project.prototype.renderHeightmap = function(cb) {
-    this.dirty = true;
+    this.dirtyModel();
     var width = this.mesh.width / this.resolution;
     var project = this;
     window.api.send('render-heightmap', {
@@ -119,13 +131,15 @@ Project.prototype.renderHeightmap = function(cb) {
     }, function(r) {
         if (r.error)
             alert(r.error);
+        else
+            project.dirty_model = false;
         project.heightmap = r.file;
         cb(r.file);
     });
 };
 
 Project.prototype.generateToolpath = function(id, cb) {
-    this.dirty = true;
+    this.dirtyJob(id);
     var project = this;
     window.api.send('generate-toolpath', {
         job: this.jobs[id],
@@ -143,6 +157,8 @@ Project.prototype.generateToolpath = function(id, cb) {
     }, function(r) {
         if (r.error)
             alert(r.error);
+        else
+            project.jobs[id].dirty = false;
         project.jobs[id].gcodefile = r.file;
         project.jobs[id].outputheightmap = r.heightmap_file;
         project.jobs[id].cycletime = r.cycletime;

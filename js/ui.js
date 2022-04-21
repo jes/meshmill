@@ -1,7 +1,8 @@
 var currentjob = null;
 var project;
 
-var LARGE_HEIGHTMAP_PX = 4e6; // how many pixels for large heightmap warning?
+var LARGE_HEIGHTMAP_PX = 500e3; // how many pixels for large heightmap warning?
+var MANY_TRIANGLES = 10e6; // how many triangles for a triangle count warning?
 
 function showHeightmap(file, cb) {
     var width = project.mesh.width;
@@ -85,6 +86,7 @@ function loadSTL(path) {
 
 function updateModel() {
     $('#heightmapwarning').hide();
+    $('#trianglewarning').hide();
     if (project.mesh.width) {
         var w = Math.round(project.mesh.width / project.resolution);
         var h = Math.round(project.mesh.height / project.resolution);
@@ -95,6 +97,7 @@ function updateModel() {
             return formatFloat(f);
         }
         $('#triangles').text(project.mesh.triangles);
+        if (project.mesh.triangles > MANY_TRIANGLES) $('#trianglewarning').show();
         $('#bounds').html(`<span style="color:red">X</span>: ${fmt(project.mesh.min.x-project.mesh.origin.x)} to ${fmt(project.mesh.max.x-project.mesh.origin.x)} (${fmt(project.mesh.width)})<br><span style="color:green">Y</span>: ${fmt(project.mesh.min.y-project.mesh.origin.y)} to ${fmt(project.mesh.max.y-project.mesh.origin.y)} (${fmt(project.mesh.height)})<br><span style="color:blue">Z</span>: ${fmt(project.mesh.min.z-project.mesh.origin.z)} to ${fmt(project.mesh.max.z-project.mesh.origin.z)} (${fmt(project.mesh.depth)})`);
 
         $('#reloadstl').prop("disabled",false);
@@ -127,6 +130,7 @@ function updateHeightmap() {
 
 $('#stlfile').change(function() {
     loadSTL($('#stlfile')[0].files[0].path);
+    redrawTabs();
 });
 
 $('#reloadstl').click(function() {
@@ -153,19 +157,24 @@ $('#render-heightmap').click(function() {
         updateHeightmap();
         if (file)
             showHeightmap(file);
+        redrawTabs();
     });
 });
 
 $('#resolution').keyup(function() {
+    project.dirtyModel();
     project.resolution = parseFloat($('#resolution').val());
     updateModel();
+    redrawTabs();
 });
 
 $('#bottomside').change(function() {
+    project.dirtyModel();
     project.bottomside = $('#bottomside').prop('checked');
     // TODO: redraw the STL upside down
     // TODO: update the bounds to show negative Y (?) values
     updateModel();
+    redrawTabs();
 });
 
 /* job tab */
@@ -263,6 +272,7 @@ $('#generate-toolpath').click(function() {
         showJob(currentjob);
         updateJob();
         drawJob();
+        redrawTabs();
     });
 });
 
@@ -283,16 +293,22 @@ $('#deletejob').click(function() {
 
 $('#show-toolpath').change(drawJob);
 
+function inputJob() {
+    project.dirtyJob(currentjob);
+    redrawTabs();
+    updateJob();
+}
+
 var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'stepover', 'stepforward', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop', 'clearbottom', 'clearedges'];
 for (var i = 0; i < inputs.length; i++) {
-    $('#' + inputs[i]).change(updateJob);
-    $('#' + inputs[i]).keyup(updateJob);
+    $('#' + inputs[i]).change(inputJob);
+    $('#' + inputs[i]).keyup(inputJob);
 }
 
 /* tabs */
 
 function addJobTab(id) {
-    $('#jobtabs').append(`<button class="tab" id="job-${id}-tab">JOB ${id+1}</button>`);
+    $('#jobtabs').append(`<button class="tab" id="job-${id}-tab"><img class="dirty" src="img/refresh.svg">JOB ${id+1}</button>`);
     $(`#job-${id}-tab`).click(function() {
         showJob(id);
     });
@@ -311,12 +327,23 @@ function redrawTabs() {
     } else {
         $('#model-tab').removeClass('tab-active');
     }
+    if (project.dirty_model) {
+        $(`#model-tab`).addClass('tab-dirty');
+    } else {
+        $(`#model-tab`).removeClass('tab-dirty');
+    }
 
     for (var i = 0; i < project.jobs.length; i++) {
         if (i == currentjob) {
             $(`#job-${i}-tab`).addClass('tab-active');
         } else {
             $(`#job-${i}-tab`).removeClass('tab-active');
+        }
+
+        if (project.jobs[i].dirty) {
+            $(`#job-${i}-tab`).addClass('tab-dirty');
+        } else {
+            $(`#job-${i}-tab`).removeClass('tab-dirty');
         }
     }
 }

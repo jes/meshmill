@@ -9,7 +9,7 @@
 	<body>
         <div id="app">
             <div id="tabs">
-                <button id="model-tab" class="tab">MODEL</button>
+                <button id="model-tab" class="tab"><img class="dirty" src="img/refresh.svg">MODEL</button>
                 <div id="jobtabs"></div>
                 <button id="addjob-tab" class="tab">+<br>ADD JOB</button>
             </div>
@@ -18,7 +18,7 @@
                 <div id="model-options">
                     STL model: <input id="stlfile" type="file" accept=".stl"><br>
                     <small><button id="reloadstl">Reload from disk</button></small><br>
-                    <span id="triangles"></span> triangles
+                    <span id="triangles"></span> triangles <div id="trianglewarning" class="has-warning"><div class="warning">This is a lot of triangles! This could make the "Process surface" operation very slow, but won't have an effect after that.</div></div>
 
                     <hr>
 
@@ -46,7 +46,7 @@
                     <hr>
                     <table>
                     <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">The physical size represented by each pixel of the heightmap.</div></div>XY Resolution:</td><td><input type="text" id="resolution"></td><td class="unit-mm"></td></tr>
-                    <tr><td class="formlabel">Heightmap:</td><td><span id="heightmapsize"></span> px</td><td><span id="heightmapwarning">WARNING: Large</span></td></tr>
+                    <tr><td class="formlabel">Heightmap:</td><td><span id="heightmapsize"></span> px</td><td><div id="heightmapwarning" class="has-warning"><div class="warning">Large heightmaps increase processing time for all operations. Try increasing the "XY Resolution" value to reduce the size of the heightmap. Tip: start with a low-quality heightmap while setting up your jobs, and switch to a finer resolution at the end to export your G-code.</div></div></td></tr>
                     <tr><td class="formlabel"><label for="bottomside">Bottom side</label></td><td><input type="checkbox" id="bottomside"></td></tr>
                     </table>
 

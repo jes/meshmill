@@ -38,10 +38,22 @@ input[type="text"] {
     margin-left: 5px;
     margin-right: 5px;
     font-weight: bold;
+    position: relative;
 }
 
 .tab-active {
     background: #0cf4c7;
+}
+
+.dirty {
+    display: none;
+}
+.tab-dirty .dirty {
+    top: 2px;
+    right: 2px;
+    display: block;
+    width: 20px;
+    position: absolute;
 }
 
 #options {
@@ -87,20 +99,26 @@ td.formlabel {
     cursor: default;
 }
 
-.has-tooltip {
+.has-tooltip, .has-warning {
     display: inline-block;
-    border-radius: 50%;
-    background: #ffb;
     color: white;
     padding: 2px;
     font-size: 0.8em;
-    background-image: url(../img/help.svg);
     width: 12px;
     height: 12px;
     background-size: cover;
 }
 
-.has-tooltip .tooltip {
+.has-tooltip {
+    border-radius: 50%;
+    background: #ffb;
+    background-image: url(../img/help.svg);
+}
+.has-warning {
+    background-image: url(../img/warning.svg);
+}
+
+.has-tooltip .tooltip, .has-warning .warning {
     visibility: hidden;
     max-width: 400px;
     background-color: #444;
@@ -116,7 +134,7 @@ td.formlabel {
     z-index: 1;
 }
 
-.has-tooltip:hover .tooltip {
+.has-tooltip:hover .tooltip, .has-warning:hover .warning {
     visibility: visible;
     transition-delay: 500ms; /* time until tooltip appears when hovering */
 }

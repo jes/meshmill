@@ -277,8 +277,8 @@ function doGenerateToolpath() {
 }
 
 $('#generate-toolpath').click(function() {
-    if (!project.jobReady(currentjob)) {
-        confirmDialog("Prior stages have unprocessed changes. This could result in an incorrect toolpath for this job. Do you want to generate the toolpath anyway?", "Generate toolpath", "Cancel", function(confirmed) {
+    if (!project.jobReady(currentjob-1)) {
+        confirmDialog("Unprocessed changes may affect this job. Generate the toolpath anyway?", "Generate toolpath", "Cancel", function(confirmed) {
             if (confirmed)
                 doGenerateToolpath();
         });
@@ -288,10 +288,18 @@ $('#generate-toolpath').click(function() {
 });
 
 $('#save-gcode').click(function() {
-    project.saveGcode(currentjob);
+    if (!project.jobReady(currentjob)) {
+        confirmDialog("Unprocessed changes may affect this job. Save the existing G-code anyway?", "Save G-code", "Cancel", function(confirmed) {
+            if (confirmed)
+                project.saveGcode(currentjob);
+        });
+    } else {
+        project.saveGcode(currentjob);
+    }
 });
 
 $('#deletejob').click(function() {
+    project.dirtyJob(currentjob+1);
     project.deleteJob(currentjob);
     deleteJobTab(project.jobs.length);
     if (currentjob >= project.jobs.length) currentjob--;

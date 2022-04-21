@@ -82,7 +82,7 @@ Project.prototype.getJob = function(id) {
 
 Project.prototype.jobReady = function(id) {
     if (this.dirty_model) return false;
-    for (var i = 0; i < id; i++) {
+    for (var i = 0; i <= id; i++) {
         if (this.jobs[i].dirty)
             return false;
     }
@@ -95,6 +95,8 @@ Project.prototype.dirtyModel = function() {
 };
 
 Project.prototype.dirtyJob = function(id) {
+    if (id >= this.jobs.length)
+        return;
     this.dirty = true;
     this.jobs[id].dirty = true;
 };
@@ -168,8 +170,7 @@ Project.prototype.generateToolpath = function(id, cb) {
             alert(r.error);
         } else {
             project.jobs[id].dirty = false;
-            if (id+1 < project.jobs.length)
-                project.dirtyJob(id+1);
+            project.dirtyJob(id+1);
         }
         project.jobs[id].gcodefile = r.file;
         project.jobs[id].outputheightmap = r.heightmap_file;

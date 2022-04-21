@@ -132,7 +132,6 @@ Project.prototype.loadSTL = function(file, cb) {
 };
 
 Project.prototype.renderHeightmap = function(cb) {
-    this.dirtyModel();
     var width = this.mesh.width / this.resolution;
     var project = this;
     window.api.send('render-heightmap', {
@@ -142,7 +141,7 @@ Project.prototype.renderHeightmap = function(cb) {
     }, function(r) {
         if (r.error)
             alert(r.error);
-        else {
+        if (r.file) {
             project.dirty_model = false;
             for (var i = 0; i < project.jobs.length; i++)
                 project.dirtyJob(i);
@@ -153,7 +152,6 @@ Project.prototype.renderHeightmap = function(cb) {
 };
 
 Project.prototype.generateToolpath = function(id, cb) {
-    this.dirtyJob(id);
     var project = this;
     window.api.send('generate-toolpath', {
         job: this.jobs[id],
@@ -171,7 +169,8 @@ Project.prototype.generateToolpath = function(id, cb) {
     }, function(r) {
         if (r.error) {
             alert(r.error);
-        } else {
+        }
+        if(r.file) {
             project.jobs[id].dirty = false;
             project.dirtyJob(id+1);
         }

@@ -150,7 +150,7 @@ $('#zorigin').change(function() {
     drawModel();
 });
 
-$('#render-heightmap').click(function() {
+function doRenderHeightmap(cb) {
     progressStart();
     project.renderHeightmap(function(file) {
         progressEnd();
@@ -158,7 +158,12 @@ $('#render-heightmap').click(function() {
         if (file)
             showHeightmap(file);
         redrawTabs();
+        if (cb) cb(file);
     });
+}
+
+$('#render-heightmap').click(function() {
+    doRenderHeightmap();
 });
 
 $('#resolution').keyup(function() {
@@ -277,7 +282,7 @@ function updateJob() {
     }
 }
 
-function doGenerateToolpath() {
+function doGenerateToolpath(cb) {
     progressStart();
     project.generateToolpath(currentjob, function(file) {
         progressEnd();
@@ -285,6 +290,7 @@ function doGenerateToolpath() {
         updateJob();
         drawJob();
         redrawTabs();
+        if (cb) cb(file);
     });
 }
 
@@ -479,3 +485,34 @@ window.api.receive('set-settings', function(s) {
 });
 
 window.api.send('get-settings');
+
+function recomputeNext(id, only_dirty) {
+    if (only_dirty) {
+        for (; !project.jobs[id].dirty; id++);
+    }
+
+    if (id >= project.jobs.length) return;
+
+    showJob(id);
+    doGenerateToolpath(function(file) {
+        if (file) recomputeNext(id+1);
+    });
+}
+
+window.api.receive('reprocess-all', function() {
+    showModel();
+    doRenderHeightmap(function(file) {
+        if (file) recomputeNext(0);
+    });
+});
+
+window.api.receive('reprocess-dirty', function() {
+    if (project.dirty_model) {
+        showModel();
+        doRenderHeightmap(function(file) {
+            if (file) recomputeNext(0, true);
+        });
+    } else {
+        recomputeNext(0, true);
+    }
+});

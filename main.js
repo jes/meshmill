@@ -97,6 +97,23 @@ const template = [
         ],
     },
     { role: 'viewMenu' },
+    {
+        label: 'Tools',
+        submenu: [
+            {
+                label: 'Reprocess all',
+                click: async () => {
+                    win.webContents.send('reprocess-all');
+                },
+            },
+            {
+                label: 'Reprocess dirty',
+                click: async () => {
+                    win.webContents.send('reprocess-dirty');
+                },
+            },
+        ],
+    },
     { role: 'windowMenu' },
     { role: 'help',
         submenu: [

@@ -263,6 +263,18 @@ function updateJob() {
     } else {
         $('#save-gcode').prop("disabled", true);
     }
+
+    if (j.path.stepover > j.tool.diameter) {
+        $('#stepoverwarning').show();
+    } else {
+        $('#stepoverwarning').hide();
+    }
+
+    if (j.path.stepforward < project.resolution) {
+        $('#stepforwardwarning').show();
+    } else {
+        $('#stepforwardwarning').hide();
+    }
 }
 
 function doGenerateToolpath() {

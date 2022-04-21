@@ -446,10 +446,10 @@ function getSaveFilename() {
     if (!filename) filename = dialog.showSaveDialogSync(win, {
         title: "Save",
         defaultPath: 'Untitled.meshmill',
-        showOverwriteConfirmation: true,
         filters: [{name: "Meshmill Projects (.meshmill)", extensions: ["meshmill"]},{name: "All Files", extensions:["*"]}],
+        properties: ["showOverwriteConfirmation"],
     });
-    setTitle(filename);
+    setFilename(filename);
     return filename;
 }
 
@@ -457,8 +457,8 @@ function getNewSaveFilename() {
     newfilename = dialog.showSaveDialogSync(win, {
         title: "Save",
         defaultPath: 'Untitled.meshmill',
-        showOverwriteConfirmation: true,
         filters: [{name: "Meshmill Projects (.meshmill)", extensions: ["meshmill"]},{name: "All Files", extensions:["*"]}],
+        properties: ["showOverwriteConfirmation"],
     });
     if (newfilename) setFilename(newfilename);
     return newfilename;

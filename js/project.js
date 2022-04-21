@@ -80,6 +80,15 @@ Project.prototype.getJob = function(id) {
     return this.jobs[id];
 };
 
+Project.prototype.jobReady = function(id) {
+    if (this.dirty_model) return false;
+    for (var i = 0; i < id; i++) {
+        if (this.jobs[i].dirty)
+            return false;
+    }
+    return true;
+};
+
 Project.prototype.dirtyModel = function() {
     this.dirty = true;
     this.dirty_model = true;
@@ -155,10 +164,13 @@ Project.prototype.generateToolpath = function(id, cb) {
         write_stock: this.workingDir() + "/job-" + id + ".png",
         read_stock: (id > 0 ? this.jobs[id-1].outputheightmap : null),
     }, function(r) {
-        if (r.error)
+        if (r.error) {
             alert(r.error);
-        else
+        } else {
             project.jobs[id].dirty = false;
+            if (id+1 < project.jobs.length)
+                project.dirtyJob(id+1);
+        }
         project.jobs[id].gcodefile = r.file;
         project.jobs[id].outputheightmap = r.heightmap_file;
         project.jobs[id].cycletime = r.cycletime;

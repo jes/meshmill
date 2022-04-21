@@ -265,7 +265,7 @@ function updateJob() {
     }
 }
 
-$('#generate-toolpath').click(function() {
+function doGenerateToolpath() {
     progressStart();
     project.generateToolpath(currentjob, function(file) {
         progressEnd();
@@ -274,6 +274,17 @@ $('#generate-toolpath').click(function() {
         drawJob();
         redrawTabs();
     });
+}
+
+$('#generate-toolpath').click(function() {
+    if (!project.jobReady(currentjob)) {
+        confirmDialog("Prior stages have unprocessed changes. This could result in an incorrect toolpath for this job. Do you want to generate the toolpath anyway?", "Generate toolpath", "Cancel", function(confirmed) {
+            if (confirmed)
+                doGenerateToolpath();
+        });
+    } else {
+        doGenerateToolpath();
+    }
 });
 
 $('#save-gcode').click(function() {

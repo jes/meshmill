@@ -500,6 +500,7 @@ function recomputeNext(id, only_dirty) {
 }
 
 window.api.receive('reprocess-all', function() {
+    if (!project.mesh.width) return;
     showModel();
     doRenderHeightmap(function(file) {
         if (file) recomputeNext(0);
@@ -507,6 +508,7 @@ window.api.receive('reprocess-all', function() {
 });
 
 window.api.receive('reprocess-dirty', function() {
+    if (!project.mesh.width) return;
     if (project.dirty_model) {
         showModel();
         doRenderHeightmap(function(file) {

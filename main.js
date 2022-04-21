@@ -467,7 +467,6 @@ function getNewSaveFilename() {
 function getOpenFilename() {
     newfilename = dialog.showOpenDialogSync(win, {
         title: "Open",
-        showOverwriteConfirmation: true,
         filters: [{name: "Meshmill Projects (.meshmill)", extensions: ["meshmill"]},{name: "All Files", extensions:["*"]}],
     });
     if (newfilename) {

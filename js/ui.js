@@ -446,6 +446,7 @@ function openProject(filename) {
 function newProject(cb) {
     project = new Project(cb);
     $('#jobtabs').html('');
+    $('#stlfile').val('');
     showModel();
 }
 newProject();

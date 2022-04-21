@@ -36,7 +36,7 @@ const template = [
                 label: 'New',
                 click: async () => {
                     win.webContents.send('new-project');
-                    filename = null;
+                    setFilename(null);
                 }
             },
             {
@@ -434,6 +434,14 @@ ipcMain.on('set-settings', (event,arg,replychan) => {
     win.webContents.send('set-settings', settings);
 });
 
+function setFilename(f) {
+    filename = f;
+    if (f)
+        win.setTitle(path.parse(f).base + " - Meshmill");
+    else
+        win.setTitle("Meshmill");
+}
+
 function getSaveFilename() {
     if (!filename) filename = dialog.showSaveDialogSync(win, {
         title: "Save",
@@ -441,6 +449,7 @@ function getSaveFilename() {
         showOverwriteConfirmation: true,
         filters: [{name: "Meshmill Projects (.meshmill)", extensions: ["meshmill"]},{name: "All Files", extensions:["*"]}],
     });
+    setTitle(filename);
     return filename;
 }
 
@@ -451,7 +460,7 @@ function getNewSaveFilename() {
         showOverwriteConfirmation: true,
         filters: [{name: "Meshmill Projects (.meshmill)", extensions: ["meshmill"]},{name: "All Files", extensions:["*"]}],
     });
-    if (newfilename) filename = newfilename;
+    if (newfilename) setFilename(newfilename);
     return newfilename;
 }
 
@@ -462,7 +471,7 @@ function getOpenFilename() {
         filters: [{name: "Meshmill Projects (.meshmill)", extensions: ["meshmill"]},{name: "All Files", extensions:["*"]}],
     });
     if (newfilename) {
-        filename = newfilename[0];
+        setFilename(newfilename[0]);
         return filename;
     }
     return newfilename;

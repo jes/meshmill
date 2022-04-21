@@ -65,6 +65,7 @@ Project.prototype.addJob = function() {
     newJob.gcodefile = null;
     newJob.outputheightmap = null;
     newJob.cycletime = null;
+    newJob.dirty = true;
 
     this.jobs.push(newJob);
 

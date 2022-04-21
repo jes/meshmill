@@ -142,8 +142,11 @@ Project.prototype.renderHeightmap = function(cb) {
     }, function(r) {
         if (r.error)
             alert(r.error);
-        else
+        else {
             project.dirty_model = false;
+            for (var i = 0; i < project.jobs.length; i++)
+                project.dirtyJob(i);
+        }
         project.heightmap = r.file;
         cb(r.file);
     });

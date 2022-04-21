@@ -134,8 +134,8 @@ sub one_pass {
         while ($x >= $zero && $y >= $zero && $x < $xlimit && $y < $ylimit) {
             my $px = $x;
             my $py = $y;
-            $px = $self->{width}+$extralimit if $px > $self->{width}+$extralimit;
-            $py = $self->{height}+$extralimit if $py > $self->{height}+$extralimit;
+            $px = $self->{width}+$extralimit-(1/$self->{x_px_mm}) if $px > $self->{width}+$extralimit-(1/$self->{x_px_mm});
+            $py = $self->{height}+$extralimit-(1/$self->{y_px_mm}) if $py > $self->{height}+$extralimit-(1/$self->{y_px_mm});
             my $p = {
                 x => $px,
                 y => -$py, # note: negative

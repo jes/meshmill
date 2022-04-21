@@ -620,7 +620,7 @@ sub ramp_entry {
 
     my $pi = 3.14159265;
     my $max_plunge_angle = 30 * ($pi/180); # radians from horizontal
-    my $min_ramp_distance = $self->{tool_diameter};
+    my $min_ramp_distance = 0.01; # avoid dividing by zero
 
     my @outpath;
 
@@ -675,7 +675,6 @@ sub ramp_entry {
         my $available_ramp_angle = atan2($dznext, $dxynext);
 
         # how steep would our ramp need to be to finish before passing the next point?
-        my $available_ramp_distance = $dxynext;
         my $implied_available_ramp_angle = atan2(-$dzlast/2, $dxynext);
 
         # use whichever limit forces the ramp angle to be steepest, so that we don't exceed any limit

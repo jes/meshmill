@@ -209,7 +209,7 @@ function showJob(id) {
     $('#clearbottom').prop('checked', job.path.clearbottom);
     $('#clearedges').prop('checked', job.path.clearedges);
 
-    if (job.cycletime !== null) {
+    if (job.cycletime != null) {
         $('#cycletime').text(timefmt(job.cycletime*1000));
     } else {
         $('#cycletime').text("?");

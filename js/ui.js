@@ -411,8 +411,13 @@ window.api.receive('new-project', function() {
 });
 
 window.api.receive('save-project', function(filename) {
+    $('*').addClass('busy');
     project.ui.scenemiddle = scenemiddle;
-    project.save(filename);
+    project.save(filename, function() {
+        setTimeout(function() {
+            $('*').removeClass('busy');
+        }, 100);
+    });
 });
 
 window.api.receive('want-open', function() {

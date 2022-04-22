@@ -194,7 +194,7 @@ Project.prototype.workingDir = function() {
     else throw "tmpdir not set yet";
 };
 
-Project.prototype.save = function(filename) {
+Project.prototype.save = function(filename, cb) {
     let project = this;
 
     let obj = {};
@@ -214,6 +214,7 @@ Project.prototype.save = function(filename) {
     }, function(err) {
         if (err) {
             alert(err);
+            cb(err);
             return;
         }
 
@@ -224,11 +225,13 @@ Project.prototype.save = function(filename) {
         }, function(err) {
             if (err) {
                 alert(err);
+                cb(err);
                 return;
             }
 
             // 3. done!
             project.dirty = false;
+            cb();
         });
     });
 };

@@ -138,3 +138,7 @@ td.formlabel {
     visibility: visible;
     transition-delay: 500ms; /* time until tooltip appears when hovering */
 }
+
+.busy {
+    cursor: wait;
+}

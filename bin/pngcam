@@ -703,12 +703,14 @@ sub omit_top {
 
     my @outpath;
 
+    my $epsilon = 0.0001;
+
     my $i = 0;
     while ($i < @path) {
         my $p = $path[$i];
 
         # not a G1 at Z0? leave it alone
-        if ($p->{z} != 0 || $p->{G} ne 'G1') {
+        if (abs($p->{z}) > $epsilon || $p->{G} ne 'G1') {
             push @outpath, $p;
             $i++;
             next;
@@ -727,7 +729,7 @@ sub omit_top {
         push @outpath, $p unless $i == 0;
 
         # skip over the subsequent G1's at Z0
-        $i++ while $i < $#path && $path[$i+1]{z} == 0 && $path[$i+1]{G} eq 'G1';
+        $i++ while $i < $#path && abs($path[$i+1]{z}) < $epsilon && $path[$i+1]{G} eq 'G1';
         my $p2 = $path[$i];
 
         # up

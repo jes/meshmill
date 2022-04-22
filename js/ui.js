@@ -74,9 +74,6 @@ function drawModel() {
     else showScene();
 }
 
-// TODO: this function is used for both reloading the STL from disk and re-rendering the STL
-// at a new origin - these need to be split up eventually because sometimes we want to re-render
-// the STL without reloading the original file
 function loadSTL(path) {
     project.loadSTL(path, function() {
         updateModel();

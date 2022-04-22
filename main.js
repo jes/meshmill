@@ -255,11 +255,9 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     }
 
     opts.push(arg.heightmap);
-    // TODO: write outputs to project folder; also, write to a
-    // temporary file until successful, then move to the project
-    // folder
-    let gcodeFile = tmp.fileSync({prefix:'meshmill', postfix:'.gcode'}).name;
-    tmpnames.push(gcodeFile);
+    // TODO: write to a temporary file until successful, then move to the
+    // project folder
+    let gcodeFile = arg.gcodepath;
     let gcodeStream = fs.createWriteStream(gcodeFile);
     gcodeStream.on('open', function() {
         console.log(opts);

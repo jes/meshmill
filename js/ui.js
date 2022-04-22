@@ -55,6 +55,9 @@ function showModel() {
     $('#toolpath-options').hide();
     $('#toolpath-scene-controls').hide();
 
+    $('#xyorigin').val(project.xyorigin);
+    $('#zorigin').val(project.zorigin);
+
     $('#resolution').val(project.resolution);
     $('#bottomside').prop('checked', project.bottomside);
 
@@ -139,12 +142,14 @@ $('#xyorigin').change(function() {
     project.setXYOrigin($('#xyorigin').val());
     updateModel();
     drawModel();
+    redrawTabs();
 });
 
 $('#zorigin').change(function() {
     project.setZOrigin($('#zorigin').val());
     updateModel();
     drawModel();
+    redrawTabs();
 });
 
 function doRenderHeightmap(cb) {
@@ -406,6 +411,7 @@ window.api.receive('new-project', function() {
 });
 
 window.api.receive('save-project', function(filename) {
+    project.ui.scenemiddle = scenemiddle;
     project.save(filename);
 });
 
@@ -432,6 +438,7 @@ function openProject(filename) {
     } else {
         newProject(function(project) {
             project.open(filename, function() {
+                scenemiddle = project.ui.scenemiddle;
                 for (var i = 0; i < project.jobs.length; i++)
                     addJobTab(i);
                 showModel();

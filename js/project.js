@@ -1,4 +1,4 @@
-let SAVE_FIELDS = ['jobs', 'stl', 'heightmap', 'mesh', 'resolution', 'bottomside', 'imperial', 'xyorigin', 'zorigin', 'dirty_model'];
+let SAVE_FIELDS = ['jobs', 'stl', 'stl_original', 'heightmap', 'mesh', 'resolution', 'bottomside', 'imperial', 'xyorigin', 'zorigin', 'dirty_model', 'ui'];
 
 function Project(cb) {
     this.jobs = [];
@@ -12,6 +12,7 @@ function Project(cb) {
     this.xyorigin = 'fromstl';
     this.zorigin = 'fromstl';
     this.dirty_model = false;
+    this.ui = {};
 
     this.dirty = false;
     this.tmpdir = null;
@@ -167,6 +168,7 @@ Project.prototype.generateToolpath = function(id, cb) {
         imperial: this.imperial,
         write_stock: this.workingDir() + "/job-" + id + ".png",
         read_stock: (id > 0 ? this.jobs[id-1].outputheightmap : null),
+        gcodepath: this.workingDir() + "/job-" + id + ".gcode",
     }, function(r) {
         if (r.error) {
             alert(r.error);
@@ -269,6 +271,9 @@ Project.prototype.open = function(filename, cb) {
 };
 
 Project.prototype.calculateOrigin = function() {
+    for (var i = 0; i < this.jobs.length; i++)
+        this.dirtyJob(i);
+
     this.mesh.origin = {};
 
     switch (this.xyorigin) {

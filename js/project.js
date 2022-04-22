@@ -24,7 +24,6 @@ function Project(cb) {
     });
 }
 
-// TODO: clone last job instead of starting afresh
 Project.prototype.addJob = function() {
     this.dirty = true;
     let defaultJob = {

@@ -16,6 +16,5 @@ function renderToolpath(path, xoff, yoff, zoff) {
         linewidth: 2,
     });
     let line = new THREE.Line(geometry, material);
-    // TODO: re-initialise the scene from scratch, with the relevant heightmap
     scene.add(line);
 }

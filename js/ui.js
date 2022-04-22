@@ -444,6 +444,7 @@ function openProject(filename) {
 }
 
 function newProject(cb) {
+    camera = null;
     project = new Project(cb);
     $('#jobtabs').html('');
     $('#stlfile').val('');

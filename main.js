@@ -333,7 +333,10 @@ ipcMain.on('cancel', (event,arg) => {
 ipcMain.on('save-file', (event,arg) => {
     // TODO: take title, filename filter as arg
     let dstfile = dialog.showSaveDialogSync(win, {
-        showOverwriteConfirmation: true,
+        title: "Save",
+        defaultPath: 'Untitled.gcode',
+        filters: [{name: "G-code (.gcode, .ngc)", extensions: ["gcode","ngc"]},{name: "All Files", extensions:["*"]}],
+        properties: ["showOverwriteConfirmation"],
     });
     // TODO: alert on errors, feedback of success
     if (dstfile)

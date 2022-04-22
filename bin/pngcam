@@ -178,7 +178,7 @@ sub one_pass {
     for (my $zheight = -$self->{step_down}; $zheight > $deepest; $zheight -= $self->{step_down}) {
         my $cutting = 0;
         for my $p (@path) {
-            if ($p->{z} < $zheight && (!$self->{read_stock} || $p->{z}+$self->{step_down} < $self->cut_depth($p->{x}, -$p->{y}, img => $self->{read_stock_image}))) {
+            if ($p->{z} < $zheight && (!$self->{read_stock} || $zheight < $self->cut_depth($p->{x}, -$p->{y}, img => $self->{read_stock_image}))) {
                 # if we're not already cutting into the work, and the new point isn't adjacent to the last one, move the tool up and over
                 if (!$cutting && !$self->adjacent_points($last->{x}, $last->{y}, $p->{x}, $p->{y})) {
                     push @extrapath, {

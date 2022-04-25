@@ -23,7 +23,7 @@
                     <hr>
 
                     <table>
-                    <tr><td class="formlabel">XY origin:</td><td colspan="2"><select id="xyorigin">
+                    <tr><td class="formlabel">XY origin:</td><td><select id="xyorigin">
                         <option value="fromstl">From STL model</option>
                         <option value="centre">Centre</option>
                         <option value="topleft">Top left</option>
@@ -32,7 +32,7 @@
                         <option value="bottomright">Bottom right</option>
                         <!-- TODO: custom coordinates? -->
                     </select></td></tr>
-                    <tr><td class="formlabel">Z origin:</td><td colspan="2"><select id="zorigin">
+                    <tr><td class="formlabel">Z origin:</td><td><select id="zorigin">
                         <option value="fromstl">From STL model</option>
                         <option value="top">Top surface</option>
                         <option value="bottom">Bottom surface</option>
@@ -45,8 +45,8 @@
 
                     <hr>
                     <table>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">The physical size represented by each pixel of the heightmap.<br><img src="img/diagrams/xyresolution.png"></div></div>XY Resolution:</td><td><input type="text" id="resolution"></td><td class="unit-mm"></td></tr>
-                    <tr><td class="formlabel">Heightmap:</td><td><span id="heightmapsize"></span> px</td><td><div id="heightmapwarning" class="has-warning"><div class="warning">Large heightmaps increase processing time for all operations. Try increasing the "XY Resolution" value to reduce the size of the heightmap. Tip: start with a low-quality heightmap while setting up your jobs, and switch to a finer resolution at the end to export your G-code.</div></div></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">The physical size represented by each pixel of the heightmap.<br><img src="img/diagrams/xyresolution.png"></div></div>XY Resolution:</td><td><input type="text" id="resolution"> <span class="unit-mm"></span></td></tr>
+                    <tr><td class="formlabel">Heightmap:</td><td><span id="heightmapsize"></span> px <div id="heightmapwarning" class="has-warning"><div class="warning">Large heightmaps increase processing time for all operations. Try increasing the "XY Resolution" value to reduce the size of the heightmap. Tip: start with a low-quality heightmap while setting up your jobs, and switch to a finer resolution at the end to export your G-code.</div></div></td></tr>
                     <tr><td class="formlabel"><label for="bottomside">Bottom side</label></td><td><input type="checkbox" id="bottomside"></td></tr>
                     </table>
 
@@ -62,16 +62,16 @@
 
                 <div id="toolpath-options" style="display:none">
                     <table>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><img src="img/diagrams/toolshape.png"></div></div>Tool shape:</td><td colspan="2"><select id="toolshape">
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><img src="img/diagrams/toolshape.png"></div></div>Tool shape:</td><td><select id="toolshape">
                     <option value="ball">Ball-nose end mill</option>
                     <option value="flat">Flat end mill</option>
                     </select></td></tr>
 
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><img src="img/diagrams/tooldiameter.png"></div></div>Tool diameter:</td><td><input type="text" id="tooldiameter"></input></td><td class="unit-mm"></td></tr>
-                    <tr><td class="formlabel">XY feed rate:</td><td><input type="text" id="xyfeed"></input></td><td class="unit-mmmin"></td></tr>
-                    <tr><td class="formlabel">Z feed rate:</td><td><input type="text" id="zfeed"></input></td><td class="unit-mmmin"></td></tr>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Height to move above the part for rapid moves. This is relative to the top surface of the bounding box.<br><img src="img/diagrams/rapidz.png"></div></div>Rapid Z clearance:</td><td><input type="text" id="safez"></input></td><td class="unit-mm"></td></tr>
-                    <tr><td class="formlabel">Spindle:</td><td><input type="text" id="rpm"></input></td><td>rpm</td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><img src="img/diagrams/tooldiameter.png"></div></div>Tool diameter:</td><td><input type="text" id="tooldiameter"></input> <span class="unit-mm"></span></td></tr>
+                    <tr><td class="formlabel">XY feed rate:</td><td><input type="text" id="xyfeed"></input> <span class="unit-mmmin"></span></td></tr>
+                    <tr><td class="formlabel">Z feed rate:</td><td><input type="text" id="zfeed"></input> <span class="unit-mmmin"></span></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Height to move above the part for rapid moves. This is relative to the top surface of the bounding box.<br><img src="img/diagrams/rapidz.png"></div></div>Rapid Z clearance:</td><td><input type="text" id="safez"></input> <span class="unit-mm"></span></td></tr>
+                    <tr><td class="formlabel">Spindle:</td><td><input type="text" id="rpm"> rpm</td></tr>
                     </table>
 
                     <hr>
@@ -81,11 +81,11 @@
                         <option value="horizontal">Horizontal (along X)</option>
                         <option value="vertical">Vertical (along Y)</option>
                     </select></td></tr>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Perpendicular distance between consecutive passes.<br><img src="img/diagrams/stepover.png"></div></div>Step over:</td><td><input type="text" id="stepover"></input></td><td><span class="unit-mm"></span> <div id="stepoverwarning" class="has-warning"><div class="warning">Step over should be smaller than tool diameter.</div></div></td></tr>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Maximum deviation of a flat surface, if cut by a ball-nose end mill with the given diameter and given step over.<br><img src="img/diagrams/nominaldeviation.png"></div></div>Nominal deviation:</td><td><span id="surfacedeviation"></span></td><td class="unit-mm"></td></tr>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Distance between consecutive sample points of the heightmap. If this value is too large then it can cut straight through small protrusions, and it can skip over small dips. There is no benefit from setting this value smaller than the "XY resolution" of the surface heightmap.<br><img src="img/diagrams/stepforward.png"></div></div>Step forward:</td><td><input type="text" id="stepforward"></input></td><td><span class="unit-mm"></span><div id="stepforwardwarning" class="has-warning"><div class="warning">A step forward value smaller than "XY Resolution" results in increased processing time with no quality advantage. If you want finer steps forward you'll need a finer heightmap resolution.</div></div></td></tr>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Maximum depth of cut for a single pass. Where the required depth exceeds this amount, it will be achieved with multiple passes.<br><img src="img/diagrams/stepdown.png"></div></div>Step down:</td><td><input type="text" id="stepdown"></input></td><td class="unit-mm"></td></tr>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Distance to keep tool away from finished model geometry. This leaves material for a finishing pass to clean up.<br><img src="img/diagrams/stocktoleave.png"></div></div>Stock to leave:</td><td><input type="text" id="clearance"></input></td><td class="unit-mm"></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Perpendicular distance between consecutive passes.<br><img src="img/diagrams/stepover.png"></div></div>Step over:</td><td><input type="text" id="stepover"></input> <span class="unit-mm"></span> <div id="stepoverwarning" class="has-warning"><div class="warning">Step over should be smaller than tool diameter.</div></div></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Maximum deviation of a flat surface, if cut by a ball-nose end mill with the given diameter and given step over.<br><img src="img/diagrams/nominaldeviation.png"></div></div>Nominal deviation:</td><td><span id="surfacedeviation"></span> <span class="unit-mm"></span></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Distance between consecutive sample points of the heightmap. If this value is too large then it can cut straight through small protrusions, and it can skip over small dips. There is no benefit from setting this value smaller than the "XY resolution" of the surface heightmap.<br><img src="img/diagrams/stepforward.png"></div></div>Step forward:</td><td><input type="text" id="stepforward"></input> <span class="unit-mm"></span> <div id="stepforwardwarning" class="has-warning"><div class="warning">A step forward value smaller than "XY Resolution" results in increased processing time with no quality advantage. If you want finer steps forward you'll need a finer heightmap resolution.</div></div></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Maximum depth of cut for a single pass. Where the required depth exceeds this amount, it will be achieved with multiple passes.<br><img src="img/diagrams/stepdown.png"></div></div>Step down:</td><td><input type="text" id="stepdown"></input> <span class="unit-mm"></span></td></tr>
+                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Distance to keep tool away from finished model geometry. This leaves material for a finishing pass to clean up.<br><img src="img/diagrams/stocktoleave.png"></div></div>Stock to leave:</td><td><input type="text" id="clearance"></input> <span class="unit-mm"></span></td></tr>
                     </table>
 
                     <hr>

@@ -85,7 +85,7 @@ function STLViewer(model, origin) {
 window.addEventListener('resize', onWindowResize, false);
 
 function onWindowResize() {
-    if (!renderer) return;
+    if (!renderer || !camera) return;
     renderer.setSize(0,0);
     let rect = container.getBoundingClientRect();
     camera.aspect = rect.width / rect.height;

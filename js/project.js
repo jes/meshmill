@@ -146,8 +146,8 @@ Project.prototype.renderHeightmap = function(cb) {
             project.dirty_model = false;
             for (var i = 0; i < project.jobs.length; i++)
                 project.dirtyJob(i);
+            project.heightmap = r.file;
         }
-        project.heightmap = r.file;
         cb(r.file);
     });
 };
@@ -172,13 +172,13 @@ Project.prototype.generateToolpath = function(id, cb) {
         if (r.error) {
             alert(r.error);
         }
-        if(r.file) {
+        if (r.file) {
             project.jobs[id].dirty = false;
             project.dirtyJob(id+1);
+            project.jobs[id].gcodefile = r.file;
+            project.jobs[id].outputheightmap = r.heightmap_file;
+            project.jobs[id].cycletime = r.cycletime;
         }
-        project.jobs[id].gcodefile = r.file;
-        project.jobs[id].outputheightmap = r.heightmap_file;
-        project.jobs[id].cycletime = r.cycletime;
         cb(r.file);
     });
 };

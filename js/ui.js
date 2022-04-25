@@ -2,7 +2,7 @@ var currentjob = null;
 var project;
 
 var LARGE_HEIGHTMAP_PX = 500e3; // how many pixels for large heightmap warning?
-var MANY_TRIANGLES = 10e6; // how many triangles for a triangle count warning?
+var MANY_TRIANGLES = 1e6; // how many triangles for a triangle count warning?
 
 function showHeightmap(file, cb) {
     var width = project.mesh.width;

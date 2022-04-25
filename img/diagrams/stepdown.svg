@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6"
-     inkscape:cx="484.21435"
-     inkscape:cy="356.34698"
+     inkscape:zoom="1.979899"
+     inkscape:cx="133.4267"
+     inkscape:cy="337.6185"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -53,7 +53,9 @@
      id="layer1">
     <g
        id="g4818"
-       style="stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none">
+       style="stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602">
       <path
          inkscape:connector-curvature="0"
          id="path4781"
@@ -96,14 +98,18 @@
        width="40.254463"
        height="86.745537"
        x="7.9375"
-       y="198.5372" />
+       y="198.5372"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602" />
     <rect
        style="opacity:1;fill:#0cf4c7;fill-opacity:1;stroke:none;stroke-width:1.06535614;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect4773"
        width="146.07339"
        height="14.930067"
        x="7.9375"
-       y="270.35269" />
+       y="270.35269"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602" />
     <path
        id="path4182"
        style="fill:none;stroke:#ff0000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg3747"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
+   sodipodi:docname="boundingbox.svg">
+  <defs
+     id="defs3741" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.8"
+     inkscape:cx="176.06858"
+     inkscape:cy="443.47472"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="3768"
+     inkscape:window-height="2089"
+     inkscape:window-x="72"
+     inkscape:window-y="34"
+     inkscape:window-maximized="1"
+     showguides="false" />
+  <metadata
+     id="metadata3744">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:none;fill-opacity:1;stroke:#cebcd3;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 37.797618,205.34076 69.091704,174.04668 H 104.76965 L 74.839284,205.52976"
+       id="path4294-7"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/jes/meshmill/img/boundingbox.png"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602" />
+    <path
+       style="fill:#0cf467;fill-opacity:0;stroke:#cebcd3;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 69.091704,128.50055 v 45.54613 h 35.677946 v -45.35714 z"
+       id="path4292-3"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/jes/meshmill/img/boundingbox.png"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602" />
+    <path
+       style="fill:#0cf467;stroke:#b674c7;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:0"
+       d="m 37.797618,159.98363 v 45.54613 h 37.041666 v -45.35714 z"
+       id="path4292"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/jes/meshmill/img/boundingbox.png"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602" />
+    <path
+       style="fill:none;stroke:#b674c7;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1"
+       d="M 37.797618,159.98363 69.091703,128.68954 H 104.76965 L 74.839284,160.17262"
+       id="path4294"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/jes/meshmill/img/boundingbox.png"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602" />
+    <path
+       style="fill:none;stroke:#b674c7;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 104.76965,128.68954 v 45.35714 l -29.930366,31.48308"
+       id="path4296"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccc"
+       inkscape:export-filename="/home/jes/meshmill/img/boundingbox.png"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602" />
+    <path
+       id="path4182-1"
+       style="fill:none;stroke:#ff0000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 69.862882,122.94197 35.083808,0 m 0.27724,1.82984 v -3.65968 m -35.488942,3.65968 v -3.65968"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602"
+       inkscape:export-filename="/home/jes/meshmill/img/boundingbox.png"
+       sodipodi:nodetypes="cccccc" />
+    <path
+       id="path4182-1-2"
+       style="fill:none;stroke:#ff0000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 110.65253,128.69952 v 44.43314 m -1.82984,0.35113 h 3.65968 m -3.65968,-44.94627 h 3.65968"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602"
+       inkscape:export-filename="/home/jes/meshmill/img/boundingbox.png"
+       sodipodi:nodetypes="cccccc" />
+    <path
+       id="path4182-1-9"
+       style="fill:none;stroke:#ff0000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 34.512884,156.60253 30.632823,-30.99798 m 1.347815,0.84587 -2.211496,-2.18166 m -28.77506,33.53761 -2.211494,-2.18167"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602"
+       inkscape:export-filename="/home/jes/meshmill/img/boundingbox.png"
+       sodipodi:nodetypes="cccccc" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       x="85.895088"
+       y="119.44568"
+       id="text4397"
+       inkscape:export-filename="/home/jes/meshmill/img/boundingbox.png"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602"><tspan
+         sodipodi:role="line"
+         id="tspan4395"
+         x="85.895088"
+         y="119.44568"
+         style="stroke-width:0.26458332;fill:#ff0000;fill-opacity:1;">X</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       x="113.48734"
+       y="151.66815"
+       id="text4401"
+       inkscape:export-filename="/home/jes/meshmill/img/boundingbox.png"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602"><tspan
+         sodipodi:role="line"
+         id="tspan4399"
+         x="113.48734"
+         y="151.66815"
+         style="stroke-width:0.26458332;fill:#ff0000;fill-opacity:1;">Z</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       x="44.695686"
+       y="139.47844"
+       id="text4405"
+       inkscape:export-filename="/home/jes/meshmill/img/boundingbox.png"
+       inkscape:export-xdpi="96.126602"
+       inkscape:export-ydpi="96.126602"><tspan
+         sodipodi:role="line"
+         id="tspan4403"
+         x="44.695686"
+         y="139.47844"
+         style="stroke-width:0.26458332;fill:#ff0000;fill-opacity:1;">Y</tspan></text>
+  </g>
+</svg>

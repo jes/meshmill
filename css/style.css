@@ -139,6 +139,11 @@ td.formlabel {
     transition-delay: 500ms; /* time until tooltip appears when hovering */
 }
 
+.tooltip img, .warning img {
+    max-width: 360px;
+    padding: 10px;
+}
+
 .busy {
     cursor: wait;
 }

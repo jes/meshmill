@@ -132,6 +132,31 @@
         <script src="js/3d.js"></script>
         <script src="js/progress.js"></script>
         <script src="js/ui.js"></script>
+
+        <script type="text/javascript">
+        // TODO: instead of running this every second, only do it after the window is resized or scrolled
+        setInterval(function() {
+            $('.tooltip').each(function() {
+                // move the tooltip back to its default position
+                $(this).css('position', '');
+                $(this).css('top', 'auto');
+
+                // find out how much space there is between the bottom of the tooltip and the bottom of the window
+                let tooltipbottom = $(this).offset().top + $(this).height();
+                let windowbottom = window.visualViewport.offsetTop + window.visualViewport.height - 30; // XXX: why -30?
+                let spacebelow = windowbottom - tooltipbottom;
+
+                // if it doesn't fit, position it manually
+                if (spacebelow < 0) {
+                    $(this).css('position', 'fixed');
+
+                    let newtop = $(this).offset().top + spacebelow;
+                    if (newtop < 0) newtop = 0;
+                    $(this).css('top', newtop);
+                }
+            });
+        }, 1000);
+        </script>
 	</body>
 </html>
 

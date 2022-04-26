@@ -2,11 +2,14 @@
 
 ![Screenshot](img/screenshot.png)
 
-Meshmill is open source 3D CAM software for Linux.
+Meshmill is open source 3D CAM software for Linux. It turns STL models into G-code for CNC machines.
 
 ***This is beta-quality software. Use it at your own peril.***
 
-It aims to focus on:
+You can [Download the latest AppImage](https://github.com/jes/meshmill/releases) to get started.
+Currently it is only available for x86_64.
+
+Meshmill focuses on:
 
  * ease of installation
  * ease of use
@@ -19,15 +22,7 @@ At the expense of:
  * high-quality toolpaths
 
 I created Meshmill because I was frustrated with how difficult it was to get other open source
-3D CAM software to work. Maybe once we have ease of use sorted we can address the rest.
-
-Hopefully we've already ticked "ease of installation" and "true 3D toolpaths", which should
-make it actually useful in some cases already.
-To attack "ease of use", I want to add
-"workflow hints" that point you to the next button you're likely to want to interact with, and
-I want to add diagrams that make crystal clear what each setting is actually adjusting.
-
-## Important stuff please read
+3D CAM software to work.
 
 * If you spot bugs and you want to help out, please
 create a Github Issue, or send me an email if you're not on Github: james@incoherency.co.uk.
@@ -48,7 +43,7 @@ paths are something close to what Meshmill rendered.
 
 4. Load your STL file in the "MODEL" tab.
 
-5. Render the heightmap. You'll see that the model turns from your smooth triangle mesh into the blocky pixelated heightmap.
+5. Click "Process surface". You'll see that the model turns from your smooth triangle mesh into the blocky pixelated heightmap.
 This is expected. If you reduce the "resolution" value you'll get a higher-quality heightmap, at the expense of CPU time.
 You need to judge for yourself what level of precision is required for your particular part with your particular machine
 and cutting tools.

@@ -93,6 +93,14 @@ If you want to improve Meshmill but don't know where to start, you could look at
  * make Pngcam multi-threaded, or otherwise improve performance
  * implement support for rotary carving
  * an interesting example part to load up before the user opens their own model
+ * some way to generate more than just top and bottom sides (maybe copy the part rotation UI that PrusaSlicer has?)
+ * support for other tool shapes: tapered ball-nose end mills, bull-nose end mills, v-carving bits
+ * include roughing calculations in the ETA of the processing time, because it's sometimes significant
+ * skip "safe Z" moves where they're unnecessary
+ * fix the thing where the camera moves to a new position when a new model is rendered (I think it re-positions so
+   that it always looks at the centre of the model, don't know why)
+ * orthographic view
+ * adaptive toolpaths
 
 ## Contact me
 

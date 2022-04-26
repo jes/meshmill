@@ -80,7 +80,7 @@ And run the application.
 
 The backend for heightmap rendering and toolpath generation is [Pngcam](https://github.com/jes/pngcam).
 There is a bundled version under `bin/`. There is also a bundled copy of [libgd](https://libgd.github.io/)
-which is used by Pngcam.
+which is used by Pngcam, as well as a copy of Perl.
 
 `main.js` is the Electron main process. `index.html` is the HTML loaded in the renderer process.
 

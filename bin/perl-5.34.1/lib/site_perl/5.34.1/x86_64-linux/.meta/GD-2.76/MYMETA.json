@@ -1,0 +1,64 @@
+{
+   "abstract" : "Perl interface to the gd2 graphics library",
+   "author" : [
+      "Lincoln Stein <lincoln.stein@gmail.com>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "ExtUtils::MakeMaker version 7.38, CPAN::Meta::Converter version 2.150010",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : 2
+   },
+   "name" : "GD",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "inc"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "0"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::Constant" : "0.22",
+            "ExtUtils::PkgConfig" : "0"
+         }
+      },
+      "runtime" : {
+         "recommends" : {
+            "ExtUtils::Constant" : "0.23",
+            "ExtUtils::PkgConfig" : "0",
+            "Math::Trig" : "0",
+            "Test::Fork" : "0.02",
+            "Test::More" : "0.88"
+         },
+         "requires" : {
+            "Math::Trig" : "0"
+         }
+      },
+      "test" : {
+         "requires" : {
+            "Test::Fork" : "0.02",
+            "Test::More" : "0.88"
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ],
+      "repository" : {
+         "url" : "http://github.com/lstein/Perl-GD"
+      }
+   },
+   "version" : "2.76",
+   "x_serialization_backend" : "JSON::PP version 4.06"
+}

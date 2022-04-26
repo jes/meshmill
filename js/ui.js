@@ -158,8 +158,14 @@ function doRenderHeightmap(cb) {
     if (project.resolution < 0) project.resolution = -project.resolution;
     showModel();
 
-    if (project.resolution < EPSILON) {
-        alert("XY Resolution must be nonzero.");
+    let errors = [];
+    if (project.resolution < EPSILON) errors.push("XY Resolution must be nonzero.");
+    var w = Math.round(project.mesh.width / project.resolution);
+    var h = Math.round(project.mesh.height / project.resolution);
+    if (w < 1 || h < 1) errors.push("Heightmap must be at least 1x1 pixels.");
+
+    if (errors.length) {
+        alert(errors.join(" "));
         return;
     }
 

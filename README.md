@@ -42,9 +42,9 @@ paths are something close to what Meshmill rendered.
 
 1. Download a release from the [Releases](https://github.com/jes/meshmill/releases) page.
 
-2. `chmod +x meshmill-0.0.3.AppImage`
+2. `chmod +x meshmill-0.1.0.AppImage`
 
-3. `./meshmill-0.0.3.AppImage`
+3. `./meshmill-0.1.0.AppImage`
 
 4. Load your STL file in the "MODEL" tab.
 

@@ -4,6 +4,8 @@ var project;
 var LARGE_HEIGHTMAP_PX = 500e3; // how many pixels for large heightmap warning?
 var MANY_TRIANGLES = 1e6; // how many triangles for a triangle count warning?
 
+var EPSILON = 0.000001; // for floating point comparison with 0
+
 function showHeightmap(file, cb) {
     var width = project.mesh.width;
     var height = project.mesh.height;
@@ -156,6 +158,11 @@ function doRenderHeightmap(cb) {
     if (project.resolution < 0) project.resolution = -project.resolution;
     showModel();
 
+    if (project.resolution < EPSILON) {
+        alert("XY Resolution must be nonzero.");
+        return;
+    }
+
     progressStart();
     project.renderHeightmap(function(file) {
         progressEnd();
@@ -302,11 +309,22 @@ function updateJob() {
 function doGenerateToolpath(cb) {
     let j = project.jobs[currentjob];
     if (j.tool.diameter < 0) j.tool.diameter = -j.tool.diameter;
+    if (j.path.stepover < 0) j.path.stepover = -j.path.stepover;
     if (j.path.stepdown < 0) j.path.stepdown = -j.path.stepdown;
     if (j.path.stepforward < 0) j.path.stepforward = -j.path.stepforward;
     if (j.controller.xyfeed < 0) j.controller.xyfeed = -j.controller.xyfeed;
     if (j.controller.zfeed < 0) j.controller.zfeed = -j.controller.zfeed;
     showJob(currentjob);
+
+    var errors = [];
+    if (j.path.stepover < EPSILON) errors.push("Step over must be nonzero.");
+    if (j.path.stepforward < EPSILON) errors.push("Step forward must be nonzero.");
+    if (j.path.stepdown < EPSILON) errors.push("Step down must be nonzero.");
+
+    if (errors.length) {
+        alert(errors.join(" "));
+        return;
+    }
 
     progressStart();
     project.generateToolpath(currentjob, function(file) {

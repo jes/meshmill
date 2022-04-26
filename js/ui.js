@@ -153,6 +153,9 @@ $('#zorigin').change(function() {
 });
 
 function doRenderHeightmap(cb) {
+    if (project.resolution < 0) project.resolution = -project.resolution;
+    showModel();
+
     progressStart();
     project.renderHeightmap(function(file) {
         progressEnd();
@@ -282,9 +285,29 @@ function updateJob() {
     } else {
         $('#stepforwardwarning').hide();
     }
+
+    if (j.controller.safez < 0) {
+        $('#safezwarning').show();
+    } else {
+        $('#safezwarning').hide();
+    }
+
+    if (j.path.clearance < 0) {
+        $('#clearancewarning').show();
+    } else {
+        $('#clearancewarning').hide();
+    }
 }
 
 function doGenerateToolpath(cb) {
+    let j = project.jobs[currentjob];
+    if (j.tool.diameter < 0) j.tool.diameter = -j.tool.diameter;
+    if (j.path.stepdown < 0) j.path.stepdown = -j.path.stepdown;
+    if (j.path.stepforward < 0) j.path.stepforward = -j.path.stepforward;
+    if (j.controller.xyfeed < 0) j.controller.xyfeed = -j.controller.xyfeed;
+    if (j.controller.zfeed < 0) j.controller.zfeed = -j.controller.zfeed;
+    showJob(currentjob);
+
     progressStart();
     project.generateToolpath(currentjob, function(file) {
         progressEnd();

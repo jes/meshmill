@@ -40,7 +40,6 @@ Project.prototype.addJob = function() {
         path: {
             direction: 'horizontal',
             stepover: 3,
-            stepforward: 3,
             stepdown: 6,
             clearance: 0,
             roughingonly: false,

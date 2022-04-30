@@ -217,7 +217,6 @@ function showJob(id) {
     $('#rpm').val(job.controller.rpm);
     $('#direction').val(job.path.direction);
     $('#stepover').val(job.path.stepover);
-    $('#stepforward').val(job.path.stepforward);
     $('#stepdown').val(job.path.stepdown);
     $('#clearance').val(job.path.clearance);
 
@@ -257,7 +256,6 @@ function updateJob() {
     j.controller.rpm = parseFloat($('#rpm').val());
     j.path.direction = $('#direction').val();
     j.path.stepover = parseFloat($('#stepover').val());
-    j.path.stepforward = parseFloat($('#stepforward').val());
     j.path.stepdown = parseFloat($('#stepdown').val());
     j.path.clearance = parseFloat($('#clearance').val());
     j.path.roughingonly = $('#roughingonly').prop('checked');
@@ -293,12 +291,6 @@ function updateJob() {
         $('#stepoverwarning').hide();
     }
 
-    if (j.path.stepforward < project.resolution) {
-        $('#stepforwardwarning').show();
-    } else {
-        $('#stepforwardwarning').hide();
-    }
-
     if (j.controller.safez < 0) {
         $('#safezwarning').show();
     } else {
@@ -317,14 +309,12 @@ function doGenerateToolpath(cb) {
     if (j.tool.diameter < 0) j.tool.diameter = -j.tool.diameter;
     if (j.path.stepover < 0) j.path.stepover = -j.path.stepover;
     if (j.path.stepdown < 0) j.path.stepdown = -j.path.stepdown;
-    if (j.path.stepforward < 0) j.path.stepforward = -j.path.stepforward;
     if (j.controller.xyfeed < 0) j.controller.xyfeed = -j.controller.xyfeed;
     if (j.controller.zfeed < 0) j.controller.zfeed = -j.controller.zfeed;
     showJob(currentjob);
 
     var errors = [];
     if (j.path.stepover < EPSILON) errors.push("Step over must be nonzero.");
-    if (j.path.stepforward < EPSILON) errors.push("Step forward must be nonzero.");
     if (j.path.stepdown < EPSILON) errors.push("Step down must be nonzero.");
 
     if (errors.length) {
@@ -385,7 +375,7 @@ function inputJob() {
     updateJob();
 }
 
-var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'stepover', 'stepforward', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop', 'clearbottom', 'clearedges'];
+var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'stepover', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop', 'clearbottom', 'clearedges'];
 for (var i = 0; i < inputs.length; i++) {
     $('#' + inputs[i]).change(inputJob);
     $('#' + inputs[i]).keyup(inputJob);

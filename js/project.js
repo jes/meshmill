@@ -158,10 +158,11 @@ Project.prototype.generateToolpath = function(id, cb) {
         job: this.jobs[id],
         heightmap: this.heightmap,
         width: this.mesh.width,
+        height: this.mesh.height,
         depth: this.mesh.depth,
         offset: {
             x: this.mesh.min.x-this.mesh.origin.x,
-            y: this.mesh.max.y-this.mesh.origin.y,
+            y: this.mesh.min.y-this.mesh.origin.y,
             z: this.mesh.max.z-this.mesh.origin.z,
         },
         imperial: this.imperial,

@@ -221,13 +221,10 @@ ipcMain.on('render-heightmap', (event,arg,replychan) => {
 
 ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     let opts = [
-        'pngcam',
-        '--rgb',
         '--tool-shape', arg.job.tool.shape,
         '--tool-diameter', arg.job.tool.diameter,
         '--step-down', arg.job.path.stepdown,
         '--step-over', arg.job.path.stepover,
-        '--step-forward', arg.job.path.stepforward,
         '--xy-feed-rate', arg.job.controller.xyfeed,
         '--z-feed-rate', arg.job.controller.zfeed,
         '--speed', arg.job.controller.rpm,
@@ -235,6 +232,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
         '--rapid-clearance', arg.job.controller.safez,
         '--route', arg.job.path.direction,
         '--width', arg.width,
+        '--height', arg.height,
         '--depth', arg.depth,
         '--x-offset', arg.offset.x,
         '--y-offset', arg.offset.y,
@@ -261,7 +259,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     let gcodeStream = fs.createWriteStream(gcodeFile);
     gcodeStream.on('open', function() {
         console.log(opts);
-        let pngcam = spawn(path.join(__dirname, 'bin/perlrun'), opts, {
+        let pngcam = spawn(path.join(__dirname, 'bin/pngcam-go'), opts, {
             stdio: ['pipe', gcodeStream, 'pipe'], // send stdout to a file
         });
         running = pngcam;

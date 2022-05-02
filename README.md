@@ -82,7 +82,6 @@ There is a bundled version under `bin/`.
 
 If you want to improve Meshmill but don't know where to start, you could look at:
 
- * port Pngcam to Javascript so that it is more easily packaged for Windows
  * make Pngcam generate spiral toolpaths (or any others you find useful)
  * make Pngcam multi-threaded, or otherwise improve performance
  * implement support for rotary carving
@@ -90,11 +89,11 @@ If you want to improve Meshmill but don't know where to start, you could look at
  * some way to generate more than just top and bottom sides (maybe copy the part rotation UI that PrusaSlicer has?)
  * support for other tool shapes: tapered ball-nose end mills, bull-nose end mills, v-carving bits
  * include roughing calculations in the ETA of the processing time, because it's sometimes significant
- * skip "safe Z" moves where they're unnecessary
  * fix the thing where the camera moves to a new position when a new model is rendered (I think it re-positions so
    that it always looks at the centre of the model, don't know why)
  * orthographic view
  * adaptive toolpaths
+ * build Pngcam and Meshmill for other platforms of interest (Windows? Raspberry Pi?)
 
 ## Contact me
 

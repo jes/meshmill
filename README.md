@@ -94,6 +94,7 @@ If you want to improve Meshmill but don't know where to start, you could look at
  * orthographic view
  * adaptive toolpaths
  * build Pngcam and Meshmill for other platforms of interest (Windows? Raspberry Pi?)
+ * reduce feed rate during full-width slotting
 
 ## Contact me
 

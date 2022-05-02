@@ -132,7 +132,7 @@ Project.prototype.loadSTL = function(file, cb) {
 };
 
 Project.prototype.renderHeightmap = function(cb) {
-    var width = this.mesh.width / this.resolution;
+    var width = Math.ceil(this.mesh.width / this.resolution);
     var project = this;
     window.api.send('render-heightmap', {
         stl: this.stl,

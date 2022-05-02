@@ -57,7 +57,7 @@ top of the model in purple.
 
 ## Development
 
-The GUI is made using Electron. The backend is Perl, using GD to handle images.
+The GUI is made using Electron. The backend is Go.
 
 I recommend using [nvm](https://github.com/nvm-sh/nvm) to manage nodejs.
 
@@ -74,8 +74,7 @@ And run the application.
     $ npm start
 
 The backend for heightmap rendering and toolpath generation is [Pngcam](https://github.com/jes/pngcam).
-There is a bundled version under `bin/`. There is also a bundled copy of [libgd](https://libgd.github.io/)
-which is used by Pngcam, as well as a copy of Perl.
+There is a bundled version under `bin/`.
 
 `main.js` is the Electron main process. `index.html` is the HTML loaded in the renderer process.
 

@@ -1,6 +1,6 @@
 {
   "name": "meshmill",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Open source 3D CAM software",
   "main": "main.js",
   "scripts": {

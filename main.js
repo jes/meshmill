@@ -183,9 +183,8 @@ ipcMain.on('render-heightmap', (event,arg,replychan) => {
     if (arg.bottom) opts.push('--bottom');
 
     opts.push(arg.stl);
-    // TODO: write outputs to project folder; also, write to a
-    // temporary file until successful, then move to the project
-    // folder
+    // TODO: write to a temporary file until successful, then move to the
+    // project folder
     console.log(opts);
     let render = spawn(path.join(__dirname,'bin/pngcam-go-render'), opts);
     running = render;

@@ -133,10 +133,12 @@ Project.prototype.loadSTL = function(file, cb) {
 
 Project.prototype.renderHeightmap = function(cb) {
     var width = Math.ceil(this.mesh.width / this.resolution);
+    var height = Math.ceil(this.mesh.height / this.resolution);
     var project = this;
     window.api.send('render-heightmap', {
         stl: this.stl,
         width: width,
+        height: height,
         bottom: this.bottomside,
     }, function(r) {
         if (r.error)

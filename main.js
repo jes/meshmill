@@ -179,7 +179,7 @@ app.on('window-all-closed', () => {
 var running;
 
 ipcMain.on('render-heightmap', (event,arg,replychan) => {
-    let opts = ['--width', arg.width];
+    let opts = ['--width', arg.width, '--height', arg.height];
     if (arg.bottom) opts.push('--bottom');
 
     opts.push(arg.stl);

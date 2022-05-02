@@ -179,7 +179,7 @@ app.on('window-all-closed', () => {
 var running;
 
 ipcMain.on('render-heightmap', (event,arg,replychan) => {
-    let opts = ['pngcam-render', '--border', '0', '--width', arg.width, '--rgb'];
+    let opts = ['--width', arg.width];
     if (arg.bottom) opts.push('--bottom');
 
     opts.push(arg.stl);
@@ -187,7 +187,7 @@ ipcMain.on('render-heightmap', (event,arg,replychan) => {
     // temporary file until successful, then move to the project
     // folder
     console.log(opts);
-    let render = spawn(path.join(__dirname,'bin/perlrun'), opts);
+    let render = spawn(path.join(__dirname,'bin/pngcam-go-render'), opts);
     running = render;
 
     render.stderr.on('data', (data) => {

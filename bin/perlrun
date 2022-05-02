@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# Run perl scripts with LD_LIBRARY_PATH and PERL5LIB set
-
-dir=`dirname $0`
-perldir=$dir/perl-5.34.1/lib
-
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$dir/ PERL5LIB=$perldir/site_perl/5.34.1/:$perldir/site_perl/5.34.1/x86_64-linux/:$perldir/5.34.1/:$perldir/5.34.1/x86_64-linux/ exec $dir/perl-5.34.1/bin/perl $dir/"$@"

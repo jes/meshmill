@@ -313,6 +313,9 @@ Project.prototype.calculateOrigin = function() {
     case 'fromstl':
         this.mesh.origin.z = 0;
         break;
+    case 'centre':
+        this.mesh.origin.z = (this.mesh.min.z+this.mesh.max.z)/2;
+        break;
     case 'top':
         this.mesh.origin.z = this.mesh.max.z;
         break;

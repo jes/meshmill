@@ -101,7 +101,6 @@ If you want to improve Meshmill but don't know where to start, you could look at
  * don't ramp entry on travel moves
  * should CutPath() consult writeStock to make sure it's not gouging? (but note writeStock is not really valid until
    it's written out at the end)
- * initialise writeStock with readStock instead of fully solid
  * larger epsilon for Simplified() to avoid blocking Grbl lookahead with tiny moves
  * animated simulation
 

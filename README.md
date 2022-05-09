@@ -92,9 +92,20 @@ If you want to improve Meshmill but don't know where to start, you could look at
  * fix the thing where the camera moves to a new position when a new model is rendered (I think it re-positions so
    that it always looks at the centre of the model, don't know why)
  * orthographic view
- * adaptive toolpaths
+ * adaptive toolpaths (start with just adaptive clearing during roughing)
  * build Pngcam and Meshmill for other platforms of interest (Windows? Raspberry Pi?)
  * reduce feed rate during full-width slotting
+ * separate step down for roughing passes vs finishing pass
+ * better sorting of cut segments to reduce time wasted on travel moves
+ * allow cut segments to be reversed when sorting
+ * lift up by safe Z height during all travel moves
+ * don't ramp entry on travel moves
+ * should CutPath() consult writeStock to make sure it's not gouging? (but note writeStock is not really valid until
+   it's written out at the end)
+ * initialise writeStock with readStock instead of fully solid
+ * larger epsilon for Simplified() to avoid blocking Grbl lookahead with tiny moves
+ * check if the CutPath() is Simplified() for travel moves
+
 
 ## Contact me
 

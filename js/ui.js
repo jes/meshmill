@@ -19,6 +19,7 @@ function showHeightmap(file, cb) {
         z: project.mesh.min.z,
     },
     project.mesh.origin,
+    project.rotary,
     cb);
 }
 
@@ -61,6 +62,7 @@ function showModel() {
     $('#zorigin').val(project.zorigin);
 
     $('#resolution').val(project.resolution);
+    $('#rotary').prop('checked', project.rotary);
     $('#bottomside').prop('checked', project.bottomside);
 
     progresstarget = 'model';
@@ -187,6 +189,14 @@ $('#render-heightmap').click(function() {
 $('#resolution').keyup(function() {
     project.dirtyModel();
     project.resolution = parseFloat($('#resolution').val());
+    updateModel();
+    redrawTabs();
+});
+
+$('#rotary').change(function() {
+    project.dirtyModel();
+    project.setRotary($('#rotary').prop('checked'));
+    // TODO: anything?
     updateModel();
     redrawTabs();
 });

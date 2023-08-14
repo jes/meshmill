@@ -113,3 +113,16 @@ function addOriginVisualisation(scene, O, D) {
     addLine(scene, O.x,O.y,O.z, O.x,O.y,O.z+D, 0x0000ff);
     // TODO: show arrows? show "X,Y,Z" ?
 }
+
+function maxRadius(geometry) {
+    let vertices = geometry.attributes.position.array;
+    let max = 0;
+    for (let i = 0; i < vertices.length; i += 3) {
+        let x = vertices[3*i];
+        let y = vertices[3*i+1];
+        let z = vertices[3*i+2];
+        let r = Math.sqrt(y*y + z*z);
+        if (r > max) max = r;
+    }
+    return max;
+}

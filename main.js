@@ -179,8 +179,9 @@ app.on('window-all-closed', () => {
 var running;
 
 ipcMain.on('render-heightmap', (event,arg,replychan) => {
-    let opts = ['--width', arg.width, '--height', arg.height];
+    let opts = ['--width', arg.width, '--height', arg.height, '--rgb'];
     if (arg.bottom) opts.push('--bottom');
+    if (arg.rotary) opts.push('--rotary');
 
     opts.push(arg.stl);
     // TODO: write to a temporary file until successful, then move to the
@@ -239,6 +240,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
         '--max-vel', settings.maxvel,
         '--max-accel', settings.maxaccel,
         '--write-stock', arg.write_stock,
+        '--rgb',
     ];
     if (arg.job.path.roughingonly) opts.push('--roughing-only');
     if (arg.job.path.rampentry) opts.push('--ramp-entry');
@@ -246,6 +248,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     if (arg.job.path.clearbottom) opts.push('--deep-black');
     if (arg.job.path.clearedges) opts.push('--beyond-edges');
     if (arg.imperial) opts.push('--imperial');
+    if (arg.rotary) opts.push('--rotary');
     if (arg.read_stock) {
         opts.push('--read-stock');
         opts.push(arg.read_stock);

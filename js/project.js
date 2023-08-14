@@ -11,6 +11,8 @@ function Project(cb) {
     this.imperial = Settings.imperial;
     this.xyorigin = 'fromstl';
     this.zorigin = 'fromstl';
+    this.rotary = false;
+
     this.dirty_model = false;
     this.ui = {};
 
@@ -119,13 +121,15 @@ Project.prototype.loadSTL = function(file, cb) {
         (new THREE.STLLoader()).load(project.stl, function (geometry) {
             geometry.computeBoundingBox();
             var bb = geometry.boundingBox;
-            project.mesh.triangles = geometry.attributes.position.array.length;
+            project.mesh.triangles = geometry.attributes.position.array.length/3;
             project.mesh.min = bb.min;
             project.mesh.max = bb.max;
             project.mesh.width = bb.max.x-bb.min.x;
             project.mesh.height = bb.max.y-bb.min.y;
-            project.mesh.depth = bb.max.z-bb.min.z;
+            project.mesh.lineardepth = bb.max.z-bb.min.z;
+            project.mesh.rotarydepth = maxRadius(geometry);
             project.calculateOrigin();
+            project.setRotary(project.rotary);
             if (cb) cb();
         });
     });
@@ -140,6 +144,7 @@ Project.prototype.renderHeightmap = function(cb) {
         width: width,
         height: height,
         bottom: this.bottomside,
+        rotary: this.rotary,
     }, function(r) {
         if (r.error)
             alert(r.error);
@@ -170,6 +175,7 @@ Project.prototype.generateToolpath = function(id, cb) {
         write_stock: this.workingDir() + "/job-" + id + ".png",
         read_stock: (id > 0 ? this.jobs[id-1].outputheightmap : null),
         gcodepath: this.workingDir() + "/job-" + id + ".gcode",
+        rotary: this.rotary,
     }, function(r) {
         if (r.error) {
             alert(r.error);
@@ -337,4 +343,11 @@ Project.prototype.setZOrigin = function(origin) {
     this.zorigin = origin;
     this.dirty = true;
     this.calculateOrigin();
+};
+
+Project.prototype.setRotary = function(r) {
+    this.rotary = r;
+
+    if (this.rotary) this.mesh.depth = this.mesh.rotarydepth;
+    else this.mesh.depth = this.mesh.lineardepth;
 };

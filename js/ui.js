@@ -23,10 +23,15 @@ function showHeightmap(file, cb) {
     cb);
 }
 
-function showToolpath(file, heightmapfile) {
+function showToolpath(file, heightmapfile, rotary) {
     var middlex = (project.mesh.min.x+project.mesh.max.x)/2 - project.mesh.origin.x;
     var middley = (project.mesh.min.y+project.mesh.max.y)/2 - project.mesh.origin.y;
     var middlez = (project.mesh.min.z+project.mesh.max.z)/2 - project.mesh.origin.z;
+
+    if (rotary) {
+        middley = 0;
+        middlez = 0;
+    }
 
     showHeightmap(heightmapfile, function() {
         if ($('#show-toolpath').prop('checked')) ToolpathViewer(file, middlex, middley, middlez);
@@ -252,7 +257,7 @@ function showJob(id) {
 }
 
 function drawJob() {
-    if (project.jobs[currentjob].gcodefile) showToolpath(project.jobs[currentjob].gcodefile, project.jobs[currentjob].outputheightmap);
+    if (project.jobs[currentjob].gcodefile) showToolpath(project.jobs[currentjob].gcodefile, project.jobs[currentjob].outputheightmap, project.rotary);
     else drawModel();
 }
 

@@ -160,17 +160,22 @@ Project.prototype.renderHeightmap = function(cb) {
 
 Project.prototype.generateToolpath = function(id, cb) {
     var project = this;
+    var offset = {
+        x: this.mesh.min.x-this.mesh.origin.x,
+        y: this.mesh.min.y-this.mesh.origin.y,
+        z: this.mesh.max.z-this.mesh.origin.z,
+    };
+    if (this.rotary) {
+        offset.y = 0;
+        offset.z = 0;
+    }
     window.api.send('generate-toolpath', {
         job: this.jobs[id],
         heightmap: this.heightmap,
         width: this.mesh.width,
         height: this.mesh.height,
         depth: this.mesh.depth,
-        offset: {
-            x: this.mesh.min.x-this.mesh.origin.x,
-            y: this.mesh.min.y-this.mesh.origin.y,
-            z: this.mesh.max.z-this.mesh.origin.z,
-        },
+        offset: offset,
         imperial: this.imperial,
         write_stock: this.workingDir() + "/job-" + id + ".png",
         read_stock: (id > 0 ? this.jobs[id-1].outputheightmap : null),

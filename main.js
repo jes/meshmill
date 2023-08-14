@@ -307,7 +307,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
 // parsing pngcam outputs and nothing more
 ipcMain.on('plot-toolpath', (event,arg,replychan) => {
     let path = [];
-    let X = 0; let Y = 0; let Z = 0;
+    let X = 0; let Y = 0; let Z = 0; let A = 0;
     // TODO: distinguish G0 from G1
     lineReader.eachLine(arg.file, (line,last) => {
         let match = line.match(/^G0*[01] /i);
@@ -318,7 +318,9 @@ ipcMain.on('plot-toolpath', (event,arg,replychan) => {
             if (ymatch) Y = parseFloat(ymatch[1]);
             let zmatch = line.match(/Z([0-9-.]*)\b/i);
             if (zmatch) Z = parseFloat(zmatch[1]);
-            path.push([X,Y,Z]);
+            let amatch = line.match(/A([0-9-.]*)\b/i);
+            if (amatch) A = parseFloat(amatch[1]);
+            path.push([X,Y,Z,A]);
         }
         if (last) win.webContents.send(replychan, path);
     });

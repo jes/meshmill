@@ -8,7 +8,8 @@ function ToolpathViewer(file, xoff, yoff, zoff) {
 
 function renderToolpath(path, xoff, yoff, zoff) {
     let points = path.map(function(p) {
-        return new THREE.Vector3(p[0]-xoff,p[1]-yoff,p[2]-zoff);
+        var xaxis = new THREE.Vector3(1,0,0);
+        return new THREE.Vector3(p[0]-xoff,p[1]-yoff,p[2]-zoff).applyAxisAngle(xaxis, p[3]*Math.PI/180.0);
     });
     let geometry = new THREE.BufferGeometry().setFromPoints(points);
     let material = new THREE.LineBasicMaterial({

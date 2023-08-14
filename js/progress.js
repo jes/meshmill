@@ -9,9 +9,13 @@ function progress(pct) {
         $(`#${progresstarget}-pct`).hide();
     } else {
         $(`#${progresstarget}-pct`).show();
+
+        if (pct < progresspct && pct < 10) {
+            // reset start time if percentage goes back down to 0
+            progressstarted = Date.now();
+        }
     }
     progresspct = pct;
-
     progressEta();
 }
 

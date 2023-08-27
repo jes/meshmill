@@ -121,7 +121,7 @@ Project.prototype.loadSTL = function(file, cb) {
         (new THREE.STLLoader()).load(project.stl, function (geometry) {
             geometry.computeBoundingBox();
             var bb = geometry.boundingBox;
-            project.mesh.triangles = geometry.attributes.position.array.length/3;
+            project.mesh.triangles = geometry.attributes.position.array.length/9;
             project.mesh.min = bb.min;
             project.mesh.max = bb.max;
             project.mesh.width = bb.max.x-bb.min.x;

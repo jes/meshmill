@@ -38,7 +38,7 @@ function showScene(geometry, opts) {
      * lights don't work if they're attached to an orthographic
      * camera?) */
     if (opts.recentre || !camera) {
-        camera = new THREE.PerspectiveCamera(70, container.clientWidth/container.clientHeight, 1, 1000);
+        camera = new THREE.PerspectiveCamera(70, container.clientWidth/container.clientHeight, 1, 10000);
         camera.add(new THREE.DirectionalLight(0xffffff, 0.75));
         camera.position.z = largestDimension * 2;
     }

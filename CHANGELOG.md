@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.2] - 2023-09-05
+ - Rotary carving support (buggy, and the UI reports mm where it means
+   degrees, but it is useful for some cases)
+
 ## [0.1.1] - 2022-05-02
  - Pngcam backend reimplemented in Go for more performance and easier packaging
  - Toolpath segments are sorted so that they run in a more optimal order

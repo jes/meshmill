@@ -1,4 +1,4 @@
-let SAVE_FIELDS = ['jobs', 'stl', 'stl_original', 'heightmap', 'mesh', 'resolution', 'bottomside', 'imperial', 'xyorigin', 'zorigin', 'dirty_model', 'ui'];
+let SAVE_FIELDS = ['jobs', 'stl', 'stl_original', 'heightmap', 'mesh', 'resolution', 'bottomside', 'imperial', 'xyorigin', 'zorigin', 'dirty_model', 'ui', 'rotary'];
 
 function Project(cb) {
     this.jobs = [];

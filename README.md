@@ -84,7 +84,6 @@ If you want to improve Meshmill but don't know where to start, you could look at
 
  * make Pngcam generate spiral toolpaths (or any others you find useful)
  * make Pngcam multi-threaded, or otherwise improve performance
- * implement support for rotary carving
  * an interesting example part to load up before the user opens their own model
  * some way to generate more than just top and bottom sides (maybe copy the part rotation UI that PrusaSlicer has?)
  * support for other tool shapes: tapered ball-nose end mills, bull-nose end mills, v-carving bits with arbitrary included angles

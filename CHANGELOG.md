@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.3] - 2023-09-30
+ - Fix feed rate calculation for long rotary moves
+ - Enable roughing for rotary jobs
+ - Remember the "rotary" setting when a project is saved
+
 ## [0.1.2] - 2023-09-05
  - Rotary carving support (buggy, and the UI reports mm where it means
    degrees, but it is useful for some cases)

@@ -238,6 +238,7 @@ function showJob(id) {
     $('#roughingonly').prop('checked', job.path.roughingonly);
     $('#rampentry').prop('checked', job.path.rampentry);
     $('#omittop').prop('checked', job.path.omittop);
+    $('#omitbottom').prop('checked', job.path.omitbottom);
     $('#clearbottom').prop('checked', job.path.clearbottom);
     $('#clearedges').prop('checked', job.path.clearedges);
 
@@ -276,6 +277,7 @@ function updateJob() {
     j.path.roughingonly = $('#roughingonly').prop('checked');
     j.path.rampentry = $('#rampentry').prop('checked');
     j.path.omittop = $('#omittop').prop('checked');
+    j.path.omitbottom = $('#omitbottom').prop('checked');
     j.path.clearbottom = $('#clearbottom').prop('checked');
     j.path.clearedges = $('#clearedges').prop('checked');
 
@@ -390,7 +392,7 @@ function inputJob() {
     updateJob();
 }
 
-var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'stepover', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop', 'clearbottom', 'clearedges'];
+var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'stepover', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop', 'omitbottom', 'clearbottom', 'clearedges'];
 for (var i = 0; i < inputs.length; i++) {
     $('#' + inputs[i]).change(inputJob);
     $('#' + inputs[i]).keyup(inputJob);

@@ -105,6 +105,8 @@
                     <td><input type="checkbox" id="rampentry"></td></tr>
                     <tr><td class="formlabel"><label for="omittop"><div class="has-tooltip"><div class="tooltip">Don't cut the top surface of the part. This saves wasting time on slowly moving the cutter back and forth across flat top surfaces.<br><img src="img/diagrams/omittop.png"></div></div>Omit top</label></td>
                     <td><input type="checkbox" id="omittop"></td></tr>
+                    <tr><td class="formlabel"><label for="omitbottom"><div class="has-tooltip"><div class="tooltip">Don't cut bottom surfaces that are at the lower limit of the heightmap. This can reduce toolpath time spent in areas outside your model where the heightmap is black.</div></div>Omit bottom</label></td>
+                    <td><input type="checkbox" id="omitbottom"></td></tr>
                     <tr><td class="formlabel"><label for="clearbottom"><div class="has-tooltip"><div class="tooltip">Allow cutting below the bottom of the bounding box. This allows you to cut straight sides with a ball-nose end mill without leaving a radius at the bottom.<br><img src="img/diagrams/clearbottom.png"></div></div>Cut below bottom</label></td>
                     <td><input type="checkbox" id="clearbottom"></td></tr>
                     <tr><td class="formlabel"><label for="clearedges"><div class="has-tooltip"><div class="tooltip">Allow cutting beyond the edges of the bounding box. This allows you to cut the outside edges of the model.<br><img src="img/diagrams/clearedges.png"></div></div>Cut beyond edges</label></td>

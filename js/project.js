@@ -47,6 +47,7 @@ Project.prototype.addJob = function() {
             roughingonly: false,
             rampentry: false,
             omittop: false,
+            omitbottom: false,
             clearbottom: false,
             clearedges: false,
         },

@@ -245,6 +245,7 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
     if (arg.job.path.roughingonly) opts.push('--roughing-only');
     if (arg.job.path.rampentry) opts.push('--ramp-entry');
     if (arg.job.path.omittop) opts.push('--omit-top');
+    if (arg.job.path.omitbottom) opts.push('--omit-bottom');
     if (arg.job.path.clearbottom) opts.push('--deep-black');
     if (arg.job.path.clearedges) opts.push('--beyond-edges');
     if (arg.imperial) opts.push('--imperial');

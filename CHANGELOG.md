@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.1.4] - 2026-05-13
+ - Add "Omit bottom" option
+
 ## [0.1.3] - 2023-09-30
  - Fix feed rate calculation for long rotary moves
  - Enable roughing for rotary jobs

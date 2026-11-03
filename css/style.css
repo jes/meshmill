@@ -366,3 +366,8 @@ small { color: var(--muted); }
 }
 #busy-text { color: var(--muted); font-size: 14px; }
 @keyframes busy-spin { to { transform: rotate(360deg); } }
+
+.tab-ready {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(23,212,165,.35), 0 0 18px rgba(23,212,165,.18);
+}

@@ -20,6 +20,7 @@ const messages = {
         resolution_hint: "0.25 mm is slow on complex models; use 0.5-1 mm while setting up.",
         model_tab: "MODEL",
         add_job_tab: "ADD JOB",
+        add_job: "Add job",
         job_tab: "JOB {0}",
 
         // model tab
@@ -221,6 +222,7 @@ const messages = {
         resolution_hint: "0.25 мм — медленно на сложных моделях; для настройки используйте 0.5–1 мм.",
         model_tab: "МОДЕЛЬ",
         add_job_tab: "ДОБАВИТЬ",
+        add_job: "Добавить операцию",
         job_tab: "ОПЕРАЦИЯ {0}",
 
         stl_model: "STL-модель:",

@@ -150,8 +150,12 @@ function updateHeightmap() {
 
     if (project.heightmap) {
         $('#addjob-tab').prop("disabled",false);
+        $('#addjob-tab').addClass('tab-ready');
+        $('#add-job-inline').show();
     } else {
         $('#addjob-tab').prop("disabled",true);
+        $('#addjob-tab').removeClass('tab-ready');
+        $('#add-job-inline').hide();
     }
 }
 
@@ -576,11 +580,14 @@ $('#model-tab').click(function() {
     showModel();
 });
 
-$('#addjob-tab').click(function() {
+function addJobFromUI() {
     let id = project.addJob();
     addJobTab(id);
     showJob(id);
-});
+}
+
+$('#addjob-tab').click(addJobFromUI);
+$('#add-job-inline').click(addJobFromUI);
 
 /* tool presets */
 

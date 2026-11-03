@@ -46,7 +46,7 @@ function HeightmapViewer(file, size, offset, origin, rotary, cb) {
         // add each square from the heightmap as 2 triangles.
         // Sample the image so that the preview mesh stays reasonably small
         // even for high-resolution heightmaps.
-        var step = Math.max(1, Math.ceil(Math.max(w, h) / 80));
+        var step = Math.max(1, Math.ceil(Math.max(w, h) / 120));
         var cells = Math.ceil((w-1)/step) * Math.ceil((h-1)/step);
         vertices = new Float32Array(cells*36);
         var idx = 0;

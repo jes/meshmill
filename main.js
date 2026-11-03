@@ -236,17 +236,22 @@ ipcMain.on('render-heightmap', (event,arg,replychan) => {
     running = render;
 
     let lastRenderPct = -1;
+    let lastRenderStage = null;
     let lastRenderTime = 0;
     render.stderr.on('data', (data) => {
         process.stderr.write(""+data);
-        let match = (""+data).match(/(\d+)%/);
-        if (match) {
-            let pct = match[1];
+        let text = ""+data;
+        let matches = [...text.matchAll(/([A-Za-z][A-Za-z ]*):\s*(\d+)%/g)];
+        if (matches.length) {
+            let m = matches[matches.length-1];
+            let stage = m[1].trim();
+            let pct = m[2];
             let now = Date.now();
-            if (pct !== lastRenderPct || now - lastRenderTime > 200) {
+            if (stage !== lastRenderStage || pct !== lastRenderPct || now - lastRenderTime > 200) {
+                lastRenderStage = stage;
                 lastRenderPct = pct;
                 lastRenderTime = now;
-                win.webContents.send('progress', pct);
+                win.webContents.send('progress', { stage: stage, pct: pct });
             }
         }
     });
@@ -322,22 +327,27 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
 
         let cycletime = null;
 
+        let lastStage = null;
         let lastPct = -1;
         let lastTime = 0;
         pngcam.stderr.on('data', (data) => {
             process.stderr.write(""+data);
-            let match = (""+data).match(/(\d+)%/);
-            if (match) {
-                let pct = match[1];
+            let text = ""+data;
+            let matches = [...text.matchAll(/([A-Za-z][A-Za-z ]*):\s*(\d+)%/g)];
+            if (matches.length) {
+                let m = matches[matches.length-1];
+                let stage = m[1].trim();
+                let pct = m[2];
                 let now = Date.now();
-                if (pct !== lastPct || now - lastTime > 200) {
+                if (stage !== lastStage || pct !== lastPct || now - lastTime > 200) {
+                    lastStage = stage;
                     lastPct = pct;
                     lastTime = now;
-                    win.webContents.send('progress', pct);
+                    win.webContents.send('progress', { stage: stage, pct: pct });
                 }
             }
 
-            match = (""+data).match(/Cycle time estimate: ([0-9.]+) secs/);
+            let match = text.match(/Cycle time estimate: ([0-9.]+) secs/);
             if (match) {
                 cycletime = parseFloat(match[1]);
             }

@@ -4,9 +4,25 @@ var progressstarted;
 var progressstate;
 var progressactive = false;
 
-function progress(pct) {
+function stageLabel(stage) {
+    if (!stage) return "";
+    let key = "stage_" + stage.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+    let label = i18n.t(key);
+    return label === key ? stage : label;
+}
+
+function progress(arg) {
+    let pct = arg;
+    let stage = null;
+    if (arg && typeof arg === "object") {
+        pct = arg.pct;
+        stage = arg.stage;
+    }
     if (!progressactive && pct !== null)
         return;
+    let label = $(`#${progresstarget}-stage`);
+    if (stage) label.text(stageLabel(stage) + (pct !== null ? `: ${pct}%` : ""));
+    else if (pct === null) label.text("");
     $(`#${progresstarget}-pct`).val(pct);
     if (pct == null) {
         $(`#${progresstarget}-pct`).hide();

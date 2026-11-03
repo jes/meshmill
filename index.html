@@ -80,7 +80,7 @@
 
                         <button id="render-heightmap" data-i18n="process_surface">Process surface</button><br>
                         <button id="model-cancel" data-i18n="stop">Stop</button> <progress max="100" id="model-pct"></progress>
-                        <span id="model-eta"></span><br>
+                        <span id="model-stage"></span> <span id="model-eta"></span><br>
                         <button id="show-2d" data-i18n="show_2d" style="display:none">Show 2D heightmap</button><br>
                         <small data-i18n="resolution_hint">0.25 mm is slow on complex models; use 0.5-1 mm while setting up.</small>
                     </div>
@@ -153,7 +153,7 @@
                     <div class="subpanel" id="job-section-export" style="display:none">
                         <button id="generate-toolpath" data-i18n="generate_toolpath">Generate toolpath</button><br>
                         <button id="toolpath-cancel" data-i18n="stop">Stop</button> <progress max="100" id="toolpath-pct"></progress>
-                        <span id="toolpath-eta"></span><br>
+                        <span id="toolpath-stage"></span> <span id="toolpath-eta"></span><br>
                         <button id="save-gcode" data-i18n="save_gcode">Save G-code</button><br>
                         <div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_cycle_time">Rough estimate of how long it will take for the job to complete assuming infinite acceleration. Adjust your machine parameters using the "Edit -> Settings..." menu.</span></div></div><span data-i18n="cycle_time">Cycle time estimate:</span> <span id="cycletime">?</span><br>
                         <small><button id="duplicatejob" data-i18n="duplicate_job">Duplicate job</button></small><br>

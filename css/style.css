@@ -335,3 +335,9 @@ small { color: var(--muted); }
     box-shadow: 0 20px 60px rgba(0,0,0,.65);
     image-rendering: pixelated;
 }
+
+#model-stage, #toolpath-stage {
+    color: var(--muted);
+    font-size: 12px;
+    margin-left: 6px;
+}

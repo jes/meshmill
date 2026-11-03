@@ -28,9 +28,9 @@ function progressEta() {
             let timefor100 = howlong/howmuch;
             let remaining = timefor100 - howlong;
             if (remaining < 0) remaining = 0;
-            $(`#${progresstarget}-eta`).text("ETA: " + timefmt(1000+remaining));
+            $(`#${progresstarget}-eta`).text(i18n.t("eta") + " " + timefmt(1000+remaining));
         } else {
-            $(`#${progresstarget}-eta`).text("ETA: ?");
+            $(`#${progresstarget}-eta`).text(i18n.t("eta") + " ?");
         }
     } else {
         $(`#${progresstarget}-eta`).text("");

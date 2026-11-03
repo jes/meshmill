@@ -2,8 +2,11 @@ var progresspct;
 var progresstarget;
 var progressstarted;
 var progressstate;
+var progressactive = false;
 
 function progress(pct) {
+    if (!progressactive && pct !== null)
+        return;
     $(`#${progresstarget}-pct`).val(pct);
     if (pct == null) {
         $(`#${progresstarget}-pct`).hide();
@@ -50,6 +53,7 @@ function progressStart() {
     }
 
     progressstarted = Date.now();
+    progressactive = true;
     progress(0);
     $(`#${progresstarget}-cancel`).show();
     $(`#${progresstarget}-cancel`).prop("disabled",false);
@@ -62,6 +66,7 @@ function progressEnd() {
     }
 
     progressstarted = null;
+    progressactive = false;
     progress(null);
     $(`#${progresstarget}-cancel`).hide();
 }

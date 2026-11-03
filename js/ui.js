@@ -224,6 +224,16 @@ $('#bottomside').change(function() {
     redrawTabs();
 });
 
+$('#apply-stock').click(function() {
+    let sx = parseFloat($('#stockx').val());
+    let sy = parseFloat($('#stocky').val());
+    let sz = parseFloat($('#stockz').val());
+    if (!(sx > 0 && sy > 0 && sz > 0))
+        return;
+    project.stock = { x: sx, y: sy, z: sz };
+    showStockBox(sx, sy, sz);
+});
+
 $('#apply-scale').click(function() {
     if (!project.mesh.width) return;
 

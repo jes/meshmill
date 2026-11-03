@@ -8,7 +8,7 @@ const tar = require('tar');
 const openAboutWindow = require('electron-about-window').default;
 const rmdir = require('rimraf');
 
-app.disableHardwareAcceleration();
+
 
 const MESSAGES = require('./js/i18n-data.js');
 let lang = 'ru';
@@ -235,11 +235,19 @@ ipcMain.on('render-heightmap', (event,arg,replychan) => {
     let render = spawn(path.join(__dirname,'bin/pngcam-go-render'), opts);
     running = render;
 
+    let lastRenderPct = -1;
+    let lastRenderTime = 0;
     render.stderr.on('data', (data) => {
         process.stderr.write(""+data);
         let match = (""+data).match(/(\d+)%/);
         if (match) {
-            win.webContents.send('progress', match[1]);
+            let pct = match[1];
+            let now = Date.now();
+            if (pct !== lastRenderPct || now - lastRenderTime > 200) {
+                lastRenderPct = pct;
+                lastRenderTime = now;
+                win.webContents.send('progress', pct);
+            }
         }
     });
 
@@ -314,11 +322,19 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
 
         let cycletime = null;
 
+        let lastPct = -1;
+        let lastTime = 0;
         pngcam.stderr.on('data', (data) => {
             process.stderr.write(""+data);
             let match = (""+data).match(/(\d+)%/);
             if (match) {
-                win.webContents.send('progress', match[1]);
+                let pct = match[1];
+                let now = Date.now();
+                if (pct !== lastPct || now - lastTime > 200) {
+                    lastPct = pct;
+                    lastTime = now;
+                    win.webContents.send('progress', pct);
+                }
             }
 
             match = (""+data).match(/Cycle time estimate: ([0-9.]+) secs/);

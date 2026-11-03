@@ -14,12 +14,28 @@ var simProgressLine = null;
 var simTool = null;
 var simToolRadius = 2;
 var sceneModelMesh = null;
+var stockDims = null;
+var stockBoxGroup = null;
 
 function showScene(geometry, opts) {
     opts = opts || {};
 
     if (typeof window.cleanupMaterialSimulation === 'function')
         window.cleanupMaterialSimulation();
+
+    // Dispose the previous WebGL context before creating a new one;
+    // leaking contexts eventually wedges the GPU process.
+    if (renderer) {
+        try {
+            renderer.dispose();
+            renderer.forceContextLoss();
+        } catch (err) {
+            // ignore
+        }
+        if (renderer.domElement && renderer.domElement.parentNode)
+            renderer.domElement.parentNode.removeChild(renderer.domElement);
+        renderer = null;
+    }
 
     container = document.getElementById('scene-view');
     while(container.firstChild) container.removeChild(container.firstChild);
@@ -39,14 +55,22 @@ function showScene(geometry, opts) {
         alpha: false,
     });
     renderer.setClearColor(0x12151a, 1);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(1);
     container.appendChild(renderer.domElement);
 
-    var material = new THREE.MeshPhongMaterial({
-        color: 0x0cf4c7,
-        shininess: 1,
-        specular: 1,
-    });
+    var material;
+    if (opts.vertexColors) {
+        material = new THREE.MeshBasicMaterial({
+            vertexColors: true,
+            side: THREE.DoubleSide,
+        });
+    } else {
+        material = new THREE.MeshPhongMaterial({
+            color: 0x0cf4c7,
+            shininess: 1,
+            specular: 1,
+        });
+    }
     var mesh = new THREE.Mesh(geometry, material);
     sceneModelMesh = mesh;
 
@@ -105,6 +129,49 @@ function showScene(geometry, opts) {
     controls.autoRotate = false;
 
     onWindowResize();
+    updateStockBox();
+}
+
+function updateStockBox() {
+    if (stockBoxGroup && scene) {
+        scene.remove(stockBoxGroup);
+        stockBoxGroup = null;
+    }
+    if (!stockDims || !scene || !project || !project.mesh || !project.mesh.width || !scenemiddle)
+        return;
+
+    let origin = project.mesh.origin;
+    let cx = (project.mesh.min.x + project.mesh.max.x)/2 - (scenemiddle.x + origin.x);
+    let cy = (project.mesh.min.y + project.mesh.max.y)/2 - (scenemiddle.y + origin.y);
+    let z0 = project.mesh.min.z - (scenemiddle.z + origin.z);
+
+    let sx = stockDims.x;
+    let sy = stockDims.y;
+    let sz = stockDims.z;
+    let geometry = new THREE.BoxGeometry(sx, sy, sz);
+    let material = new THREE.MeshPhongMaterial({
+        color: 0x17d4a5,
+        transparent: true,
+        opacity: 0.07,
+        depthWrite: false,
+    });
+    let box = new THREE.Mesh(geometry, material);
+    let edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geometry),
+        new THREE.LineBasicMaterial({ color: 0x17d4a5, transparent: true, opacity: 0.75 })
+    );
+
+    let group = new THREE.Group();
+    group.add(box);
+    group.add(edges);
+    group.position.set(cx, cy, z0 + sz/2);
+    scene.add(group);
+    stockBoxGroup = group;
+}
+
+function showStockBox(sx, sy, sz) {
+    stockDims = { x: sx, y: sy, z: sz };
+    updateStockBox();
 }
 
 function scene_animate() {

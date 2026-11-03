@@ -11,6 +11,13 @@
         <input type="checkbox" id="imperial"><label for="imperial"><div class="has-tooltip"><div class="tooltip" data-i18n="tip_imperial">Use inches and inches/min instead of mm and mm/min.</div></div><span data-i18n="imperial">Imperial</span></label><br>
         <!--<input type="checkbox" id="workflowhints"><label for="workflowhints">Show workflow hints (unimplemented)</label><br>-->
         <input type="checkbox" id="showheightmap2d"><label for="showheightmap2d"><span data-i18n="show_heightmap_2d">Show 2D heightmap image</span></label><br>
+        <div><span data-i18n="cam_backend">CAM backend:</span>
+            <select id="cambackend">
+                <option value="gpu" data-i18n="cam_backend_gpu">GPU (Vulkan)</option>
+                <option value="cpu" data-i18n="cam_backend_cpu">CPU (pngcam-go)</option>
+            </select>
+            <div class="has-tooltip" style="display:inline-block"><div class="tooltip" data-i18n="tip_cam_backend">GPU accelerates heightmap and simple toolpaths. Falls back to pngcam-go for rotary/roughing/advanced options.</div></div>
+        </div><br>
         <div class="has-tooltip"><div class="tooltip" data-i18n="tip_max_velocity">Maximum velocity for cycle time estimates.</div></div><span data-i18n="max_velocity">Max. velocity:</span> <input type="text" id="maxvel"> <span data-i18n="units_per_min">units/min</span><br>
         <div class="has-tooltip"><div class="tooltip" data-i18n="tip_max_accel">Maximum acceleration for cycle time estimates.</div></div><span data-i18n="max_accel">Max. accel (unimplemented):</span> <input type="text" id="maxaccel"> <span data-i18n="units_per_sec2">units/sec</span><br>
         <button id="save" data-i18n="save">Save</button> <button id="cancel" data-i18n="btn_cancel">Cancel</button>

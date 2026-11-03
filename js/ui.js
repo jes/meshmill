@@ -101,6 +101,7 @@ function showModel() {
 function drawModel() {
     if (project.heightmap) showHeightmap(project.heightmap);
     else if (project.stl) STLViewer(project.stl, project.mesh.origin); // TODO: don't recentre the view unless the model is genuinely new
+    else if (project.contours && project.contours.length) showContourScene(true);
     else showScene();
 }
 
@@ -148,7 +149,9 @@ function updateHeightmap() {
         $('#heightmap-lightbox').hide();
     }
 
-    if (project.heightmap) {
+    // Heightmap enables 3D CAM; CAD contours alone enable 2.5D contour jobs.
+    let canJob = !!(project.heightmap || (project.contours && project.contours.length));
+    if (canJob) {
         $('#addjob-tab').prop("disabled",false);
         $('#addjob-tab').addClass('tab-ready');
         $('#add-job-inline').show();
@@ -162,6 +165,48 @@ function updateHeightmap() {
 $('#stlfile').change(function() {
     loadSTL($('#stlfile')[0].files[0].path);
     redrawTabs();
+});
+
+function afterCadLoaded(contours) {
+    if (!contours || !contours.length) return;
+    let n = contours.length;
+    let closed = contours.filter(function(c) { return c.closed; }).length;
+    $('#dxfinfo').text(i18n.t('dxf_loaded', n, closed));
+    fillContourSource();
+    updateModel();
+    // Defer scene rebuild so busy overlay can hide first.
+    setTimeout(function() {
+        if (typeof drawModel === 'function') drawModel();
+        redrawTabs();
+    }, 0);
+}
+
+function openCadFile(filePath) {
+    if (!filePath) return;
+    project.loadDXF(filePath, afterCadLoaded);
+}
+
+$('#opencad').click(function() {
+    window.api.send('open-cad', function(p) {
+        if (p) openCadFile(p);
+    });
+});
+
+$('#dxffile').change(function() {
+    let f = $('#dxffile')[0].files[0];
+    let p = null;
+    if (f && window.api && typeof window.api.pathForFile === 'function')
+        p = window.api.pathForFile(f);
+    if (!p && f && f.path) p = f.path;
+    if (!p) {
+        // AppImage / portal often strips File.path — fall back to native dialog.
+        window.api.send('open-cad', function(chosen) {
+            if (chosen) openCadFile(chosen);
+            else alert(i18n.t('err_dxf_nopath') || 'Could not read file path. Use “Open DXF/DWG…”.');
+        });
+        return;
+    }
+    openCadFile(p);
 });
 
 $('#reloadstl').click(function() {
@@ -319,7 +364,12 @@ function showJob(id) {
     $('#rpm').val(job.controller.rpm);
     $('#direction').val(job.path.direction);
     $('#cutangle').val(job.path.angle != null ? job.path.angle : 45);
+    fillContourSource();
+    if (job.path.contour_source)
+        $('#contoursource').val(job.path.contour_source);
+    $('#pocketstyle').val(job.path.pocket_style || 'hatch');
     updateAngleRow();
+    updateContourRow();
     // Migrate legacy mm stepover → percent of diameter
     if (job.path.stepover_percent == null && job.path.stepover != null && job.tool.diameter > 0) {
         job.path.stepover_percent = Math.max(1, Math.round(100 * job.path.stepover / job.tool.diameter));
@@ -368,6 +418,10 @@ function updateJob() {
     j.path.direction = $('#direction').val();
     j.path.angle = parseFloat($('#cutangle').val());
     if (!isFinite(j.path.angle)) j.path.angle = 45;
+    j.path.contour_source = $('#contoursource').val() || 'heightmap';
+    if (typeof j.path.contour_source === 'string' && j.path.contour_source.indexOf('dxf:') === 0)
+        j.path.contour_id = parseInt(j.path.contour_source.split(':')[1], 10);
+    j.path.pocket_style = $('#pocketstyle').val() || 'hatch';
     j.path.stepover_percent = parseFloat($('#stepover').val());
     if (!isFinite(j.path.stepover_percent)) j.path.stepover_percent = 50;
     // Effective stepover in model units for CAM / deviation
@@ -393,10 +447,16 @@ function updateJob() {
     }
     $('#stepover-mm').text(i18n.t('stepover_mm_hint', formatFloat(j.path.stepover || 0)));
 
-    if (project.heightmap) {
-        $('#generate-toolpath').prop("disabled", false);
+    let canGen = !!project.heightmap;
+    if (j.path.direction === 'contour-outside' || j.path.direction === 'contour-inside' || j.path.direction === 'contour-pocket') {
+        let src = j.path.contour_source || 'heightmap';
+        if (src === 'heightmap') canGen = !!project.heightmap;
+        else canGen = !!(project.contours && project.contours.length);
+    }
+    if (canGen) {
+        $('.generate-toolpath-btn').prop("disabled", false);
     } else {
-        $('#generate-toolpath').prop("disabled", true);
+        $('.generate-toolpath-btn').prop("disabled", true);
     }
 
     if (j.gcodefile) {
@@ -564,10 +624,34 @@ function inputJob() {
     updateJob();
 }
 
-var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'cutangle', 'stepover', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop', 'omitbottom', 'clearbottom', 'clearedges'];
+var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'cutangle', 'contoursource', 'pocketstyle', 'stepover', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop', 'omitbottom', 'clearbottom', 'clearedges'];
 for (var i = 0; i < inputs.length; i++) {
     $('#' + inputs[i]).change(inputJob);
     $('#' + inputs[i]).keyup(inputJob);
+}
+
+function fillContourSource() {
+    let $sel = $('#contoursource');
+    if (!$sel.length) return;
+    let prev = $sel.val();
+    $sel.empty();
+    if (!project) return;
+    if (project.heightmap)
+        $sel.append($('<option>').val('heightmap').text(i18n.t('contour_from_heightmap')));
+    let list = project.contours || [];
+    let firstDxf = null;
+    for (let i = 0; i < list.length; i++) {
+        let c = list[i];
+        if (!c.closed) continue;
+        let val = 'dxf:' + c.id;
+        if (firstDxf == null) firstDxf = val;
+        let label = i18n.t('contour_dxf_item', c.name || i, c.points ? c.points.length : 0);
+        $sel.append($('<option>').val(val).text(label));
+    }
+    if (prev && $sel.find('option[value="' + prev + '"]').length)
+        $sel.val(prev);
+    else if (!project.heightmap && firstDxf)
+        $sel.val(firstDxf);
 }
 
 function updateAngleRow() {
@@ -576,8 +660,21 @@ function updateAngleRow() {
     else
         $('#angle-row').hide();
 }
-$('#direction').change(updateAngleRow);
+function updateContourRow() {
+    let d = $('#direction').val();
+    let isContour = (d === 'contour-outside' || d === 'contour-inside' || d === 'contour-pocket');
+    if (isContour) $('#contour-row').show();
+    else $('#contour-row').hide();
+    if (d === 'contour-pocket') $('#pocket-style-row').show();
+    else $('#pocket-style-row').hide();
+}
+$('#direction').change(function() {
+    updateAngleRow();
+    updateContourRow();
+});
 updateAngleRow();
+updateContourRow();
+fillContourSource();
 
 /* tabs */
 

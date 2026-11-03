@@ -33,6 +33,9 @@ let settings = {
     show_heightmap_2d: true,
     maxvel: 4000,
     maxaccel: 50,
+    // 'gpu' = meshmill-gpu (Vulkan/WebGPU), fall back to pngcam-go on failure
+    // 'cpu' = always pngcam-go / pngcam-go-render
+    cam_backend: 'gpu',
 };
 let settingsfile = path.join(app.getPath('userData'), 'meshmill.json');
 try {
@@ -226,61 +229,118 @@ app.on('window-all-closed', () => {
 
 var running;
 
-ipcMain.on('render-heightmap', (event,arg,replychan) => {
-    let opts = ['--width', arg.width, '--height', arg.height, '--rgb'];
-    if (arg.bottom) opts.push('--bottom');
-    if (arg.rotary) opts.push('--rotary');
+function resolveBin(name) {
+    let candidates = [
+        path.join(__dirname, 'bin', name),
+        path.join(process.resourcesPath || '', 'app', 'bin', name),
+        path.join(process.resourcesPath || '', 'bin', name),
+    ];
+    for (let p of candidates) {
+        if (p && fs.existsSync(p)) return p;
+    }
+    return path.join(__dirname, 'bin', name);
+}
 
-    opts.push(arg.stl);
-    // TODO: write to a temporary file until successful, then move to the
-    // project folder
-    console.log(opts);
-    let render = spawn(path.join(__dirname,'bin/pngcam-go-render'), opts);
-    running = render;
+/** Ensure user-local LibreDWG (dwg2dxf) is visible to spawned CAM tools. */
+function camEnv() {
+    let env = Object.assign({}, process.env);
+    let home = app.getPath('home');
+    let homeBin = path.join(home, '.local', 'bin');
+    let homeLib = path.join(home, '.local', 'lib');
+    let pathParts = (env.PATH || '').split(path.delimiter).filter(Boolean);
+    if (pathParts.indexOf(homeBin) < 0) pathParts.unshift(homeBin);
+    env.PATH = pathParts.join(path.delimiter);
+    let ldParts = (env.LD_LIBRARY_PATH || '').split(path.delimiter).filter(Boolean);
+    if (ldParts.indexOf(homeLib) < 0) ldParts.unshift(homeLib);
+    env.LD_LIBRARY_PATH = ldParts.join(path.delimiter);
+    return env;
+}
 
-    let lastRenderPct = -1;
-    let lastRenderStage = null;
-    let lastRenderTime = 0;
-    render.stderr.on('data', (data) => {
-        process.stderr.write(""+data);
-        let text = ""+data;
+function wantGpuCam() {
+    return (settings.cam_backend || 'gpu') !== 'cpu';
+}
+
+function pipeCamProgress(proc) {
+    let lastPct = -1, lastStage = null, lastTime = 0;
+    proc.stderr.on('data', (data) => {
+        process.stderr.write('' + data);
+        let text = '' + data;
         let matches = [...text.matchAll(/([A-Za-z][A-Za-z ]*):\s*(\d+)%/g)];
         if (matches.length) {
-            let m = matches[matches.length-1];
+            let m = matches[matches.length - 1];
             let stage = m[1].trim();
             let pct = m[2];
             let now = Date.now();
-            if (stage !== lastRenderStage || pct !== lastRenderPct || now - lastRenderTime > 200) {
-                lastRenderStage = stage;
-                lastRenderPct = pct;
-                lastRenderTime = now;
-                win.webContents.send('progress', { stage: stage, pct: pct });
+            if (stage !== lastStage || pct !== lastPct || now - lastTime > 200) {
+                lastStage = stage; lastPct = pct; lastTime = now;
+                if (win) win.webContents.send('progress', { stage: stage, pct: pct });
             }
         }
     });
+    proc.stdout.on('data', (data) => { process.stderr.write('' + data); });
+}
 
-    render.stdout.on('data', (data) => {
-        process.stderr.write(""+data);
-    });
-    
+function runPngcamRender(arg, replychan) {
+    let opts = ['--width', arg.width, '--height', arg.height, '--rgb'];
+    if (arg.bottom) opts.push('--bottom');
+    if (arg.rotary) opts.push('--rotary');
+    opts.push(arg.stl);
+    console.log('pngcam-go-render', opts);
+    let render = spawn(resolveBin('pngcam-go-render'), opts.map(String));
+    running = render;
+    pipeCamProgress(render);
     render.on('close', (code) => {
         if (code == null) {
-            win.webContents.send(replychan, {
-                file: null,
-            });
+            win.webContents.send(replychan, { file: null });
         } else if (code !== 0) {
-            win.webContents.send(replychan, {
-                error: t('err_pngcam_render', code),
-            });
+            win.webContents.send(replychan, { error: t('err_pngcam_render', code) });
         } else {
-            win.webContents.send(replychan, {
-                file: `${arg.stl}.png`,
-            });
+            win.webContents.send(replychan, { file: `${arg.stl}.png` });
         }
     });
+}
+
+function runGpuRender(arg, replychan) {
+    let outPng = `${arg.stl}.png`;
+    let gpuBin = resolveBin('meshmill-gpu');
+    if (!fs.existsSync(gpuBin) || arg.rotary) {
+        runPngcamRender(arg, replychan);
+        return;
+    }
+    let opts = [
+        'render', arg.stl,
+        '--width', String(arg.width),
+        '--height', String(arg.height),
+        '--png', outPng,
+    ];
+    if (arg.bottom) opts.push('--bottom');
+    console.log('meshmill-gpu', opts);
+    let render = spawn(gpuBin, opts, { stdio: ['ignore', 'pipe', 'pipe'], env: camEnv() });
+    running = render;
+    pipeCamProgress(render);
+    let stdout = '';
+    render.stdout.on('data', (d) => { stdout += d; });
+    render.on('error', () => runPngcamRender(arg, replychan));
+    render.on('close', (code) => {
+        if (code == null) {
+            win.webContents.send(replychan, { file: null });
+            return;
+        }
+        if (code !== 0 || !fs.existsSync(outPng)) {
+            console.log('meshmill-gpu render failed, falling back to pngcam-go-render', code, stdout);
+            runPngcamRender(arg, replychan);
+            return;
+        }
+        win.webContents.send(replychan, { file: outPng });
+    });
+}
+
+ipcMain.on('render-heightmap', (event, arg, replychan) => {
+    if (wantGpuCam()) runGpuRender(arg, replychan);
+    else runPngcamRender(arg, replychan);
 });
 
-ipcMain.on('generate-toolpath', (event,arg,replychan) => {
+function buildPngcamToolpathOpts(arg) {
     let opts = [
         '--tool-shape', arg.job.tool.shape,
         '--tool-diameter', arg.job.tool.diameter,
@@ -315,31 +375,336 @@ ipcMain.on('generate-toolpath', (event,arg,replychan) => {
         opts.push('--read-stock');
         opts.push(arg.read_stock);
     }
-
     opts.push(arg.heightmap);
-    runPngcamToGcode(opts, arg.gcodepath, function(err, result) {
-        if (err) {
-            win.webContents.send(replychan, { error: err });
-            return;
-        }
-        if (!result || !result.file) {
+    return opts;
+}
+
+function gpuToolpathSupported(arg) {
+    if (!wantGpuCam()) return false;
+    if (!fs.existsSync(resolveBin('meshmill-gpu'))) return false;
+    if (arg.rotary || arg.imperial) return false;
+    // Features not yet in GPU backend — keep pngcam for these jobs.
+    if (arg.job.path.rampentry) return false;
+    if (arg.job.path.clearbottom || arg.job.path.clearedges) return false;
+    let shape = (arg.job.tool && arg.job.tool.shape) || 'ball';
+    if (shape !== 'ball' && shape !== 'flat' && shape !== 'endmill') return false;
+    let dir = (arg.job.path && arg.job.path.direction) || 'horizontal';
+    if (dir !== 'horizontal' && dir !== 'vertical') return false;
+    return true;
+}
+
+function runGpuToolpath(arg, replychan, fallback) {
+    let gpuBin = resolveBin('meshmill-gpu');
+    let shape = (arg.job.tool.shape === 'flat' || arg.job.tool.shape === 'endmill') ? 'flat' : 'ball';
+    let route = arg.job.path.direction === 'vertical' ? 'vertical' : 'horizontal';
+    let opts = [
+        'toolpath', arg.heightmap,
+        '--gcode', arg.gcodepath,
+        '--width-mm', String(arg.width),
+        '--height-mm', String(arg.height),
+        '--depth-mm', String(arg.depth),
+        '--tool-diameter', String(arg.job.tool.diameter),
+        '--tool-shape', shape,
+        '--step-over', String(arg.job.path.stepover),
+        '--step-down', String(arg.job.path.stepdown),
+        '--xy-feed', String(arg.job.controller.xyfeed),
+        '--z-feed', String(arg.job.controller.zfeed),
+        '--rapid-feed', String(settings.maxvel > 3000 ? settings.maxvel : 10000),
+        '--rapid-clearance', String(arg.job.controller.safez),
+        '--x-offset', String(arg.offset.x),
+        '--y-offset', String(arg.offset.y),
+        '--z-offset', String(arg.offset.z),
+        '--route', route,
+    ];
+    if (arg.job.path.omittop) opts.push('--omit-top');
+    if (arg.job.path.omitbottom) opts.push('--omit-bottom');
+    if (arg.job.path.roughingonly) opts.push('--roughing-only');
+    if (arg.write_stock) {
+        opts.push('--write-stock');
+        opts.push(arg.write_stock);
+    }
+    if (arg.read_stock) {
+        opts.push('--read-stock');
+        opts.push(arg.read_stock);
+    }
+    console.log('meshmill-gpu', opts);
+    let proc = spawn(gpuBin, opts, { stdio: ['ignore', 'pipe', 'pipe'], env: camEnv() });
+    running = proc;
+    pipeCamProgress(proc);
+    let stdout = '';
+    proc.stdout.on('data', (d) => { stdout += d; });
+    proc.on('error', () => fallback());
+    proc.on('close', (code) => {
+        if (code == null) {
             win.webContents.send(replychan, { file: null });
             return;
         }
+        if (code !== 0 || !fs.existsSync(arg.gcodepath)) {
+            console.log('meshmill-gpu toolpath failed, falling back to pngcam-go', code, stdout);
+            fallback();
+            return;
+        }
         win.webContents.send(replychan, {
-            file: result.file,
+            file: arg.gcodepath,
             heightmap_file: arg.write_stock,
-            cycletime: result.cycletime,
+            cycletime: null,
         });
     });
+}
+
+function contourCmdForDirection(dir) {
+    if (dir === 'contour-inside') return 'profile-inside';
+    if (dir === 'contour-pocket') return 'pocket';
+    return 'profile-outside';
+}
+
+function runContourStrategy(arg, replychan) {
+    let gpuBin = resolveBin('meshmill-gpu');
+    if (!fs.existsSync(gpuBin)) {
+        win.webContents.send(replychan, { error: t('err_meshmill_gpu_missing') });
+        return;
+    }
+    let dir = (arg.job && arg.job.path && arg.job.path.direction) || 'contour-outside';
+    let cmd = contourCmdForDirection(dir);
+    let opts = [
+        cmd,
+        '--gcode', arg.gcodepath,
+        '--width-mm', String(arg.width),
+        '--height-mm', String(arg.height),
+        '--depth-mm', String(arg.depth),
+        '--tool-diameter', String(arg.job.tool.diameter),
+        '--step-down', String(arg.job.path.stepdown),
+        '--allowance', String(arg.job.path.clearance || 0),
+        '--xy-feed', String(arg.job.controller.xyfeed),
+        '--z-feed', String(arg.job.controller.zfeed),
+        '--rapid-feed', String(settings.maxvel > 3000 ? settings.maxvel : 10000),
+        '--rapid-clearance', String(arg.job.controller.safez),
+        '--x-offset', String(arg.offset.x),
+        '--y-offset', String(arg.offset.y),
+        '--z-offset', String(arg.offset.z),
+        '--spindle', String(arg.job.controller.rpm || 10000),
+    ];
+    if (cmd === 'pocket') {
+        opts.push('--step-over', String(arg.job.path.stepover || (arg.job.tool.diameter * 0.5)));
+        opts.push('--style', arg.job.path.pocket_style || 'hatch');
+    }
+    if (arg.contour_file) {
+        opts.push('--contour', arg.contour_file);
+    } else if (arg.heightmap) {
+        opts.push('--heightmap', arg.heightmap);
+    } else {
+        win.webContents.send(replychan, { error: t('err_contour_source') });
+        return;
+    }
+    if (arg.write_contour) {
+        opts.push('--write-contour', arg.write_contour);
+    }
+    console.log('meshmill-gpu', opts);
+    let proc = spawn(gpuBin, opts, { stdio: ['ignore', 'pipe', 'pipe'], env: camEnv() });
+    running = proc;
+    pipeCamProgress(proc);
+    let stdout = '';
+    proc.stdout.on('data', (d) => { stdout += d; });
+    proc.on('error', (err) => win.webContents.send(replychan, { error: String(err) }));
+    proc.on('close', (code) => {
+        if (code == null) {
+            win.webContents.send(replychan, { file: null });
+            return;
+        }
+        if (code !== 0 || !fs.existsSync(arg.gcodepath)) {
+            win.webContents.send(replychan, {
+                error: t('err_profile_outside', code),
+                detail: stdout,
+            });
+            return;
+        }
+        win.webContents.send(replychan, {
+            file: arg.gcodepath,
+            heightmap_file: arg.write_stock || null,
+            cycletime: null,
+            contour_file: arg.write_contour || null,
+        });
+    });
+}
+
+const DxfParse = require('./js/dxf-parse.js');
+
+function replyCadImport(replychan, outJson, meta, format, converter) {
+    try {
+        if (outJson)
+            fs.writeFileSync(outJson, JSON.stringify(meta));
+    } catch (e) {
+        console.log(e);
+    }
+    let contours = meta.contours || [];
+    let payload = {
+        file: outJson || null,
+        bounds: meta.bounds || null,
+        format: format,
+        converter: converter || null,
+        count: contours.length,
+    };
+    // Keep small CAD replies inline; large ones are read from disk in the renderer
+    // so IPC does not freeze the AppImage UI.
+    try {
+        if (JSON.stringify(contours).length < 1500000)
+            payload.contours = contours;
+    } catch (e) {
+        /* omit contours — renderer will load JSON */
+    }
+    win.webContents.send(replychan, payload);
+}
+
+ipcMain.on('open-cad', (event, arg, replychan) => {
+    dialog.showOpenDialog(win, {
+        title: t('dialog_open'),
+        filters: [
+            { name: t('filter_cad'), extensions: ['dxf', 'dwg'] },
+            { name: t('filter_all'), extensions: ['*'] },
+        ],
+        properties: ['openFile'],
+    }).then((result) => {
+        let p = (!result.canceled && result.filePaths && result.filePaths[0]) ? result.filePaths[0] : null;
+        win.webContents.send(replychan, p);
+    }).catch((err) => {
+        win.webContents.send(replychan, null);
+        console.log(err);
+    });
+});
+
+ipcMain.on('import-dxf', (event, arg, replychan) => {
+    let src = arg && arg.file;
+    let outJson = arg && arg.out;
+    if (!src) {
+        win.webContents.send(replychan, { error: 'import-dxf: file required' });
+        return;
+    }
+    if (!fs.existsSync(src)) {
+        win.webContents.send(replychan, { error: 'File not found: ' + src });
+        return;
+    }
+    if (!outJson) outJson = src + '.contours.json';
+    let ext = path.extname(src).toLowerCase();
+
+    // DXF: parse in-process (avoid PyInstaller cold-start hangs in AppImage).
+    // Defer so the busy overlay can paint before we block the main thread.
+    if (ext === '.dxf') {
+        setImmediate(() => {
+            try {
+                let st = fs.statSync(src);
+                if (st.size > 80 * 1024 * 1024) {
+                    win.webContents.send(replychan, { error: t('err_dxf_too_large') });
+                    return;
+                }
+                let text = fs.readFileSync(src, 'utf8');
+                let meta = DxfParse.parseDxfText(text);
+                replyCadImport(replychan, outJson, meta, 'dxf', null);
+            } catch (e) {
+                win.webContents.send(replychan, { error: String(e) });
+            }
+        });
+        return;
+    }
+
+    // DWG: convert with dwg2dxf / meshmill-gpu, then parse DXF in-process.
+    if (ext !== '.dwg') {
+        win.webContents.send(replychan, { error: 'Unsupported CAD type: ' + ext });
+        return;
+    }
+    let gpuBin = resolveBin('meshmill-gpu');
+    if (!fs.existsSync(gpuBin)) {
+        win.webContents.send(replychan, { error: t('err_meshmill_gpu_missing') });
+        return;
+    }
+    let dxfOut = src.replace(/\.dwg$/i, '.converted.dxf');
+    let opts = ['cad', src, '--out', outJson];
+    let proc = spawn(gpuBin, opts, { stdio: ['ignore', 'pipe', 'pipe'], env: camEnv() });
+    running = proc;
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+    let timer = setTimeout(function() {
+        if (settled) return;
+        try { proc.kill(); } catch (e) {}
+        settled = true;
+        win.webContents.send(replychan, { error: t('err_dxf_timeout') });
+    }, 120000);
+    proc.stdout.on('data', (d) => {
+        if (stdout.length < 500000) stdout += d;
+    });
+    proc.stderr.on('data', (d) => { stderr += d; process.stderr.write(d); });
+    proc.on('error', (err) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        win.webContents.send(replychan, { error: String(err) });
+    });
+    proc.on('close', (code) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if (code !== 0) {
+            let msg = t('err_dxf_import', code);
+            try {
+                let j = JSON.parse(stdout);
+                if (j && j.error) msg = j.error;
+            } catch (e) {
+                if (stderr && stderr.indexOf('DWG') >= 0) msg = stderr.trim().split('\n').pop();
+            }
+            win.webContents.send(replychan, { error: msg, detail: stderr || stdout });
+            return;
+        }
+        try {
+            // Prefer converted DXF next to source; else JSON from tool
+            let dxfPath = dxfOut;
+            if (!fs.existsSync(dxfPath) && fs.existsSync(outJson)) {
+                let meta = JSON.parse(fs.readFileSync(outJson, 'utf8'));
+                if (meta.dxf && fs.existsSync(meta.dxf)) dxfPath = meta.dxf;
+                else {
+                    replyCadImport(replychan, outJson, meta, 'dwg', meta.converter || null);
+                    return;
+                }
+            }
+            let text = fs.readFileSync(dxfPath, 'utf8');
+            let meta = DxfParse.parseDxfText(text);
+            replyCadImport(replychan, outJson, meta, 'dwg', 'dwg2dxf');
+        } catch (e) {
+            win.webContents.send(replychan, { error: String(e) });
+        }
+    });
+});
+
+ipcMain.on('generate-toolpath', (event, arg, replychan) => {
+    let dir = arg && arg.job && arg.job.path && arg.job.path.direction;
+    if (dir === 'contour-outside' || dir === 'contour-inside' || dir === 'contour-pocket') {
+        runContourStrategy(arg, replychan);
+        return;
+    }
+    let runCpu = function() {
+        runPngcamToGcode(buildPngcamToolpathOpts(arg), arg.gcodepath, function(err, result) {
+            if (err) {
+                win.webContents.send(replychan, { error: err });
+                return;
+            }
+            if (!result || !result.file) {
+                win.webContents.send(replychan, { file: null });
+                return;
+            }
+            win.webContents.send(replychan, {
+                file: result.file,
+                heightmap_file: arg.write_stock,
+                cycletime: result.cycletime,
+            });
+        });
+    };
+    if (gpuToolpathSupported(arg)) runGpuToolpath(arg, replychan, runCpu);
+    else runCpu();
 });
 
 /** Run pngcam-go, buffering stdout fully before writing the G-code file.
  *  Avoids truncated toolpaths from WriteStream races on process close. */
 function runPngcamToGcode(opts, gcodeFile, cb) {
-    let pngcamBin = path.join(__dirname, 'bin/pngcam-go');
-    if (!fs.existsSync(pngcamBin))
-        pngcamBin = path.join(process.resourcesPath || __dirname, 'app/bin/pngcam-go');
+    let pngcamBin = resolveBin('pngcam-go');
     console.log(opts);
     let pngcam = spawn(pngcamBin, opts.map(String), {
         stdio: ['ignore', 'pipe', 'pipe'],
@@ -460,6 +825,55 @@ ipcMain.on('copy-file', (event,arg,replychan) => {
 });
 
 /** Fast STL header/size probe (no full mesh load into RAM). */
+ipcMain.on('decimate-stl', (event, arg, replychan) => {
+    let gpuBin = resolveBin('meshmill-gpu');
+    let src = arg && arg.src;
+    let dst = arg && arg.dst;
+    let target = (arg && arg.target) || 400000;
+    if (!src || !dst) {
+        win.webContents.send(replychan, { error: 'decimate-stl: src/dst required' });
+        return;
+    }
+    let finish = (payload) => win.webContents.send(replychan, payload);
+    if (!fs.existsSync(gpuBin)) {
+        // Fallback: copy full mesh (no decimate binary)
+        try {
+            fs.copyFileSync(src, dst);
+            finish({ file: dst, copied: true, warning: 'meshmill-gpu missing' });
+        } catch (e) {
+            finish({ error: String(e) });
+        }
+        return;
+    }
+    let opts = ['decimate', src, '--out', dst, '--target', String(target)];
+    console.log('meshmill-gpu', opts);
+    let proc = spawn(gpuBin, opts, { stdio: ['ignore', 'pipe', 'pipe'], env: camEnv() });
+    running = proc;
+    pipeCamProgress(proc);
+    let stdout = '';
+    proc.stdout.on('data', (d) => { stdout += d; });
+    proc.on('error', (err) => finish({ error: String(err) }));
+    proc.on('close', (code) => {
+        if (code == null) {
+            finish({ file: null });
+            return;
+        }
+        if (code !== 0 || !fs.existsSync(dst)) {
+            finish({ error: t('err_decimate', code), detail: stdout });
+            return;
+        }
+        let meta = {};
+        try { meta = JSON.parse(stdout); } catch (e) {}
+        finish({
+            file: dst,
+            triangles_in: meta.triangles_in,
+            triangles_out: meta.triangles_out,
+            seconds: meta.seconds,
+            copied: !!meta.copied,
+        });
+    });
+});
+
 ipcMain.on('stl-info', (event, arg, replychan) => {
     try {
         let file = (arg && arg.file) ? arg.file : arg;

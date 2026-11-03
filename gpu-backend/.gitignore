@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+*.png
+*.nc
+*.gcode
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+*.spec
+

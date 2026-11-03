@@ -25,6 +25,10 @@
                     <div class="subpanel" id="model-section-model">
                         <span data-i18n="stl_model">STL model:</span> <input id="stlfile" type="file" accept=".stl"><br>
                         <small><button id="reloadstl" data-i18n="reload_stl">Reload from disk</button></small><br>
+                        <span data-i18n="dxf_contours">DXF/DWG contours:</span>
+                        <button type="button" id="opencad" data-i18n="open_cad">Open DXF/DWG…</button>
+                        <input id="dxffile" type="file" accept=".dxf,.DXF,.dwg,.DWG" style="display:none"><br>
+                        <small id="dxfinfo"></small><br>
                         <span id="triangles"></span> <span data-i18n="triangles">triangles</span> <div id="trianglewarning" class="has-warning"><div class="warning" data-i18n="triangle_warning">This is a lot of triangles! This could make the "Process surface" operation very slow, but won't have an effect after that.</div></div>
 
                         <table>
@@ -126,9 +130,17 @@
                             <option value="horizontal" data-i18n="dir_horizontal">Horizontal (along X)</option>
                             <option value="vertical" data-i18n="dir_vertical">Vertical (along Y)</option>
                             <option value="angle" data-i18n="dir_angle">At an angle</option>
+                            <option value="contour-outside" data-i18n="dir_contour_outside">Outside contour (trim)</option>
+                            <option value="contour-inside" data-i18n="dir_contour_inside">Inside contour (profile)</option>
+                            <option value="contour-pocket" data-i18n="dir_contour_pocket">Pocket inside contour</option>
                             <option value="helical" data-i18n="dir_helical">Helical (rotary only)</option>
                         </select></td></tr>
                         <tr id="angle-row"><td class="formlabel"><div class="has-tooltip"><div class="tooltip" data-i18n="tip_cut_angle">Raster passes are rotated by this angle relative to the X axis. Useful to reduce witness marks and follow features.</div></div><span data-i18n="cut_angle">Cut angle:</span></td><td><input type="text" id="cutangle" value="45"></input> <span data-i18n="units_deg">°</span></td></tr>
+                        <tr id="contour-row" style="display:none"><td class="formlabel"><div class="has-tooltip"><div class="tooltip" data-i18n="tip_contour_source">Silhouette from the processed heightmap, or a closed polyline from an imported DXF/DWG.</div></div><span data-i18n="contour_source">Contour:</span></td><td><select id="contoursource"></select></td></tr>
+                        <tr id="pocket-style-row" style="display:none"><td class="formlabel"><span data-i18n="pocket_style">Pocket style:</span></td><td><select id="pocketstyle">
+                            <option value="hatch" data-i18n="pocket_hatch">Hatch (raster)</option>
+                            <option value="concentric" data-i18n="pocket_concentric">Concentric</option>
+                        </select></td></tr>
                         <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_step_over">Step over as a percentage of tool diameter (e.g. 50 = half the cutter diameter between passes).</span><br><img src="img/diagrams/stepover.png"></div></div><span data-i18n="step_over">Step over:</span></td><td><input type="text" id="stepover"></input> <span>%</span> <span id="stepover-mm" class="hint"></span> <div id="stepoverwarning" class="has-warning"><div class="warning" data-i18n="warn_stepover">Step over should be at most 100% of tool diameter.</div></div></td></tr>
                         <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_nominal_deviation">Maximum deviation of a flat surface, if cut by a ball-nose end mill with the given diameter and given step over.</span><br><img src="img/diagrams/nominaldeviation.png"></div></div><span data-i18n="nominal_deviation">Nominal deviation:</span></td><td><span id="surfacedeviation"></span> <span class="unit-mm"></span></td></tr>
                         <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_step_down">Maximum depth of cut for a single pass. Where the required depth exceeds this amount, it will be achieved with multiple passes.</span><br><img src="img/diagrams/stepdown.png"></div></div><span data-i18n="step_down">Step down:</span></td><td><input type="text" id="stepdown"></input> <span class="unit-mm"></span></td></tr>

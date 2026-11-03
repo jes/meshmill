@@ -1,10 +1,22 @@
-let SAVE_FIELDS = ['jobs', 'stl', 'stl_original', 'heightmap', 'mesh', 'resolution', 'bottomside', 'imperial', 'xyorigin', 'zorigin', 'dirty_model', 'ui', 'rotary', 'stock', 'scalelock', 'scalepercent'];
+let SAVE_FIELDS = ['jobs', 'stl', 'stl_cam', 'stl_original', 'heightmap', 'contours', 'contour_file', 'dxf_original', 'mesh', 'resolution', 'bottomside', 'imperial', 'xyorigin', 'zorigin', 'dirty_model', 'ui', 'rotary', 'stock', 'scalelock', 'scalepercent'];
+
+/** Preview triangle budget for THREE.js; larger meshes are auto-decimated. */
+var STL_PREVIEW_TARGET = 400000;
+/** Soft confirm before auto-decimate (still accepted). */
+var STL_CONFIRM_TRIS = 2000000;
+/** Hard refuse — even streaming CAM would be unwieldy. */
+var STL_HARD_TRIS = 80000000;
+var STL_HARD_MB = 1500;
 
 function Project(cb) {
     this.jobs = [];
     this.stl = '';
+    this.stl_cam = null; // full-resolution STL for heightmap (may equal stl)
     this.stl_original = null;
     this.heightmap = null;
+    this.contours = []; // [{id,name,layer,closed,points:[[x,y],...]}]
+    this.contour_file = null;
+    this.dxf_original = null;
     this.mesh = {};
     this.resolution = 0.5;
     this.bottomside = false;
@@ -48,6 +60,9 @@ Project.prototype.addJob = function() {
             stepover_percent: 50,
             stepdown: 6,
             clearance: 0,
+            contour_source: 'heightmap', // or 'dxf:<id>'
+            contour_id: 0,
+            pocket_style: 'hatch', // hatch | concentric
             roughingonly: false,
             rampentry: false,
             omittop: false,
@@ -125,10 +140,33 @@ Project.prototype.loadSTL = function(file, cb) {
     this.dirtyModel();
     this.heightmap = null;
 
-    let workingfile = this.workingDir() + "/mesh.stl";
+    let previewFile = this.workingDir() + "/mesh.stl";
+    let fullFile = this.workingDir() + "/mesh-full.stl";
     var project = this;
 
-    // Huge meshes (10M+ tris) hang Electron/THREE and pngcam — probe first.
+    let loadPreviewIntoScene = function() {
+        showBusy(i18n.t('loading_stl') || 'Loading STL…');
+        (new THREE.STLLoader()).load(project.stl, function (geometry) {
+            hideBusy();
+            geometry.computeBoundingBox();
+            var bb = geometry.boundingBox;
+            project.mesh.triangles = geometry.attributes.position.array.length/9;
+            project.mesh.min = bb.min;
+            project.mesh.max = bb.max;
+            project.mesh.width = bb.max.x-bb.min.x;
+            project.mesh.height = bb.max.y-bb.min.y;
+            project.mesh.lineardepth = bb.max.z-bb.min.z;
+            project.mesh.rotarydepth = maxRadius(geometry);
+            project.calculateOrigin();
+            project.setRotary(project.rotary);
+            if (cb) cb();
+        }, undefined, function(err) {
+            hideBusy();
+            alert(String(err || 'STL load failed'));
+            if (cb) cb(null);
+        });
+    };
+
     window.api.send('stl-info', { file: file }, function(info) {
         if (info && info.error) {
             alert(info.error);
@@ -137,49 +175,61 @@ Project.prototype.loadSTL = function(file, cb) {
         }
         let tris = (info && info.triangles) ? info.triangles : null;
         let mb = (info && info.size) ? (info.size / (1024 * 1024)) : 0;
-        // Soft limit ~2M tris / ~80 MB; hard refuse above ~5M / ~200 MB
-        if ((tris && tris > 5000000) || mb > 200) {
+        if ((tris && tris > STL_HARD_TRIS) || mb > STL_HARD_MB) {
             alert(i18n.t('err_stl_too_large',
                 tris ? Math.round(tris).toLocaleString() : '?',
                 mb.toFixed(0)));
             if (cb) cb(null);
             return;
         }
+
         let continueLoad = function() {
+            let needDecimate = tris && tris > STL_PREVIEW_TARGET;
             window.api.send('copy-file', {
                 src: file,
-                dst: workingfile,
+                dst: needDecimate ? fullFile : previewFile,
             }, function(newfile) {
                 if (!newfile) {
-                    alert("Couldn't copy " + file + " to " + workingfile);
+                    alert("Couldn't copy " + file + " to working dir");
                     if (cb) cb(null);
                     return;
                 }
-                project.stl = workingfile;
                 project.stl_original = file;
-                showBusy(i18n.t('loading_stl') || 'Loading STL…');
-                (new THREE.STLLoader()).load(project.stl, function (geometry) {
-                    hideBusy();
-                    geometry.computeBoundingBox();
-                    var bb = geometry.boundingBox;
-                    project.mesh.triangles = geometry.attributes.position.array.length/9;
-                    project.mesh.min = bb.min;
-                    project.mesh.max = bb.max;
-                    project.mesh.width = bb.max.x-bb.min.x;
-                    project.mesh.height = bb.max.y-bb.min.y;
-                    project.mesh.lineardepth = bb.max.z-bb.min.z;
-                    project.mesh.rotarydepth = maxRadius(geometry);
-                    project.calculateOrigin();
-                    project.setRotary(project.rotary);
-                    if (cb) cb();
-                }, undefined, function(err) {
-                    hideBusy();
-                    alert(String(err || 'STL load failed'));
-                    if (cb) cb(null);
+                if (!needDecimate) {
+                    project.stl = previewFile;
+                    project.stl_cam = previewFile;
+                    loadPreviewIntoScene();
+                    return;
+                }
+                // Keep full mesh for CAM heightmap; decimate proxy for THREE.
+                project.stl_cam = fullFile;
+                showBusy(i18n.t('decimating_stl') || 'Simplifying mesh…');
+                window.api.send('decimate-stl', {
+                    src: fullFile,
+                    dst: previewFile,
+                    target: STL_PREVIEW_TARGET,
+                }, function(r) {
+                    if (r && r.error) {
+                        hideBusy();
+                        alert(r.error);
+                        if (cb) cb(null);
+                        return;
+                    }
+                    if (!r || !r.file) {
+                        hideBusy();
+                        if (cb) cb(null);
+                        return;
+                    }
+                    project.stl = previewFile;
+                    if (r.triangles_in && r.triangles_out) {
+                        project.mesh.triangles_original = r.triangles_in;
+                    }
+                    loadPreviewIntoScene();
                 });
             });
         };
-        if ((tris && tris > 2000000) || mb > 80) {
+
+        if ((tris && tris > STL_CONFIRM_TRIS) || mb > 80) {
             confirmDialog(
                 i18n.t('confirm_stl_large',
                     tris ? Math.round(tris).toLocaleString() : '?',
@@ -194,6 +244,116 @@ Project.prototype.loadSTL = function(file, cb) {
         } else {
             continueLoad();
         }
+    });
+};
+
+/** Fill project.mesh from CAD bounds when no STL is loaded (2.5D-only workflow). */
+Project.prototype.applyCadBounds = function(bounds, contours) {
+    let xmin, ymin, xmax, ymax;
+    if (bounds && bounds.length >= 4) {
+        xmin = +bounds[0]; ymin = +bounds[1]; xmax = +bounds[2]; ymax = +bounds[3];
+    } else {
+        xmin = ymin = Infinity;
+        xmax = ymax = -Infinity;
+        let list = contours || this.contours || [];
+        for (let i = 0; i < list.length; i++) {
+            let pts = list[i].points || [];
+            for (let j = 0; j < pts.length; j++) {
+                let x = +pts[j][0], y = +pts[j][1];
+                if (x < xmin) xmin = x;
+                if (y < ymin) ymin = y;
+                if (x > xmax) xmax = x;
+                if (y > ymax) ymax = y;
+            }
+        }
+    }
+    if (!(xmax > xmin) || !(ymax > ymin)) return false;
+
+    // Keep existing STL mesh metrics; only seed mesh for CAD-only projects.
+    if (this.stl) return true;
+
+    let depth = (this.stock && this.stock.z > 0) ? +this.stock.z : 10;
+    this.mesh = this.mesh || {};
+    this.mesh.min = { x: xmin, y: ymin, z: 0 };
+    this.mesh.max = { x: xmax, y: ymax, z: depth };
+    this.mesh.width = xmax - xmin;
+    this.mesh.height = ymax - ymin;
+    this.mesh.lineardepth = depth;
+    this.mesh.rotarydepth = depth;
+    this.mesh.depth = depth;
+    this.mesh.triangles = 0;
+    this.calculateOrigin();
+    return true;
+};
+
+Project.prototype.loadDXF = function(file, cb) {
+    var project = this;
+    let finish = function(contours) {
+        try { hideBusy(); } catch (e) {}
+        if (cb) cb(contours);
+    };
+    if (!file) {
+        finish(null);
+        return;
+    }
+    if (!this.tmpdir) {
+        alert(i18n.t('err_tmpdir') || 'Working directory not ready yet — try again.');
+        finish(null);
+        return;
+    }
+    let ext = (file.split('.').pop() || 'dxf').toLowerCase();
+    let dst = this.workingDir() + "/contours." + (ext === 'dwg' ? 'dwg' : 'dxf');
+    let outJson = this.workingDir() + "/contours.json";
+    showBusy(i18n.t('loading_dxf') || 'Loading CAD…');
+    window.api.send('copy-file', { src: file, dst: dst }, function(copied) {
+        if (!copied) {
+            alert("Couldn't copy CAD file");
+            finish(null);
+            return;
+        }
+        window.api.send('import-dxf', { file: dst, out: outJson }, function(r) {
+            if (r && r.error) {
+                alert(r.error);
+                finish(null);
+                return;
+            }
+            let applyMeta = function(contours, bounds) {
+                try {
+                    project.dxf_original = file;
+                    project.contour_file = outJson;
+                    project.contours = contours || [];
+                    if (!project.contours.length) {
+                        alert(i18n.t('err_dxf_empty') || 'No supported entities found in CAD file.');
+                        finish([]);
+                        return;
+                    }
+                    if (!project.applyCadBounds(bounds, project.contours) && !project.stl) {
+                        alert(i18n.t('err_dxf_empty') || 'CAD bounds are empty.');
+                        finish(null);
+                        return;
+                    }
+                    project.dirty = true;
+                    finish(project.contours);
+                } catch (e) {
+                    alert(String(e));
+                    finish(null);
+                }
+            };
+            if (r && r.contours) {
+                applyMeta(r.contours, r.bounds);
+                return;
+            }
+            let jsonPath = (r && r.file) || outJson;
+            window.api.send('read-file', jsonPath, function(text) {
+                try {
+                    let meta = JSON.parse(text || '{}');
+                    applyMeta(meta.contours, meta.bounds || (r && r.bounds));
+                } catch (e) {
+                    alert(String(e));
+                    finish(null);
+                }
+            });
+        });
     });
 };
 
@@ -263,6 +423,7 @@ Project.prototype.scaleSTL = function(sx, sy, sz, cb) {
                 return;
             }
             project.stl = scaledfile;
+            project.stl_cam = scaledfile;
             project.heightmap = null;
             let bb = geometry.boundingBox;
             project.mesh.triangles = pos.count / 3;
@@ -285,7 +446,7 @@ Project.prototype.renderHeightmap = function(cb) {
     var height = Math.ceil(this.mesh.height / this.resolution);
     var project = this;
     window.api.send('render-heightmap', {
-        stl: this.stl,
+        stl: this.stl_cam || this.stl,
         width: width,
         height: height,
         bottom: this.bottomside,
@@ -364,6 +525,70 @@ Project.prototype.generateToolpath = function(id, cb) {
             rotary: project.rotary,
         }, after);
     };
+
+    // Contour strategies: outside / inside profile, pocket.
+    let contourDirs = {
+        'contour-outside': 1,
+        'contour-inside': 1,
+        'contour-pocket': 1,
+    };
+    if (!this.rotary && contourDirs[job.path.direction]) {
+        let contourFile = null;
+        let writeContour = this.workingDir() + "/job-" + id + "-contour.json";
+        let src = job.path.contour_source || 'heightmap';
+        let finishContour = function(contourPath) {
+            window.api.send('generate-toolpath', {
+                job: JSON.parse(JSON.stringify(job)),
+                heightmap: project.heightmap,
+                contour_file: contourPath,
+                write_contour: writeContour,
+                width: project.mesh.width,
+                height: project.mesh.height,
+                depth: project.mesh.depth,
+                offset: offset,
+                imperial: project.imperial,
+                write_stock: write_stock,
+                gcodepath: gcodepath,
+                rotary: false,
+            }, finish);
+        };
+        if (src === 'dxf' || (typeof src === 'string' && src.indexOf('dxf:') === 0)) {
+            let cid = job.path.contour_id;
+            if (src.indexOf('dxf:') === 0)
+                cid = parseInt(src.split(':')[1], 10);
+            let c = null;
+            for (let i = 0; i < (project.contours || []).length; i++) {
+                if (project.contours[i].id === cid || i === cid) {
+                    c = project.contours[i];
+                    break;
+                }
+            }
+            if (!c || !c.closed) {
+                alert(i18n.t('err_contour_dxf'));
+                cb(null);
+                return;
+            }
+            contourFile = project.workingDir() + "/contour-sel.json";
+            window.api.send('write-file', {
+                file: contourFile,
+                data: JSON.stringify({
+                    source: 'dxf',
+                    points: c.points,
+                    name: c.name,
+                }),
+            }, function() {
+                finishContour(contourFile);
+            });
+            return;
+        }
+        if (!this.heightmap) {
+            alert(i18n.t('err_heightmap_size'));
+            cb(null);
+            return;
+        }
+        finishContour(null);
+        return;
+    }
 
     // Angled raster: full pipeline in main process (rotate → pngcam → unrotate).
     let useAngle = (!this.rotary && job.path.direction === 'angle');

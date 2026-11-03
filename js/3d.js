@@ -16,7 +16,30 @@ var simToolRadius = 2;
 var sceneModelMesh = null;
 var stockDims = null;
 var stockBoxGroup = null;
+var contourGroup = null;
 var needsRender = true;
+
+function showContourScene(resetCamera) {
+    if (!project || !project.contours || !project.contours.length) return;
+    if (!project.mesh || !project.mesh.width) {
+        if (typeof project.applyCadBounds === 'function')
+            project.applyCadBounds(null, project.contours);
+    }
+    if (!project.mesh || !project.mesh.width) return;
+    let w = Math.max(project.mesh.width, 1);
+    let h = Math.max(project.mesh.height, 1);
+    let geom = new THREE.PlaneGeometry(w, h);
+    let cx = (project.mesh.min.x + project.mesh.max.x) / 2;
+    let cy = (project.mesh.min.y + project.mesh.max.y) / 2;
+    let cz = (project.mesh.min && project.mesh.min.z != null) ? project.mesh.min.z : 0;
+    geom.translate(cx, cy, cz);
+    showScene(geom, {
+        origin: project.mesh.origin || { x: 0, y: 0, z: 0 },
+        subtractOrigin: true,
+        resetCamera: !!resetCamera,
+        contourGround: true,
+    });
+}
 
 function showScene(geometry, opts) {
     opts = opts || {};
@@ -26,7 +49,12 @@ function showScene(geometry, opts) {
 
     container = document.getElementById('scene-view');
 
-    if (!geometry) return;
+    if (!geometry) {
+        if (project && project.contours && project.contours.length) {
+            showContourScene(!!opts.resetCamera);
+        }
+        return;
+    }
 
     // rebuilding the scene invalidates any running simulation
     simPlaying = false;
@@ -52,7 +80,15 @@ function showScene(geometry, opts) {
     }
 
     var material;
-    if (opts.vertexColors) {
+    if (opts.contourGround) {
+        material = new THREE.MeshBasicMaterial({
+            color: 0x1a222c,
+            transparent: true,
+            opacity: 0.35,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+        });
+    } else if (opts.vertexColors) {
         material = new THREE.MeshBasicMaterial({
             vertexColors: true,
             side: THREE.DoubleSide,
@@ -68,7 +104,13 @@ function showScene(geometry, opts) {
     sceneModelMesh = mesh;
 
     geometry.computeBoundingBox();
-    var largestDimension = Math.max(geometry.boundingBox.max.x, geometry.boundingBox.max.y, geometry.boundingBox.max.z);
+    var bb = geometry.boundingBox;
+    // Use bbox *size* (not max corner) so CAD drawings far from world origin frame correctly.
+    var largestDimension = Math.max(
+        bb.max.x - bb.min.x,
+        bb.max.y - bb.min.y,
+        bb.max.z - bb.min.z
+    );
     sceneLargest = largestDimension || 1;
 
     var origin = opts.origin ? {...opts.origin} : {x:0, y:0, z:0};
@@ -92,16 +134,27 @@ function showScene(geometry, opts) {
         ty -= origin.y;
         tz -= origin.z;
     }
-    mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(tx, ty, tz));
+    let xf = new THREE.Matrix4().makeTranslation(tx, ty, tz);
+    if (typeof mesh.geometry.applyMatrix4 === 'function')
+        mesh.geometry.applyMatrix4(xf);
+    else if (typeof mesh.geometry.applyMatrix === 'function')
+        mesh.geometry.applyMatrix(xf);
 
     let newCamera = false;
+    // Large DXF drawings exceed the old far=10000 clip plane → empty viewport.
+    let camNear = Math.max(0.01, Math.min(1, sceneLargest / 1000));
+    let camFar = Math.max(10000, sceneLargest * 50);
     if (!camera) {
-        camera = new THREE.PerspectiveCamera(70, container.clientWidth/container.clientHeight, 1, 10000);
+        camera = new THREE.PerspectiveCamera(70, container.clientWidth/container.clientHeight, camNear, camFar);
         camera.add(new THREE.DirectionalLight(0xffffff, 0.75));
         newCamera = true;
+    } else {
+        camera.near = camNear;
+        camera.far = camFar;
+        camera.updateProjectionMatrix();
     }
     if (newCamera || opts.resetCamera) {
-        camera.position.set(0, 0, sceneLargest * 2);
+        camera.position.set(0, 0, Math.max(sceneLargest * 2, camNear * 10));
         camera.lookAt(0, 0, 0);
     }
 
@@ -129,6 +182,7 @@ function showScene(geometry, opts) {
     onWindowResize();
     needsRender = true;
     updateStockBox();
+    updateContourOverlay();
 }
 
 function updateStockBox() {
@@ -172,6 +226,50 @@ function updateStockBox() {
 function showStockBox(sx, sy, sz) {
     stockDims = { x: sx, y: sy, z: sz };
     updateStockBox();
+}
+
+function updateContourOverlay() {
+    if (contourGroup && scene) {
+        scene.remove(contourGroup);
+        contourGroup = null;
+    }
+    if (!scene || !project || !project.contours || !project.contours.length)
+        return;
+    let origin = (project.mesh && project.mesh.origin)
+        ? project.mesh.origin
+        : { x: 0, y: 0, z: 0 };
+    let mid = scenemiddle || { x: 0, y: 0, z: 0 };
+    let zTop = (project.mesh && project.mesh.max && project.mesh.max.z != null)
+        ? project.mesh.max.z
+        : 0;
+    let z = zTop - origin.z - mid.z + 0.2;
+    let group = new THREE.Group();
+    let maxContours = 200;
+    let nDraw = Math.min(project.contours.length, maxContours);
+    for (let i = 0; i < nDraw; i++) {
+        let c = project.contours[i];
+        if (!c.points || c.points.length < 2) continue;
+        let pts = [];
+        let step = c.points.length > 2000 ? Math.ceil(c.points.length / 2000) : 1;
+        for (let j = 0; j < c.points.length; j += step) {
+            let p = c.points[j];
+            pts.push(new THREE.Vector3(p[0] - origin.x - mid.x, p[1] - origin.y - mid.y, z));
+        }
+        // keep closed look
+        if (c.closed && pts.length > 2) {
+            let a = pts[0], b = pts[pts.length - 1];
+            if (a.x !== b.x || a.y !== b.y) pts.push(a.clone());
+        }
+        let geom = new THREE.BufferGeometry().setFromPoints(pts);
+        let mat = new THREE.LineBasicMaterial({
+            color: c.closed ? 0xffaa00 : 0x88aaff,
+            linewidth: 2,
+        });
+        group.add(new THREE.Line(geom, mat));
+    }
+    scene.add(group);
+    contourGroup = group;
+    needsRender = true;
 }
 
 function scene_animate() {

@@ -4,8 +4,15 @@
  - Real material-removal simulation: solid stock, live tool, G1 cutting
  - Add angled raster strategy (cut direction at a user-defined angle)
  - Clip angled toolpaths to stock (heightmap mask + Liang-Barsky with tool-radius inset)
- - Enable GPU for 3D preview (Electron hardware acceleration); CAM remains CPU via pngcam-go
- - Guard against huge STL meshes that hang the renderer; prefer decimated models
+ - Enable GPU for 3D preview (Electron hardware acceleration)
+ - Optional GPU CAM backend (Vulkan/WebGPU via bundled meshmill-gpu): heightmap + roughing/finish toolpaths; falls back to pngcam-go
+ - GPU roughing: step-down passes, roughing-only, read-stock between jobs
+ - Auto-decimate huge STL on open (~400k preview for UI; full mesh kept for CAM heightmap)
+ - Contour strategies: outside trim, inside profile, pocket (hatch/concentric)
+ - Import DXF/DWG contours (DWG via dwg2dxf / ODA when installed)
+ - DXF entities: LWPOLYLINE / POLYLINE / LINE / CIRCLE / ARC
+ - Settings: choose CAM backend GPU/CPU
+ - Raise hard STL size limits when auto-decimate is available
  - Fix rotary max-radius calculation (wrong vertex stride)
  - Fix crash when cancelling with no running process
  - Fix crash in "reprocess dirty" when all jobs are clean

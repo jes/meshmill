@@ -32,7 +32,15 @@
   },
   "config": {
     "forge": {
-      "packagerConfig": {},
+      "packagerConfig": {
+        "ignore": [
+          "^/gpu-backend/\\.venv($|/)",
+          "^/gpu-backend/build($|/)",
+          "^/gpu-backend/dist($|/)",
+          "^/out($|/)",
+          "^/\\.git($|/)"
+        ]
+      },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
@@ -58,6 +66,10 @@
       {
         "from": "./bin/pngcam-go-render",
         "to": "bin/pngcam-go-render"
+      },
+      {
+        "from": "./bin/meshmill-gpu",
+        "to": "bin/meshmill-gpu"
       }
     ]
   }

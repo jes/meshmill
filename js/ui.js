@@ -38,6 +38,15 @@ function showToolpath(file, heightmapfile, rotary, toolradius) {
     });
 }
 
+function showBusy(text) {
+    $('#busy-text').text(text || '');
+    $('#busy-overlay').show();
+}
+
+function hideBusy() {
+    $('#busy-overlay').hide();
+}
+
 function cancelProcessing() {
     window.api.send('cancel');
 }
@@ -189,10 +198,22 @@ function doRenderHeightmap(cb) {
     project.renderHeightmap(function(file) {
         progressEnd();
         updateHeightmap();
-        if (file)
-            showHeightmap(file);
-        redrawTabs();
-        if (cb) cb(file);
+        if (file) {
+            // The heightmap mesh is built synchronously; let the busy overlay
+            // paint first so the user sees that work is still in progress.
+            showBusy(i18n.t('stage_building_preview'));
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    showHeightmap(file);
+                    hideBusy();
+                    redrawTabs();
+                    if (cb) cb(file);
+                });
+            });
+        } else {
+            redrawTabs();
+            if (cb) cb(file);
+        }
     });
 }
 

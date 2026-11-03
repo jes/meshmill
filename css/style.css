@@ -341,3 +341,28 @@ small { color: var(--muted); }
     font-size: 12px;
     margin-left: 6px;
 }
+
+/* busy overlay */
+#busy-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 10, 14, .72);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 900;
+    color: var(--text);
+    font-weight: 500;
+}
+#busy-overlay .spinner {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,.12);
+    border-top-color: var(--accent);
+    animation: busy-spin .8s linear infinite;
+}
+#busy-text { color: var(--muted); font-size: 14px; }
+@keyframes busy-spin { to { transform: rotate(360deg); } }

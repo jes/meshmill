@@ -6,9 +6,9 @@ function timefmt(millis) {
     let secs = Math.floor(millis/1000);
     millis -= secs*1000;
 
-    if (hours) return hours + "h" + mins + "m";
-    if (mins) return mins + "m" + secs + "s";
-    return secs + "s";
+    if (hours) return hours + i18n.t("unit_hour") + mins + i18n.t("unit_min");
+    if (mins) return mins + i18n.t("unit_min") + secs + i18n.t("unit_sec");
+    return secs + i18n.t("unit_sec");
 }
 
 function formatFloat(f) {

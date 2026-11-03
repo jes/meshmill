@@ -4,43 +4,102 @@ var renderer;
 var scene;
 var scenemiddle;
 var controls;
+var sceneLargest = 1;
+
+var simPoints = [];
+var simIndex = 0;
+var simPlaying = false;
+var simLine = null;
+var simProgressLine = null;
+var simTool = null;
+var simToolRadius = 2;
+var sceneModelMesh = null;
+var stockDims = null;
+var stockBoxGroup = null;
+var needsRender = true;
 
 function showScene(geometry, opts) {
+    opts = opts || {};
+
+    if (typeof window.cleanupMaterialSimulation === 'function')
+        window.cleanupMaterialSimulation();
+
     container = document.getElementById('scene-view');
-    while(container.firstChild) container.removeChild(container.firstChild);
 
     if (!geometry) return;
 
-    renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: false,
-    });
-    renderer.setClearColor(0x444444, 1);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    container.appendChild(renderer.domElement);
+    // rebuilding the scene invalidates any running simulation
+    simPlaying = false;
+    simPoints = [];
+    simLine = null;
+    simProgressLine = null;
+    simTool = null;
+    updateSimButton();
 
-    var material = new THREE.MeshPhongMaterial({ 
-        color: 0x0cf4c7,
-        shininess: 1,
-        specular: 1,
-    });
+    // One WebGL context for the whole app. Recreating it on every scene
+    // rebuild leaks contexts and can wedge the GPU process.
+    if (!renderer) {
+        renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: false,
+        });
+        renderer.setClearColor(0x12151a, 1);
+        renderer.setPixelRatio(1);
+        container.appendChild(renderer.domElement);
+    }
+
+    var material;
+    if (opts.vertexColors) {
+        material = new THREE.MeshBasicMaterial({
+            vertexColors: true,
+            side: THREE.DoubleSide,
+        });
+    } else {
+        material = new THREE.MeshPhongMaterial({
+            color: 0x0cf4c7,
+            shininess: 1,
+            specular: 1,
+        });
+    }
     var mesh = new THREE.Mesh(geometry, material);
+    sceneModelMesh = mesh;
 
     geometry.computeBoundingBox();
     var largestDimension = Math.max(geometry.boundingBox.max.x, geometry.boundingBox.max.y, geometry.boundingBox.max.z);
-    if (opts.recentre || !scenemiddle) {
-        scenemiddle = new THREE.Vector3(0,0,0);
-        geometry.boundingBox.getCenter(scenemiddle);
-    }
-    mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-scenemiddle.x, -scenemiddle.y, -scenemiddle.z));
+    sceneLargest = largestDimension || 1;
 
-    /* TODO: try to use an orthographic camera (but it seems like
-     * lights don't work if they're attached to an orthographic
-     * camera?) */
-    if (opts.recentre || !camera) {
+    var origin = opts.origin ? {...opts.origin} : {x:0, y:0, z:0};
+
+    // Everything is displayed in origin-relative coordinates:
+    // subtract the machine origin, then centre the result on the scene origin.
+    var center = new THREE.Vector3();
+    geometry.boundingBox.getCenter(center);
+    if (opts.subtractOrigin) {
+        center.x -= origin.x;
+        center.y -= origin.y;
+        center.z -= origin.z;
+    }
+    scenemiddle = center;
+
+    var tx = -center.x;
+    var ty = -center.y;
+    var tz = -center.z;
+    if (opts.subtractOrigin) {
+        tx -= origin.x;
+        ty -= origin.y;
+        tz -= origin.z;
+    }
+    mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(tx, ty, tz));
+
+    let newCamera = false;
+    if (!camera) {
         camera = new THREE.PerspectiveCamera(70, container.clientWidth/container.clientHeight, 1, 10000);
         camera.add(new THREE.DirectionalLight(0xffffff, 0.75));
-        camera.position.z = largestDimension * 2;
+        newCamera = true;
+    }
+    if (newCamera || opts.resetCamera) {
+        camera.position.set(0, 0, sceneLargest * 2);
+        camera.lookAt(0, 0, 0);
     }
 
     scene = new THREE.Scene();
@@ -48,11 +107,7 @@ function showScene(geometry, opts) {
     scene.add(new THREE.AmbientLight(0xffffff, 0.25));
     scene.add(camera);
 
-    let origin = {...opts.origin} || { x:0, y:0, z:0 };
-    origin.x -= scenemiddle.x;
-    origin.y -= scenemiddle.y;
-    origin.z -= scenemiddle.z;
-    addOriginVisualisation(scene, origin, largestDimension / 2);
+    addOriginVisualisation(scene, {x:-center.x, y:-center.y, z:-center.z}, sceneLargest / 2);
 
     // TODO: prevent gimbal lock
     controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -62,24 +117,85 @@ function showScene(geometry, opts) {
     controls.enableZoom = true;
     controls.zoomSpeed = 2;
     controls.autoRotate = false;
+    controls.addEventListener('change', function() { needsRender = true; });
 
     onWindowResize();
+    needsRender = true;
+    updateStockBox();
+}
+
+function updateStockBox() {
+    if (stockBoxGroup && scene) {
+        scene.remove(stockBoxGroup);
+        stockBoxGroup = null;
+    }
+    if (!stockDims || !scene || !project || !project.mesh || !project.mesh.width || !scenemiddle)
+        return;
+
+    let origin = project.mesh.origin;
+    let cx = (project.mesh.min.x + project.mesh.max.x)/2 - (scenemiddle.x + origin.x);
+    let cy = (project.mesh.min.y + project.mesh.max.y)/2 - (scenemiddle.y + origin.y);
+    let z0 = project.mesh.min.z - (scenemiddle.z + origin.z);
+
+    let sx = stockDims.x;
+    let sy = stockDims.y;
+    let sz = stockDims.z;
+    let geometry = new THREE.BoxGeometry(sx, sy, sz);
+    let material = new THREE.MeshPhongMaterial({
+        color: 0x17d4a5,
+        transparent: true,
+        opacity: 0.07,
+        depthWrite: false,
+    });
+    let box = new THREE.Mesh(geometry, material);
+    let edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geometry),
+        new THREE.LineBasicMaterial({ color: 0x17d4a5, transparent: true, opacity: 0.75 })
+    );
+
+    let group = new THREE.Group();
+    group.add(box);
+    group.add(edges);
+    group.position.set(cx, cy, z0 + sz/2);
+    scene.add(group);
+    stockBoxGroup = group;
+    needsRender = true;
+}
+
+function showStockBox(sx, sy, sz) {
+    stockDims = { x: sx, y: sy, z: sz };
+    updateStockBox();
 }
 
 function scene_animate() {
     requestAnimationFrame(scene_animate);
-    if (controls) controls.update();
-    if (renderer && scene && camera) renderer.render(scene, camera);
+    if (!renderer || !scene || !camera) return;
+    if (controls && controls.update()) needsRender = true;
+    if (needsRender) {
+        renderer.render(scene, camera);
+        needsRender = false;
+    }
 }
 scene_animate();
 
-function STLViewer(model, origin) {
+function STLViewer(model, origin, resetCamera) {
     (new THREE.STLLoader()).load(model, function (geometry) {
         showScene(geometry, {
-            recentre: true,
             origin: origin,
+            subtractOrigin: true,
+            resetCamera: !!resetCamera,
         });
     });
+}
+
+function fitView() {
+    if (!camera || !controls) return;
+    camera.position.set(0, 0, sceneLargest * 2);
+    controls.target.set(0, 0, 0);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+    controls.update();
+    needsRender = true;
 }
 
 window.addEventListener('resize', onWindowResize, false);
@@ -91,6 +207,7 @@ function onWindowResize() {
     camera.aspect = rect.width / rect.height;
     camera.updateProjectionMatrix();
     renderer.setSize(rect.width, rect.height);
+    needsRender = true;
 }
 
 function addLine(scene, x1,y1,z1, x2,y2,z2, colour) {
@@ -125,4 +242,65 @@ function maxRadius(geometry) {
         if (r > max) max = r;
     }
     return max;
+}
+
+/* toolpath simulation */
+
+function updateSimButton() {
+    if (typeof window.updateSimButton === 'function')
+        window.updateSimButton(simPlaying);
+}
+
+function simStart() {
+    if (!simPoints || simPoints.length < 2)
+        return false;
+
+    simIndex = 0;
+    simPlaying = true;
+    if (simLine) simLine.visible = false;
+    if (simProgressLine) {
+        simProgressLine.visible = true;
+        simProgressLine.geometry.setDrawRange(0, 1);
+    }
+    if (simTool) {
+        simTool.visible = true;
+        simTool.position.copy(simPoints[0]);
+    }
+
+    let speed = 100;
+    let el = document.getElementById('simspeed');
+    if (el) speed = parseFloat(el.value) || 100;
+
+    let last = performance.now();
+    function tick(now) {
+        if (!simPlaying) return;
+        let dt = Math.min(0.2, (now-last)/1000);
+        last = now;
+        simIndex += Math.max(1, Math.round(speed*dt));
+        if (simIndex >= simPoints.length-1) {
+            simIndex = simPoints.length-1;
+            if (simProgressLine) simProgressLine.geometry.setDrawRange(0, simPoints.length);
+            if (simTool) simTool.position.copy(simPoints[simIndex]);
+            simPlaying = false;
+            updateSimButton();
+            return;
+        }
+        if (simProgressLine) simProgressLine.geometry.setDrawRange(0, simIndex+1);
+        if (simTool) simTool.position.copy(simPoints[simIndex]);
+        needsRender = true;
+        requestAnimationFrame(tick);
+    }
+    needsRender = true;
+    requestAnimationFrame(tick);
+    updateSimButton();
+    return true;
+}
+
+function simStop() {
+    simPlaying = false;
+    if (simLine) simLine.visible = true;
+    if (simProgressLine) simProgressLine.visible = false;
+    if (simTool) simTool.visible = false;
+    needsRender = true;
+    updateSimButton();
 }

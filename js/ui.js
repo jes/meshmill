@@ -23,7 +23,7 @@ function showHeightmap(file, cb) {
     cb);
 }
 
-function showToolpath(file, heightmapfile, rotary) {
+function showToolpath(file, heightmapfile, rotary, toolradius) {
     var middlex = (project.mesh.min.x+project.mesh.max.x)/2 - project.mesh.origin.x;
     var middley = (project.mesh.min.y+project.mesh.max.y)/2 - project.mesh.origin.y;
     var middlez = (project.mesh.min.z+project.mesh.max.z)/2 - project.mesh.origin.z;
@@ -34,8 +34,17 @@ function showToolpath(file, heightmapfile, rotary) {
     }
 
     showHeightmap(heightmapfile, function() {
-        if ($('#show-toolpath').prop('checked')) ToolpathViewer(file, middlex, middley, middlez);
+        if ($('#show-toolpath').prop('checked')) ToolpathViewer(file, middlex, middley, middlez, toolradius);
     });
+}
+
+function showBusy(text) {
+    $('#busy-text').text(text || '');
+    $('#busy-overlay').show();
+}
+
+function hideBusy() {
+    $('#busy-overlay').hide();
 }
 
 function cancelProcessing() {
@@ -47,11 +56,11 @@ $('#toolpath-cancel').click(cancelProcessing);
 
 function updateUnits() {
     if (project.imperial) {
-        $('.unit-mm').text('inches');
-        $('.unit-mmmin').text('inches/min');
+        $('.unit-mm').text(i18n.t('unit_inch'));
+        $('.unit-mmmin').text(i18n.t('unit_inchmin'));
     } else {
-        $('.unit-mm').text('mm');
-        $('.unit-mmmin').text('mm/min');
+        $('.unit-mm').text(i18n.t('unit_mm'));
+        $('.unit-mmmin').text(i18n.t('unit_mmmin'));
     }
 }
 
@@ -70,6 +79,15 @@ function showModel() {
     $('#rotary').prop('checked', project.rotary);
     $('#bottomside').prop('checked', project.bottomside);
 
+    if (project.stock) {
+        $('#stockx').val(project.stock.x);
+        $('#stocky').val(project.stock.y);
+        $('#stockz').val(project.stock.z);
+    }
+    $('#scalelock').prop('checked', project.scalelock);
+    $('#scalepercent').val(project.scalepercent);
+
+    $('#heightmap-lightbox').hide();
     progresstarget = 'model';
     progressReset();
 
@@ -89,7 +107,7 @@ function drawModel() {
 function loadSTL(path) {
     project.loadSTL(path, function() {
         updateModel();
-        STLViewer(project.stl, project.mesh.origin);
+        STLViewer(project.stl, project.mesh.origin, true);
     });
 }
 
@@ -124,16 +142,20 @@ function updateModel() {
 
 function updateHeightmap() {
     if (Settings.show_heightmap_2d && project.heightmap) {
-        $('#heightmap-img').show();
-        $('#heightmap-img').prop("src", project.heightmap + "?" + Math.random()); // XXX: avoid cache
+        $('#show-2d').show();
     } else {
-        $('#heightmap-img').hide();
+        $('#show-2d').hide();
+        $('#heightmap-lightbox').hide();
     }
 
     if (project.heightmap) {
         $('#addjob-tab').prop("disabled",false);
+        $('#addjob-tab').addClass('tab-ready');
+        $('#add-job-inline').show();
     } else {
         $('#addjob-tab').prop("disabled",true);
+        $('#addjob-tab').removeClass('tab-ready');
+        $('#add-job-inline').hide();
     }
 }
 
@@ -166,10 +188,10 @@ function doRenderHeightmap(cb) {
     showModel();
 
     let errors = [];
-    if (project.resolution < EPSILON) errors.push("XY Resolution must be nonzero.");
+    if (project.resolution < EPSILON) errors.push(i18n.t('err_xy_resolution'));
     var w = Math.round(project.mesh.width / project.resolution);
     var h = Math.round(project.mesh.height / project.resolution);
-    if (w < 1 || h < 1) errors.push("Heightmap must be at least 1x1 pixels.");
+    if (w < 1 || h < 1) errors.push(i18n.t('err_heightmap_size'));
 
     if (errors.length) {
         alert(errors.join(" "));
@@ -180,10 +202,23 @@ function doRenderHeightmap(cb) {
     project.renderHeightmap(function(file) {
         progressEnd();
         updateHeightmap();
-        if (file)
-            showHeightmap(file);
-        redrawTabs();
-        if (cb) cb(file);
+        if (file) {
+            // The heightmap mesh is built synchronously; let the busy overlay
+            // paint first so the user sees that work is still in progress.
+            showBusy(i18n.t('stage_building_preview'));
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    showHeightmap(file, function() {
+                        hideBusy();
+                        redrawTabs();
+                        if (cb) cb(file);
+                    });
+                });
+            });
+        } else {
+            redrawTabs();
+            if (cb) cb(file);
+        }
     });
 }
 
@@ -213,6 +248,58 @@ $('#bottomside').change(function() {
     // TODO: update the bounds to show negative Y (?) values
     updateModel();
     redrawTabs();
+});
+
+$('#apply-stock').click(function() {
+    let sx = parseFloat($('#stockx').val());
+    let sy = parseFloat($('#stocky').val());
+    let sz = parseFloat($('#stockz').val());
+    if (!(sx > 0 && sy > 0 && sz > 0))
+        return;
+    project.stock = { x: sx, y: sy, z: sz };
+    showStockBox(sx, sy, sz);
+});
+
+$('#apply-scale').click(function() {
+    if (!project.mesh.width) return;
+
+    let stockx = parseFloat($('#stockx').val());
+    let stocky = parseFloat($('#stocky').val());
+    let stockz = parseFloat($('#stockz').val());
+    let pct = parseFloat($('#scalepercent').val());
+
+    project.stock = { x: stockx, y: stocky, z: stockz };
+    project.scalelock = $('#scalelock').prop('checked');
+    project.scalepercent = pct;
+
+    let sx = 1, sy = 1, sz = 1;
+    if (stockx > 0 && stocky > 0 && stockz > 0) {
+        let fx = stockx / project.mesh.width;
+        let fy = stocky / project.mesh.height;
+        let fz = stockz / project.mesh.depth;
+        if (project.scalelock) {
+            sx = sy = sz = Math.min(fx, fy, fz);
+        } else {
+            sx = fx; sy = fy; sz = fz;
+        }
+    } else if (pct > 0) {
+        sx = sy = sz = pct / 100;
+    } else {
+        return;
+    }
+
+    project.scaleSTL(sx, sy, sz, function() {
+        updateModel();
+        drawModel();
+        redrawTabs();
+    });
+});
+
+$('#reset-scale').click(function() {
+    if (project.stl_original) {
+        loadSTL(project.stl_original);
+        redrawTabs();
+    }
 });
 
 /* job tab */
@@ -248,6 +335,7 @@ function showJob(id) {
         $('#cycletime').text("?");
     }
 
+    $('#heightmap-lightbox').hide();
     progresstarget = 'toolpath';
     progressReset();
 
@@ -258,7 +346,7 @@ function showJob(id) {
 }
 
 function drawJob() {
-    if (project.jobs[currentjob].gcodefile) showToolpath(project.jobs[currentjob].gcodefile, project.jobs[currentjob].outputheightmap, project.rotary);
+    if (project.jobs[currentjob].gcodefile) showToolpath(project.jobs[currentjob].gcodefile, project.jobs[currentjob].outputheightmap, project.rotary, project.jobs[currentjob].tool.diameter/2);
     else drawModel();
 }
 
@@ -331,8 +419,8 @@ function doGenerateToolpath(cb) {
     showJob(currentjob);
 
     var errors = [];
-    if (j.path.stepover < EPSILON) errors.push("Step over must be nonzero.");
-    if (j.path.stepdown < EPSILON) errors.push("Step down must be nonzero.");
+    if (j.path.stepover < EPSILON) errors.push(i18n.t('err_stepover'));
+    if (j.path.stepdown < EPSILON) errors.push(i18n.t('err_stepdown'));
 
     if (errors.length) {
         alert(errors.join(" "));
@@ -352,7 +440,7 @@ function doGenerateToolpath(cb) {
 
 $('#generate-toolpath').click(function() {
     if (!project.jobReady(currentjob-1)) {
-        confirmDialog("Unprocessed changes may affect this job. Generate the toolpath anyway?", "Generate toolpath", "Cancel", function(confirmed) {
+        confirmDialog(i18n.t('confirm_unprocessed_toolpath'), i18n.t('generate_toolpath'), i18n.t('btn_cancel'), function(confirmed) {
             if (confirmed)
                 doGenerateToolpath();
         });
@@ -363,7 +451,7 @@ $('#generate-toolpath').click(function() {
 
 $('#save-gcode').click(function() {
     if (!project.jobReady(currentjob)) {
-        confirmDialog("Unprocessed changes may affect this job. Save the existing G-code anyway?", "Save G-code", "Cancel", function(confirmed) {
+        confirmDialog(i18n.t('confirm_unprocessed_gcode'), i18n.t('save_gcode'), i18n.t('btn_cancel'), function(confirmed) {
             if (confirmed)
                 project.saveGcode(currentjob);
         });
@@ -384,7 +472,54 @@ $('#deletejob').click(function() {
     }
 });
 
+$('#duplicatejob').click(function() {
+    let id = project.duplicateJob(currentjob);
+    $('#jobtabs').html('');
+    for (let i = 0; i < project.jobs.length; i++)
+        addJobTab(i);
+    showJob(id);
+});
+
 $('#show-toolpath').change(drawJob);
+$('#fitview').click(fitView);
+
+$('.subtab').click(function() {
+    let target = $(this).data('target');
+    let bar = $(this).closest('.subtabs');
+    bar.find('.subtab').removeClass('subtab-active');
+    $(this).addClass('subtab-active');
+    let container = bar.parent();
+    container.find('.subpanel').hide();
+    container.find(target).show();
+});
+
+$('#show-2d').click(function() {
+    if (!project.heightmap) return;
+    $('#heightmap-img').prop('src', project.heightmap + '?' + Math.random());
+    $('#heightmap-lightbox').show();
+});
+
+$('#heightmap-lightbox').click(function() {
+    $(this).hide();
+});
+
+$('#simulate').click(function() {
+    if (stockRunning) {
+        stopMaterialSimulation();
+    } else if (!startMaterialSimulation()) {
+        if (simPlaying) {
+            simStop();
+        } else {
+            simStart();
+        }
+    }
+});
+
+window.updateSimButton = function() {
+    let button = $('#simulate');
+    if (!button.length) return;
+    button.text((stockRunning || simPlaying) ? i18n.t('sim_stop') : i18n.t('simulate'));
+};
 
 function inputJob() {
     project.dirtyJob(currentjob);
@@ -401,7 +536,7 @@ for (var i = 0; i < inputs.length; i++) {
 /* tabs */
 
 function addJobTab(id) {
-    $('#jobtabs').append(`<button class="tab" id="job-${id}-tab"><img class="dirty" src="img/refresh.svg">JOB ${id+1}</button>`);
+    $('#jobtabs').append(`<button class="tab" id="job-${id}-tab"><img class="dirty" src="img/refresh.svg">${i18n.t('job_tab', id+1)}</button>`);
     $(`#job-${id}-tab`).click(function() {
         showJob(id);
     });
@@ -445,17 +580,93 @@ $('#model-tab').click(function() {
     showModel();
 });
 
-$('#addjob-tab').click(function() {
+function addJobFromUI() {
     let id = project.addJob();
     addJobTab(id);
     showJob(id);
+}
+
+$('#addjob-tab').click(addJobFromUI);
+$('#add-job-inline').click(addJobFromUI);
+
+/* tool presets */
+
+function getPresets() {
+    try {
+        return JSON.parse(localStorage.getItem('meshmill.presets') || '[]');
+    } catch (err) {
+        return [];
+    }
+}
+
+function savePresets(presets) {
+    try {
+        localStorage.setItem('meshmill.presets', JSON.stringify(presets));
+    } catch (err) {
+        // ignore storage errors
+    }
+}
+
+function refreshPresets(selected) {
+    let sel = $('#presetselect');
+    sel.html('');
+    sel.append($('<option>').val('').text(i18n.t('preset_none')));
+    let presets = getPresets();
+    for (let i = 0; i < presets.length; i++) {
+        sel.append($('<option>').val(i).text(presets[i].name));
+    }
+    if (selected !== undefined) sel.val(selected);
+}
+
+$('#presetsave').click(function() {
+    if (currentjob == null) return;
+    let name = prompt(i18n.t('preset_prompt_name'), '');
+    if (!name) return;
+    let job = project.jobs[currentjob];
+    let presets = getPresets();
+    presets.push({
+        name: name,
+        tool: JSON.parse(JSON.stringify(job.tool)),
+        controller: JSON.parse(JSON.stringify(job.controller)),
+        path: JSON.parse(JSON.stringify(job.path)),
+    });
+    savePresets(presets);
+    refreshPresets(presets.length-1);
 });
+
+$('#presetdelete').click(function() {
+    let idx = parseInt($('#presetselect').val());
+    if (isNaN(idx)) return;
+    let presets = getPresets();
+    presets.splice(idx, 1);
+    savePresets(presets);
+    refreshPresets();
+    if (window.updateSimButton) window.updateSimButton(simPlaying);
+});
+
+$('#presetselect').change(function() {
+    let idx = parseInt($(this).val());
+    if (isNaN(idx) || currentjob == null) return;
+    let presets = getPresets();
+    let preset = presets[idx];
+    if (!preset) return;
+    let job = project.jobs[currentjob];
+    job.tool = JSON.parse(JSON.stringify(preset.tool));
+    job.controller = JSON.parse(JSON.stringify(preset.controller));
+    job.path = JSON.parse(JSON.stringify(preset.path));
+    project.dirtyJob(currentjob);
+    showJob(currentjob);
+    updateJob();
+    redrawTabs();
+});
+
+refreshPresets();
 
 /* menu actions */
 
 window.api.receive('new-project', function() {
     if (project && project.dirty) {
-        confirmDialog("Project unsaved. Are you sure you want a new one?", "New project", "Cancel", function(confirmed) {
+        confirmDialog(i18n.t('confirm_unsaved_new'), i18n.t('btn_new_project'), i18n.t('btn_cancel'), function(confirmed) {
             if (confirmed)
                 newProject();
         });
@@ -476,7 +687,7 @@ window.api.receive('save-project', function(filename) {
 
 window.api.receive('want-open', function() {
     if (project && project.dirty) {
-        confirmDialog("Project unsaved. Are you sure you want to open another?", "Open another project", "Cancel", function(confirmed) {
+        confirmDialog(i18n.t('confirm_unsaved_open'), i18n.t('btn_open_another'), i18n.t('btn_cancel'), function(confirmed) {
             if (confirmed)
                 window.api.send('open-project');
         });
@@ -533,7 +744,7 @@ function confirmDialog(msg, yes, no, cb) {
 
 window.api.receive('want-close', function() {
     if (project && project.dirty) {
-        confirmDialog("Project unsaved. Are you sure you want to quit?", "Quit", "Don't quit", function(confirmed) {
+        confirmDialog(i18n.t('confirm_unsaved_quit'), i18n.t('btn_quit'), i18n.t('btn_dont_quit'), function(confirmed) {
             if (confirmed)
                 window.api.send("close");
         });
@@ -545,8 +756,11 @@ window.api.receive('want-close', function() {
 window.api.receive('set-settings', function(s) {
     Settings = s;
     project.imperial = Settings.imperial;
+    i18n.setLang(Settings.lang || 'ru');
+    i18n.apply(document);
     updateUnits();
     updateHeightmap();
+    refreshPresets();
 });
 
 window.api.send('get-settings');

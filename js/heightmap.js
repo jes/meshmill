@@ -43,26 +43,32 @@ function HeightmapViewer(file, size, offset, origin, rotary, cb) {
             }
         };
 
-        // add each square from the heightmap as 2 triangles
+        // add each square from the heightmap as 2 triangles.
+        // Sample the image so that the preview mesh stays reasonably small
+        // even for high-resolution heightmaps.
+        var step = Math.max(1, Math.ceil(Math.max(w, h) / 120));
+        var cells = Math.ceil((w-1)/step) * Math.ceil((h-1)/step);
+        vertices = new Float32Array(cells*36);
         var idx = 0;
-        for (var y = 0; y < h-1; y++) {
-            for (var x = 0; x < w-1; x++) {
+        for (var y = 0; y < h-1; y += step) {
+            var y2 = Math.min(y+step, h-1);
+            for (var x = 0; x < w-1; x += step) {
+                var x2 = Math.min(x+step, w-1);
                 addVertex(x,y,idx);
-                addVertex(x+1,y+1,idx+3);
-                addVertex(x+1,y,idx+6);
+                addVertex(x2,y2,idx+3);
+                addVertex(x2,y,idx+6);
 
-                addVertex(x+1,y+1,idx+9);
+                addVertex(x2,y2,idx+9);
                 addVertex(x,y,idx+12);
-                addVertex(x,y+1,idx+15);
+                addVertex(x,y2,idx+15);
 
-                // and now the backfaces, just so that the mesh
-                // doesn't look broken when viewed from below
+                // backfaces, so that the mesh doesn't look broken from below
                 addVertex(x,y,idx+18);
-                addVertex(x+1,y,idx+21);
-                addVertex(x+1,y+1,idx+24);
+                addVertex(x2,y,idx+21);
+                addVertex(x2,y2,idx+24);
 
-                addVertex(x+1,y+1,idx+27);
-                addVertex(x,y+1,idx+30);
+                addVertex(x2,y2,idx+27);
+                addVertex(x,y2,idx+30);
                 addVertex(x,y,idx+33);
 
                 idx += 36;
@@ -70,10 +76,29 @@ function HeightmapViewer(file, size, offset, origin, rotary, cb) {
         }
 
         geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-        geom.computeVertexNormals(true);
-        
+
+        // Cheap height shading without lighting/normals (important for
+        // software rendering): colour vertices by height.
+        let minz = Infinity, maxz = -Infinity;
+        for (let i = 2; i < vertices.length; i += 3) {
+            let z = vertices[i];
+            if (z < minz) minz = z;
+            if (z > maxz) maxz = z;
+        }
+        let span = Math.max(1e-6, maxz - minz);
+        let colors = new Float32Array(vertices.length);
+        for (let i = 0; i < vertices.length; i += 3) {
+            let t = (vertices[i+2] - minz) / span;
+            // dark teal -> bright teal
+            colors[i] = 0.05 + 0.05*t;
+            colors[i+1] = 0.35 + 0.55*t;
+            colors[i+2] = 0.32 + 0.37*t;
+        }
+        geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
         showScene(geom, {
             origin: origin,
+            vertexColors: true,
         });
 
         if (cb) cb();

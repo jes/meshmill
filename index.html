@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 	<head>
 		<title>Meshmill</title>
 		<meta charset="utf-8">
@@ -9,131 +9,184 @@
 	<body>
         <div id="app">
             <div id="tabs">
-                <button id="model-tab" class="tab"><img class="dirty" src="img/refresh.svg">MODEL</button>
+                <button id="model-tab" class="tab"><img class="dirty" src="img/refresh.svg"><span data-i18n="model_tab">MODEL</span></button>
                 <div id="jobtabs"></div>
-                <button id="addjob-tab" class="tab">+<br>ADD JOB</button>
+                <button id="addjob-tab" class="tab">+<br><span data-i18n="add_job_tab">ADD JOB</span></button>
             </div>
 
             <div id="options">
                 <div id="model-options">
-                    STL model: <input id="stlfile" type="file" accept=".stl"><br>
-                    <small><button id="reloadstl">Reload from disk</button></small><br>
-                    <span id="triangles"></span> triangles <div id="trianglewarning" class="has-warning"><div class="warning">This is a lot of triangles! This could make the "Process surface" operation very slow, but won't have an effect after that.</div></div>
+                    <div class="subtabs" id="model-subtabs">
+                        <button class="subtab subtab-active" data-target="#model-section-model" data-i18n="subtab_model">Model</button>
+                        <button class="subtab" data-target="#model-section-stock" data-i18n="subtab_stock">Stock</button>
+                        <button class="subtab" data-target="#model-section-process" data-i18n="subtab_process">Machining</button>
+                    </div>
 
-                    <table>
-                    <tr><td class="formlabel"><label for="rotary">Rotary carving</label></td><td><input type="checkbox" id="rotary"></td></tr>
-                    </table>
+                    <div class="subpanel" id="model-section-model">
+                        <span data-i18n="stl_model">STL model:</span> <input id="stlfile" type="file" accept=".stl"><br>
+                        <small><button id="reloadstl" data-i18n="reload_stl">Reload from disk</button></small><br>
+                        <span id="triangles"></span> <span data-i18n="triangles">triangles</span> <div id="trianglewarning" class="has-warning"><div class="warning" data-i18n="triangle_warning">This is a lot of triangles! This could make the "Process surface" operation very slow, but won't have an effect after that.</div></div>
 
-                    <hr>
+                        <table>
+                        <tr><td class="formlabel"><label for="rotary"><span data-i18n="rotary">Rotary carving</span></label></td><td><input type="checkbox" id="rotary"></td></tr>
+                        </table>
 
-                    <table>
-                    <tr><td class="formlabel">XY origin:</td><td><select id="xyorigin">
-                        <option value="fromstl">From STL model</option>
-                        <option value="centre">Centre</option>
-                        <option value="topleft">Top left</option>
-                        <option value="bottomleft">Bottom left</option>
-                        <option value="topright">Top right</option>
-                        <option value="bottomright">Bottom right</option>
-                        <!-- TODO: custom coordinates? -->
-                    </select></td></tr>
-                    <tr><td class="formlabel">Z origin:</td><td><select id="zorigin">
-                        <option value="fromstl">From STL model</option>
-                        <option value="centre">Centre</option>
-                        <option value="top">Top surface</option>
-                        <option value="bottom">Bottom surface</option>
-                        <!-- TODO: custom coordinates? -->
-                    </select></td></tr>
-                    </table>
+                        <hr>
 
-                    <div class="has-tooltip"><div class="tooltip">The bounding box of the model. For each axis, the minimum, maximum, and total size is shown.<br><img src="img/diagrams/boundingbox.png"></div></div>Bounds:<br>
-                    <span id="bounds"></span>
+                        <table>
+                        <tr><td class="formlabel"><span data-i18n="xy_origin">XY origin:</span></td><td><select id="xyorigin">
+                            <option value="fromstl" data-i18n="origin_from_stl">From STL model</option>
+                            <option value="mincorner" data-i18n="origin_mincorner">Min corner</option>
+                            <option value="centre" data-i18n="origin_centre">Centre</option>
+                            <option value="topleft" data-i18n="origin_topleft">Top left</option>
+                            <option value="bottomleft" data-i18n="origin_bottomleft">Bottom left</option>
+                            <option value="topright" data-i18n="origin_topright">Top right</option>
+                            <option value="bottomright" data-i18n="origin_bottomright">Bottom right</option>
+                        </select></td></tr>
+                        <tr><td class="formlabel"><span data-i18n="z_origin">Z origin:</span></td><td><select id="zorigin">
+                            <option value="fromstl" data-i18n="origin_from_stl">From STL model</option>
+                            <option value="mincorner" data-i18n="origin_mincorner">Min corner</option>
+                            <option value="centre" data-i18n="origin_centre">Centre</option>
+                            <option value="top" data-i18n="origin_top">Top surface</option>
+                            <option value="bottom" data-i18n="origin_bottom">Bottom surface</option>
+                        </select></td></tr>
+                        </table>
 
-                    <hr>
-                    <table>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">The physical size represented by each pixel of the heightmap.<br><img src="img/diagrams/xyresolution.png"></div></div>XY Resolution:</td><td><input type="text" id="resolution"> <span class="unit-mm"></span></td></tr>
-                    <tr><td class="formlabel">Heightmap:</td><td><span id="heightmapsize"></span> px <div id="heightmapwarning" class="has-warning"><div class="warning">Large heightmaps increase processing time for all operations. Try increasing the "XY Resolution" value to reduce the size of the heightmap. Tip: start with a low-quality heightmap while setting up your jobs, and switch to a finer resolution at the end to export your G-code.</div></div></td></tr>
-                    <tr><td class="formlabel"><label for="bottomside">Bottom side</label></td><td><input type="checkbox" id="bottomside"></td></tr>
-                    </table>
+                        <div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_bounds">The bounding box of the model. For each axis, the minimum, maximum, and total size is shown.</span><br><img src="img/diagrams/boundingbox.png"></div></div><span data-i18n="bounds">Bounds:</span><br>
+                        <span id="bounds"></span>
+                    </div>
 
-                    <hr>
+                    <div class="subpanel" id="model-section-stock" style="display:none">
+                        <table>
+                        <tr><td class="formlabel"><span data-i18n="scale_title">Fit to stock</span></td><td><label><input type="checkbox" id="scalelock" checked> <span data-i18n="scale_lock">Keep proportions</span></label></td></tr>
+                        <tr><td class="formlabel"><span data-i18n="stock_x">Stock X:</span></td><td><input type="text" id="stockx"> <span class="unit-mm"></span></td></tr>
+                        <tr><td class="formlabel"><span data-i18n="stock_y">Stock Y:</span></td><td><input type="text" id="stocky"> <span class="unit-mm"></span></td></tr>
+                        <tr><td class="formlabel"><span data-i18n="stock_z">Stock Z:</span></td><td><input type="text" id="stockz"> <span class="unit-mm"></span></td></tr>
+                        <tr><td></td><td><button id="apply-stock" data-i18n="show_stock">Show stock</button></td></tr>
+                        <tr><td class="formlabel"><span data-i18n="scale_percent">Scale, %:</span></td><td><input type="text" id="scalepercent" value="100"></td></tr>
+                        </table>
+                        <button id="apply-scale" data-i18n="apply_scale">Apply scale</button>
+                        <button id="reset-scale" data-i18n="reset_scale">Reset</button>
+                    </div>
 
-                    <button id="render-heightmap">Process surface</button><br>
-                    <button id="model-cancel">Stop</button> <progress max="100" id="model-pct"></progress>
-                    <span id="model-eta"></span><br>
+                    <div class="subpanel" id="model-section-process" style="display:none">
+                        <table>
+                        <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_xy_resolution">The physical size represented by each pixel of the heightmap.</span><br><img src="img/diagrams/xyresolution.png"></div></div><span data-i18n="xy_resolution">XY Resolution:</span></td><td><input type="text" id="resolution"> <span class="unit-mm"></span></td></tr>
+                        <tr><td class="formlabel"><span data-i18n="heightmap">Heightmap:</span></td><td><span id="heightmapsize"></span> <span data-i18n="px">px</span> <div id="heightmapwarning" class="has-warning"><div class="warning" data-i18n="heightmap_warning">Large heightmaps increase processing time for all operations. Try increasing the "XY Resolution" value to reduce the size of the heightmap. Tip: start with a low-quality heightmap while setting up your jobs, and switch to a finer resolution at the end to export your G-code.</div></div></td></tr>
+                        <tr><td class="formlabel"><label for="bottomside"><span data-i18n="bottom_side">Bottom side</span></label></td><td><input type="checkbox" id="bottomside"></td></tr>
+                        </table>
 
-                    <hr>
-                    <img id="heightmap-img">
+                        <hr>
+
+                        <button id="render-heightmap" data-i18n="process_surface">Process surface</button><br>
+                        <button id="model-cancel" data-i18n="stop">Stop</button> <progress max="100" id="model-pct"></progress>
+                        <span id="model-stage"></span> <span id="model-eta"></span><br>
+                        <button id="add-job-inline" data-i18n="add_job" style="display:none">Add job</button>
+                        <button id="show-2d" data-i18n="show_2d" style="display:none">Show 2D heightmap</button><br>
+                        <small data-i18n="resolution_hint">0.25 mm is slow on complex models; use 0.5-1 mm while setting up.</small>
+                    </div>
                 </div>
 
                 <div id="toolpath-options" style="display:none">
-                    <table>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><img src="img/diagrams/toolshape.png"></div></div>Tool shape:</td><td><select id="toolshape">
-                    <option value="ball">Ball-nose end mill</option>
-                    <option value="flat">Flat end mill</option>
-                    <option value="vbit90">90&deg; V-bit</option>
-                    <option value="vbit60">60&deg; V-bit</option>
-                    <option value="vbit30">30&deg; V-bit</option>
-                    </select></td></tr>
+                    <div class="subtabs" id="job-subtabs">
+                        <button class="subtab subtab-active" data-target="#job-section-tool" data-i18n="subtab_tool">Tool</button>
+                        <button class="subtab" data-target="#job-section-strategy" data-i18n="subtab_strategy">Strategy</button>
+                        <button class="subtab" data-target="#job-section-passes" data-i18n="subtab_passes">Passes</button>
+                        <button class="subtab" data-target="#job-section-export" data-i18n="subtab_export">Export</button>
+                    </div>
 
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><img src="img/diagrams/tooldiameter.png"></div></div>Tool diameter:</td><td><input type="text" id="tooldiameter"></input> <span class="unit-mm"></span></td></tr>
-                    <tr><td class="formlabel">XY feed rate:</td><td><input type="text" id="xyfeed"></input> <span class="unit-mmmin"></span></td></tr>
-                    <tr><td class="formlabel">Z feed rate:</td><td><input type="text" id="zfeed"></input> <span class="unit-mmmin"></span></td></tr>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Height to move above the part for rapid moves. This is relative to the top surface of the bounding box.<br><img src="img/diagrams/rapidz.png"></div></div>Rapid Z clearance:</td><td><input type="text" id="safez"></input> <span class="unit-mm"></span> <div id="safezwarning" class="has-warning"><div class="warning">Negative rapid Z clearance can cause rapid movements to crash into the part.</div></div></td></tr>
-                    <tr><td class="formlabel">Spindle:</td><td><input type="text" id="rpm"> rpm</td></tr>
-                    </table>
+                    <div class="subpanel" id="job-section-tool">
+                        <table>
+                        <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><img src="img/diagrams/toolshape.png"></div></div><span data-i18n="tool_shape">Tool shape:</span></td><td><select id="toolshape">
+                        <option value="ball" data-i18n="tool_ball">Ball-nose end mill</option>
+                        <option value="flat" data-i18n="tool_flat">Flat end mill</option>
+                        <option value="vbit90" data-i18n="tool_vbit90">90&deg; V-bit</option>
+                        <option value="vbit60" data-i18n="tool_vbit60">60&deg; V-bit</option>
+                        <option value="vbit30" data-i18n="tool_vbit30">30&deg; V-bit</option>
+                        </select></td></tr>
 
-                    <hr>
+                        <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><img src="img/diagrams/tooldiameter.png"></div></div><span data-i18n="tool_diameter">Tool diameter:</span></td><td><input type="text" id="tooldiameter"></input> <span class="unit-mm"></span></td></tr>
+                        <tr><td class="formlabel"><span data-i18n="xy_feed">XY feed rate:</span></td><td><input type="text" id="xyfeed"></input> <span class="unit-mmmin"></span></td></tr>
+                        <tr><td class="formlabel"><span data-i18n="z_feed">Z feed rate:</span></td><td><input type="text" id="zfeed"></input> <span class="unit-mmmin"></span></td></tr>
+                        <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_rapid_z">Height to move above the part for rapid moves. This is relative to the top surface of the bounding box.</span><br><img src="img/diagrams/rapidz.png"></div></div><span data-i18n="rapid_z">Rapid Z clearance:</span></td><td><input type="text" id="safez"></input> <span class="unit-mm"></span> <div id="safezwarning" class="has-warning"><div class="warning" data-i18n="warn_safez">Negative rapid Z clearance can cause rapid movements to crash into the part.</div></div></td></tr>
+                        <tr><td class="formlabel"><span data-i18n="spindle">Spindle:</span></td><td><input type="text" id="rpm"> <span data-i18n="rpm">rpm</span></td></tr>
+                        </table>
 
-                    <table>
-                    <tr><td class="formlabel">Cut direction:</td><td colspan="2"><select id="direction">
-                        <option value="horizontal">Horizontal (along X)</option>
-                        <option value="vertical">Vertical (along Y)</option>
-                        <option value="helical">Helical (rotary only)</option>
-                    </select></td></tr>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Perpendicular distance between consecutive passes.<br><img src="img/diagrams/stepover.png"></div></div>Step over:</td><td><input type="text" id="stepover"></input> <span class="unit-mm"></span> <div id="stepoverwarning" class="has-warning"><div class="warning">Step over should be smaller than tool diameter.</div></div></td></tr>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Maximum deviation of a flat surface, if cut by a ball-nose end mill with the given diameter and given step over.<br><img src="img/diagrams/nominaldeviation.png"></div></div>Nominal deviation:</td><td><span id="surfacedeviation"></span> <span class="unit-mm"></span></td></tr>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Maximum depth of cut for a single pass. Where the required depth exceeds this amount, it will be achieved with multiple passes.<br><img src="img/diagrams/stepdown.png"></div></div>Step down:</td><td><input type="text" id="stepdown"></input> <span class="unit-mm"></span></td></tr>
-                    <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip">Distance to keep tool away from finished model geometry. This leaves material for a finishing pass to clean up.<br><img src="img/diagrams/stocktoleave.png"></div></div>Stock to leave:</td><td><input type="text" id="clearance"></input> <span class="unit-mm"></span> <div id="clearancewarning" class="has-warning"><div class="warning">Negative stock to leave will make the part smaller than the model. This is untested and usually not what you want.</div></div></td></tr>
-                    </table>
+                        <hr>
+                        <table>
+                        <tr><td class="formlabel"><span data-i18n="preset">Tool preset:</span></td><td><select id="presetselect"></select></td></tr>
+                        </table>
+                        <button id="presetsave" data-i18n="preset_save">Save current</button>
+                        <button id="presetdelete" data-i18n="preset_delete">Delete</button>
+                    </div>
 
-                    <hr>
+                    <div class="subpanel" id="job-section-strategy" style="display:none">
+                        <table>
+                        <tr><td class="formlabel"><span data-i18n="cut_direction">Cut direction:</span></td><td colspan="2"><select id="direction">
+                            <option value="horizontal" data-i18n="dir_horizontal">Horizontal (along X)</option>
+                            <option value="vertical" data-i18n="dir_vertical">Vertical (along Y)</option>
+                            <option value="helical" data-i18n="dir_helical">Helical (rotary only)</option>
+                        </select></td></tr>
+                        <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_step_over">Perpendicular distance between consecutive passes.</span><br><img src="img/diagrams/stepover.png"></div></div><span data-i18n="step_over">Step over:</span></td><td><input type="text" id="stepover"></input> <span class="unit-mm"></span> <div id="stepoverwarning" class="has-warning"><div class="warning" data-i18n="warn_stepover">Step over should be smaller than tool diameter.</div></div></td></tr>
+                        <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_nominal_deviation">Maximum deviation of a flat surface, if cut by a ball-nose end mill with the given diameter and given step over.</span><br><img src="img/diagrams/nominaldeviation.png"></div></div><span data-i18n="nominal_deviation">Nominal deviation:</span></td><td><span id="surfacedeviation"></span> <span class="unit-mm"></span></td></tr>
+                        <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_step_down">Maximum depth of cut for a single pass. Where the required depth exceeds this amount, it will be achieved with multiple passes.</span><br><img src="img/diagrams/stepdown.png"></div></div><span data-i18n="step_down">Step down:</span></td><td><input type="text" id="stepdown"></input> <span class="unit-mm"></span></td></tr>
+                        <tr><td class="formlabel"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_stock_to_leave">Distance to keep tool away from finished model geometry. This leaves material for a finishing pass to clean up.</span><br><img src="img/diagrams/stocktoleave.png"></div></div><span data-i18n="stock_to_leave">Stock to leave:</span></td><td><input type="text" id="clearance"></input> <span class="unit-mm"></span> <div id="clearancewarning" class="has-warning"><div class="warning" data-i18n="warn_clearance">Negative stock to leave will make the part smaller than the model. This is untested and usually not what you want.</div></div></td></tr>
+                        </table>
+                    </div>
 
-                    <table>
-                    <tr><td class="formlabel"><label for="roughingonly"><div class="has-tooltip"><div class="tooltip">Only generate roughing passes. Don't generate the finishing pass. If you only want the finishing pass, set the step down larger than the height of the model.<br><img src="img/diagrams/roughingonly.png"></div></div>Roughing only</label></td>
-                    <td><input type="checkbox" id="roughingonly"></td></tr>
-                    <tr><td class="formlabel"><label for="rampentry"><div class="has-tooltip"><div class="tooltip">Reduce plunge forces by ramping the cutter diagonally where possible.<br><img src="img/diagrams/rampentry.png"></div></div>Ramp entry</label></td>
-                    <td><input type="checkbox" id="rampentry"></td></tr>
-                    <tr><td class="formlabel"><label for="omittop"><div class="has-tooltip"><div class="tooltip">Don't cut the top surface of the part. This saves wasting time on slowly moving the cutter back and forth across flat top surfaces.<br><img src="img/diagrams/omittop.png"></div></div>Omit top</label></td>
-                    <td><input type="checkbox" id="omittop"></td></tr>
-                    <tr><td class="formlabel"><label for="omitbottom"><div class="has-tooltip"><div class="tooltip">Don't cut bottom surfaces that are at the lower limit of the heightmap. This can reduce toolpath time spent in areas outside your model where the heightmap is black.</div></div>Omit bottom</label></td>
-                    <td><input type="checkbox" id="omitbottom"></td></tr>
-                    <tr><td class="formlabel"><label for="clearbottom"><div class="has-tooltip"><div class="tooltip">Allow cutting below the bottom of the bounding box. This allows you to cut straight sides with a ball-nose end mill without leaving a radius at the bottom.<br><img src="img/diagrams/clearbottom.png"></div></div>Cut below bottom</label></td>
-                    <td><input type="checkbox" id="clearbottom"></td></tr>
-                    <tr><td class="formlabel"><label for="clearedges"><div class="has-tooltip"><div class="tooltip">Allow cutting beyond the edges of the bounding box. This allows you to cut the outside edges of the model.<br><img src="img/diagrams/clearedges.png"></div></div>Cut beyond edges</label></td>
-                    <td><input type="checkbox" id="clearedges"></td></tr>
-                    </table>
+                    <div class="subpanel" id="job-section-passes" style="display:none">
+                        <table>
+                        <tr><td class="formlabel"><label for="roughingonly"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_roughing_only">Only generate roughing passes. Don't generate the finishing pass. If you only want the finishing pass, set the step down larger than the height of the model.</span><br><img src="img/diagrams/roughingonly.png"></div></div><span data-i18n="roughing_only">Roughing only</span></label></td>
+                        <td><input type="checkbox" id="roughingonly"></td></tr>
+                        <tr><td class="formlabel"><label for="rampentry"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_ramp_entry">Reduce plunge forces by ramping the cutter diagonally where possible.</span><br><img src="img/diagrams/rampentry.png"></div></div><span data-i18n="ramp_entry">Ramp entry</span></label></td>
+                        <td><input type="checkbox" id="rampentry"></td></tr>
+                        <tr><td class="formlabel"><label for="omittop"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_omit_top">Don't cut the top surface of the part. This saves wasting time on slowly moving the cutter back and forth across flat top surfaces.</span><br><img src="img/diagrams/omittop.png"></div></div><span data-i18n="omit_top">Omit top</span></label></td>
+                        <td><input type="checkbox" id="omittop"></td></tr>
+                        <tr><td class="formlabel"><label for="omitbottom"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_omit_bottom">Don't cut bottom surfaces that are at the lower limit of the heightmap. This can reduce toolpath time spent in areas outside your model where the heightmap is black.</span></div></div><span data-i18n="omit_bottom">Omit bottom</span></label></td>
+                        <td><input type="checkbox" id="omitbottom"></td></tr>
+                        <tr><td class="formlabel"><label for="clearbottom"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_cut_below_bottom">Allow cutting below the bottom of the bounding box. This allows you to cut straight sides with a ball-nose end mill without leaving a radius at the bottom.</span><br><img src="img/diagrams/clearbottom.png"></div></div><span data-i18n="cut_below_bottom">Cut below bottom</span></label></td>
+                        <td><input type="checkbox" id="clearbottom"></td></tr>
+                        <tr><td class="formlabel"><label for="clearedges"><div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_cut_beyond_edges">Allow cutting beyond the edges of the bounding box. This allows you to cut the outside edges of the model.</span><br><img src="img/diagrams/clearedges.png"></div></div><span data-i18n="cut_beyond_edges">Cut beyond edges</span></label></td>
+                        <td><input type="checkbox" id="clearedges"></td></tr>
+                        </table>
+                    </div>
 
-                    <hr>
-
-                    <button id="generate-toolpath">Generate toolpath</button><br>
-                    <button id="toolpath-cancel">Stop</button> <progress max="100" id="toolpath-pct"></progress>
-                    <span id="toolpath-eta"></span><br>
-                    <button id="save-gcode">Save G-code</button><br>
-                    <div class="has-tooltip"><div class="tooltip">Rough estimate of how long it will take for the job to complete assuming infinite acceleration. Adjust your machine parameters using the "Edit -&gt; Settings..." menu.</div></div>Cycle time estimate: <span id="cycletime">?</span><br>
-                    <small><button id="deletejob">Delete job</button></small><br>
+                    <div class="subpanel" id="job-section-export" style="display:none">
+                        <button id="generate-toolpath" data-i18n="generate_toolpath">Generate toolpath</button><br>
+                        <button id="toolpath-cancel" data-i18n="stop">Stop</button> <progress max="100" id="toolpath-pct"></progress>
+                        <span id="toolpath-stage"></span> <span id="toolpath-eta"></span><br>
+                        <button id="save-gcode" data-i18n="save_gcode">Save G-code</button><br>
+                        <div class="has-tooltip"><div class="tooltip"><span data-i18n="tip_cycle_time">Rough estimate of how long it will take for the job to complete assuming infinite acceleration. Adjust your machine parameters using the "Edit -> Settings..." menu.</span></div></div><span data-i18n="cycle_time">Cycle time estimate:</span> <span id="cycletime">?</span><br>
+                        <small><button id="duplicatejob" data-i18n="duplicate_job">Duplicate job</button></small><br>
+                        <small><button id="deletejob" data-i18n="delete_job">Delete job</button></small><br>
+                    </div>
                 </div>
             </div>
 
             <div id="scene">
                 <div id="scene-view"></div>
-                <div id="toolpath-scene-controls"><label for="show-toolpath">Show toolpath</label><input type="checkbox" id="show-toolpath" checked></div>
+                <div id="scene-controls"><button id="fitview" data-i18n="fit_view">Fit view</button></div>
+                <div id="toolpath-scene-controls"><label for="show-toolpath"><span data-i18n="show_toolpath">Show toolpath</span></label><input type="checkbox" id="show-toolpath" checked>
+                <button id="simulate" data-i18n="simulate">Simulate</button>
+                <label for="simspeed"><span data-i18n="sim_speed">Speed:</span></label><input type="range" id="simspeed" min="5" max="500" value="100"></div>
             </div>
+        </div>
+
+        <div id="busy-overlay" style="display:none">
+            <div class="spinner"></div>
+            <div id="busy-text"></div>
+        </div>
+
+        <div id="heightmap-lightbox" style="display:none">
+            <img id="heightmap-img">
         </div>
 
 		<script src="js/lib/three.min.js"></script>
         <script src="js/lib/STLLoader.js"></script>
         <script src="js/lib/OrbitControls.js"></script>
 		<script src="js/lib/jquery-3.6.0.min.js"></script>
+        <script src="js/i18n-data.js"></script>
+        <script src="js/i18n.js"></script>
         <script src="js/fmt.js"></script>
         <script src="js/project.js"></script>
         <script src="js/settings.js"></script>
@@ -141,22 +194,20 @@
         <script src="js/toolpath.js"></script>
         <script src="js/3d.js"></script>
         <script src="js/progress.js"></script>
+        <script src="js/simulate.js"></script>
         <script src="js/ui.js"></script>
 
         <script type="text/javascript">
         // TODO: instead of running this every second, only do it after the window is resized or scrolled
         setInterval(function() {
             $('.tooltip').each(function() {
-                // move the tooltip back to its default position
                 $(this).css('position', '');
                 $(this).css('top', 'auto');
 
-                // find out how much space there is between the bottom of the tooltip and the bottom of the window
                 let tooltipbottom = $(this).offset().top + $(this).height();
                 let windowbottom = window.visualViewport.offsetTop + window.visualViewport.height - 30; // XXX: why -30?
                 let spacebelow = windowbottom - tooltipbottom;
 
-                // if it doesn't fit, position it manually
                 if (spacebelow < 0) {
                     $(this).css('position', 'fixed');
 
@@ -169,4 +220,3 @@
         </script>
 	</body>
 </html>
-

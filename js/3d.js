@@ -23,22 +23,7 @@ function showScene(geometry, opts) {
     if (typeof window.cleanupMaterialSimulation === 'function')
         window.cleanupMaterialSimulation();
 
-    // Dispose the previous WebGL context before creating a new one;
-    // leaking contexts eventually wedges the GPU process.
-    if (renderer) {
-        try {
-            renderer.dispose();
-            renderer.forceContextLoss();
-        } catch (err) {
-            // ignore
-        }
-        if (renderer.domElement && renderer.domElement.parentNode)
-            renderer.domElement.parentNode.removeChild(renderer.domElement);
-        renderer = null;
-    }
-
     container = document.getElementById('scene-view');
-    while(container.firstChild) container.removeChild(container.firstChild);
 
     if (!geometry) return;
 
@@ -50,13 +35,17 @@ function showScene(geometry, opts) {
     simTool = null;
     updateSimButton();
 
-    renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: false,
-    });
-    renderer.setClearColor(0x12151a, 1);
-    renderer.setPixelRatio(1);
-    container.appendChild(renderer.domElement);
+    // One WebGL context for the whole app. Recreating it on every scene
+    // rebuild leaks contexts and can wedge the GPU process.
+    if (!renderer) {
+        renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: false,
+        });
+        renderer.setClearColor(0x12151a, 1);
+        renderer.setPixelRatio(1);
+        container.appendChild(renderer.domElement);
+    }
 
     var material;
     if (opts.vertexColors) {

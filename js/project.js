@@ -6,7 +6,7 @@ function Project(cb) {
     this.stl_original = null;
     this.heightmap = null;
     this.mesh = {};
-    this.resolution = 0.25;
+    this.resolution = 0.5;
     this.bottomside = false;
     this.imperial = Settings.imperial;
     this.xyorigin = 'fromstl';

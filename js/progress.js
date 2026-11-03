@@ -78,7 +78,6 @@ function progressStart() {
 }
 
 function progressEnd() {
-    console.log("PROGRESS_END");
     // enable the inputs that were previously enabled
     for (const id in progressstate) {
         if (!id)

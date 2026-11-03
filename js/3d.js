@@ -19,7 +19,6 @@ var stockBoxGroup = null;
 var needsRender = true;
 
 function showScene(geometry, opts) {
-    console.log("SCENE_START", !!geometry);
     opts = opts || {};
 
     if (typeof window.cleanupMaterialSimulation === 'function')
@@ -123,7 +122,6 @@ function showScene(geometry, opts) {
     onWindowResize();
     needsRender = true;
     updateStockBox();
-    console.log("SCENE_END");
 }
 
 function updateStockBox() {

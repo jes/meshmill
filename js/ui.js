@@ -204,10 +204,11 @@ function doRenderHeightmap(cb) {
             showBusy(i18n.t('stage_building_preview'));
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
-                    showHeightmap(file);
-                    hideBusy();
-                    redrawTabs();
-                    if (cb) cb(file);
+                    showHeightmap(file, function() {
+                        hideBusy();
+                        redrawTabs();
+                        if (cb) cb(file);
+                    });
                 });
             });
         } else {

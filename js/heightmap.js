@@ -4,6 +4,7 @@ function HeightmapViewer(file, size, offset, origin, rotary, cb) {
     var img = new Image();
     img.src = file + "?" + Math.random(); // XXX: avoid cache: but why are local files being cached?
     img.onload = function () {
+        console.log("HM_ONLOAD", file);
         var w = img.width;
         var h = img.height;
 
@@ -101,6 +102,7 @@ function HeightmapViewer(file, size, offset, origin, rotary, cb) {
             vertexColors: true,
         });
 
+        console.log("HM_DONE");
         if (cb) cb();
     };
 }

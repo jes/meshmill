@@ -151,6 +151,7 @@ function runStockSimulation(sim) {
         simTool.position.copy(points[Math.min(sim.index, points.length-1)]);
 
     updateStockGeometry(sim);
+    needsRender = true;
     sim.chunks++;
     if (sim.chunks % 5 === 0)
         sim.geometry.computeVertexNormals();

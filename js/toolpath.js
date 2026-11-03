@@ -43,6 +43,7 @@ function renderToolpath(path, xoff, yoff, zoff, toolradius) {
     );
     simTool.visible = false;
     scene.add(simTool);
+    needsRender = true;
 
     updateSimButton();
 }

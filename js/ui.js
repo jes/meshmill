@@ -39,6 +39,7 @@ function showToolpath(file, heightmapfile, rotary, toolradius) {
 }
 
 function showBusy(text) {
+    console.log("BUSY_ON", text);
     $('#busy-text').text(text || '');
     $('#busy-overlay').show();
 }
@@ -200,6 +201,7 @@ function doRenderHeightmap(cb) {
 
     progressStart();
     project.renderHeightmap(function(file) {
+        console.log("RENDER_CALLBACK", file);
         progressEnd();
         updateHeightmap();
         if (file) {

@@ -8,6 +8,8 @@ const tar = require('tar');
 const openAboutWindow = require('electron-about-window').default;
 const rmdir = require('rimraf');
 
+app.disableHardwareAcceleration();
+
 
 
 const MESSAGES = require('./js/i18n-data.js');
@@ -261,6 +263,7 @@ ipcMain.on('render-heightmap', (event,arg,replychan) => {
     });
     
     render.on('close', (code) => {
+        console.log("RENDER_CLOSE", code);
         if (code == null) {
             win.webContents.send(replychan, {
                 file: null,

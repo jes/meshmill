@@ -64,6 +64,8 @@ function progressStart() {
     var inputs = $('button, input, select');
     progressstate = {};
     for (var i = 0; i < inputs.length; i++) {
+        if (!inputs[i].id)
+            continue;
         progressstate[inputs[i].id] = inputs[i].disabled;
         inputs[i].disabled = true;
     }
@@ -76,8 +78,11 @@ function progressStart() {
 }
 
 function progressEnd() {
+    console.log("PROGRESS_END");
     // enable the inputs that were previously enabled
     for (const id in progressstate) {
+        if (!id)
+            continue;
         $('#' + id).prop('disabled', progressstate[id]);
     }
 

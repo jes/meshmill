@@ -16,8 +16,10 @@ var simToolRadius = 2;
 var sceneModelMesh = null;
 var stockDims = null;
 var stockBoxGroup = null;
+var needsRender = true;
 
 function showScene(geometry, opts) {
+    console.log("SCENE_START", !!geometry);
     opts = opts || {};
 
     if (typeof window.cleanupMaterialSimulation === 'function')
@@ -116,9 +118,12 @@ function showScene(geometry, opts) {
     controls.enableZoom = true;
     controls.zoomSpeed = 2;
     controls.autoRotate = false;
+    controls.addEventListener('change', function() { needsRender = true; });
 
     onWindowResize();
+    needsRender = true;
     updateStockBox();
+    console.log("SCENE_END");
 }
 
 function updateStockBox() {
@@ -165,8 +170,12 @@ function showStockBox(sx, sy, sz) {
 
 function scene_animate() {
     requestAnimationFrame(scene_animate);
-    if (controls) controls.update();
-    if (renderer && scene && camera) renderer.render(scene, camera);
+    if (!renderer || !scene || !camera) return;
+    if (controls && controls.update()) needsRender = true;
+    if (needsRender) {
+        renderer.render(scene, camera);
+        needsRender = false;
+    }
 }
 scene_animate();
 
@@ -187,6 +196,7 @@ function fitView() {
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
     controls.update();
+    needsRender = true;
 }
 
 window.addEventListener('resize', onWindowResize, false);
@@ -198,6 +208,7 @@ function onWindowResize() {
     camera.aspect = rect.width / rect.height;
     camera.updateProjectionMatrix();
     renderer.setSize(rect.width, rect.height);
+    needsRender = true;
 }
 
 function addLine(scene, x1,y1,z1, x2,y2,z2, colour) {
@@ -277,8 +288,10 @@ function simStart() {
         }
         if (simProgressLine) simProgressLine.geometry.setDrawRange(0, simIndex+1);
         if (simTool) simTool.position.copy(simPoints[simIndex]);
+        needsRender = true;
         requestAnimationFrame(tick);
     }
+    needsRender = true;
     requestAnimationFrame(tick);
     updateSimButton();
     return true;
@@ -289,5 +302,6 @@ function simStop() {
     if (simLine) simLine.visible = true;
     if (simProgressLine) simProgressLine.visible = false;
     if (simTool) simTool.visible = false;
+    needsRender = true;
     updateSimButton();
 }

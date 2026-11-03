@@ -159,6 +159,7 @@ function updateStockBox() {
     group.position.set(cx, cy, z0 + sz/2);
     scene.add(group);
     stockBoxGroup = group;
+    needsRender = true;
 }
 
 function showStockBox(sx, sy, sz) {

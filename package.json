@@ -1,6 +1,6 @@
 {
   "name": "meshmill",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Open source 3D CAM software",
   "main": "main.js",
   "scripts": {
@@ -52,18 +52,12 @@
   "build": {
     "extraResources": [
       {
-        "from": "./bin/pngcam",
-        "to": "bin/pngcam",
-        "filter": [
-          "**/*"
-        ]
+        "from": "./bin/pngcam-go",
+        "to": "bin/pngcam-go"
       },
       {
-        "from": "./bin/pngcam-render",
-        "to": "bin/pngcam-render",
-        "filter": [
-          "**/*"
-        ]
+        "from": "./bin/pngcam-go-render",
+        "to": "bin/pngcam-go-render"
       }
     ]
   }

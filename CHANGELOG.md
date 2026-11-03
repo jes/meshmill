@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.5] - 2026-11-03
+ - Real material-removal simulation: solid stock, live tool, G1 cutting
+ - Add angled raster strategy (cut direction at a user-defined angle)
+ - Clip angled toolpaths to stock (heightmap mask + Liang-Barsky with tool-radius inset)
+ - Enable GPU for 3D preview (Electron hardware acceleration); CAM remains CPU via pngcam-go
+ - Guard against huge STL meshes that hang the renderer; prefer decimated models
+ - Fix rotary max-radius calculation (wrong vertex stride)
+ - Fix crash when cancelling with no running process
+ - Fix crash in "reprocess dirty" when all jobs are clean
+ - Fix illegal-origin error messages referencing undefined variable
+ - Fix File→Open to include STL models without treating them as projects
+ - Dispose OrbitControls on scene rebuild to avoid listener leaks
+ - Safer settings/save/gcode error handling; point package resources at pngcam-go*
+
 ## [0.1.4] - 2026-05-13
  - Add "Omit bottom" option
 

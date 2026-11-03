@@ -31,6 +31,8 @@ function showScene(geometry, opts) {
     // rebuilding the scene invalidates any running simulation
     simPlaying = false;
     simPoints = [];
+    if (typeof simPathPoints !== 'undefined')
+        simPathPoints = [];
     simLine = null;
     simProgressLine = null;
     simTool = null;
@@ -42,9 +44,10 @@ function showScene(geometry, opts) {
         renderer = new THREE.WebGLRenderer({
             antialias: true,
             alpha: false,
+            powerPreference: 'high-performance',
         });
         renderer.setClearColor(0x12151a, 1);
-        renderer.setPixelRatio(1);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         container.appendChild(renderer.domElement);
     }
 
@@ -110,6 +113,10 @@ function showScene(geometry, opts) {
     addOriginVisualisation(scene, {x:-center.x, y:-center.y, z:-center.z}, sceneLargest / 2);
 
     // TODO: prevent gimbal lock
+    if (controls) {
+        controls.dispose();
+        controls = null;
+    }
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.rotateSpeed = 0.25;
@@ -234,10 +241,10 @@ function addOriginVisualisation(scene, O, D) {
 function maxRadius(geometry) {
     let vertices = geometry.attributes.position.array;
     let max = 0;
+    // i already steps by 3 through the interleaved xyz buffer
     for (let i = 0; i < vertices.length; i += 3) {
-        let x = vertices[3*i];
-        let y = vertices[3*i+1];
-        let z = vertices[3*i+2];
+        let y = vertices[i+1];
+        let z = vertices[i+2];
         let r = Math.sqrt(y*y + z*z);
         if (r > max) max = r;
     }

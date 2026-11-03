@@ -318,7 +318,14 @@ function showJob(id) {
     $('#safez').val(job.controller.safez);
     $('#rpm').val(job.controller.rpm);
     $('#direction').val(job.path.direction);
-    $('#stepover').val(job.path.stepover);
+    $('#cutangle').val(job.path.angle != null ? job.path.angle : 45);
+    updateAngleRow();
+    // Migrate legacy mm stepover → percent of diameter
+    if (job.path.stepover_percent == null && job.path.stepover != null && job.tool.diameter > 0) {
+        job.path.stepover_percent = Math.max(1, Math.round(100 * job.path.stepover / job.tool.diameter));
+    }
+    if (job.path.stepover_percent == null) job.path.stepover_percent = 50;
+    $('#stepover').val(job.path.stepover_percent);
     $('#stepdown').val(job.path.stepdown);
     $('#clearance').val(job.path.clearance);
 
@@ -359,7 +366,12 @@ function updateJob() {
     j.controller.safez = parseFloat($('#safez').val());
     j.controller.rpm = parseFloat($('#rpm').val());
     j.path.direction = $('#direction').val();
-    j.path.stepover = parseFloat($('#stepover').val());
+    j.path.angle = parseFloat($('#cutangle').val());
+    if (!isFinite(j.path.angle)) j.path.angle = 45;
+    j.path.stepover_percent = parseFloat($('#stepover').val());
+    if (!isFinite(j.path.stepover_percent)) j.path.stepover_percent = 50;
+    // Effective stepover in model units for CAM / deviation
+    j.path.stepover = (j.tool.diameter > 0) ? (j.tool.diameter * j.path.stepover_percent / 100) : 0;
     j.path.stepdown = parseFloat($('#stepdown').val());
     j.path.clearance = parseFloat($('#clearance').val());
     j.path.roughingonly = $('#roughingonly').prop('checked');
@@ -369,14 +381,17 @@ function updateJob() {
     j.path.clearbottom = $('#clearbottom').prop('checked');
     j.path.clearedges = $('#clearedges').prop('checked');
 
-    if (j.path.stepover > j.tool.diameter) {
+    if (j.path.stepover_percent > 100 || j.path.stepover > j.tool.diameter) {
         $('#surfacedeviation').html("&infin;");
+        $('#stepoverwarning').show();
     } else {
         let r = j.tool.diameter/2;
         let x = j.path.stepover/2;
-        let dev = r - Math.sqrt(r*r - x*x);
-        $('#surfacedeviation').text(formatFloat(dev));
+        let dev = (r > x) ? (r - Math.sqrt(r*r - x*x)) : Infinity;
+        $('#surfacedeviation').text(isFinite(dev) ? formatFloat(dev) : "∞");
+        $('#stepoverwarning').hide();
     }
+    $('#stepover-mm').text(i18n.t('stepover_mm_hint', formatFloat(j.path.stepover || 0)));
 
     if (project.heightmap) {
         $('#generate-toolpath').prop("disabled", false);
@@ -388,12 +403,6 @@ function updateJob() {
         $('#save-gcode').prop("disabled", false);
     } else {
         $('#save-gcode').prop("disabled", true);
-    }
-
-    if (j.path.stepover > j.tool.diameter) {
-        $('#stepoverwarning').show();
-    } else {
-        $('#stepoverwarning').hide();
     }
 
     if (j.controller.safez < 0) {
@@ -410,35 +419,46 @@ function updateJob() {
 }
 
 function doGenerateToolpath(cb) {
+    // Sync form → job first (direction/angle/stepover must be current)
+    updateJob();
     let j = project.jobs[currentjob];
     if (j.tool.diameter < 0) j.tool.diameter = -j.tool.diameter;
-    if (j.path.stepover < 0) j.path.stepover = -j.path.stepover;
+    if (j.path.stepover_percent < 0) j.path.stepover_percent = -j.path.stepover_percent;
+    j.path.stepover = (j.tool.diameter > 0) ? (j.tool.diameter * j.path.stepover_percent / 100) : 0;
     if (j.path.stepdown < 0) j.path.stepdown = -j.path.stepdown;
     if (j.controller.xyfeed < 0) j.controller.xyfeed = -j.controller.xyfeed;
     if (j.controller.zfeed < 0) j.controller.zfeed = -j.controller.zfeed;
-    showJob(currentjob);
 
     var errors = [];
-    if (j.path.stepover < EPSILON) errors.push(i18n.t('err_stepover'));
+    if (j.path.stepover_percent < EPSILON || j.path.stepover < EPSILON) errors.push(i18n.t('err_stepover'));
     if (j.path.stepdown < EPSILON) errors.push(i18n.t('err_stepdown'));
+    if (j.path.direction === 'angle' && !isFinite(j.path.angle))
+        j.path.angle = 45;
 
     if (errors.length) {
         alert(errors.join(" "));
         return;
     }
 
+    // Do NOT call showJob here — it progressReset()'s and can race the generate.
     progressStart();
-    project.generateToolpath(currentjob, function(file) {
+    try {
+        project.generateToolpath(currentjob, function(file) {
+            progressEnd();
+            showJob(currentjob);
+            updateJob();
+            drawJob();
+            redrawTabs();
+            if (cb) cb(file);
+        });
+    } catch (e) {
         progressEnd();
-        showJob(currentjob);
-        updateJob();
-        drawJob();
-        redrawTabs();
-        if (cb) cb(file);
-    });
+        alert(String(e));
+        if (cb) cb(null);
+    }
 }
 
-$('#generate-toolpath').click(function() {
+$(document).on('click', '.generate-toolpath-btn', function() {
     if (!project.jobReady(currentjob-1)) {
         confirmDialog(i18n.t('confirm_unprocessed_toolpath'), i18n.t('generate_toolpath'), i18n.t('btn_cancel'), function(confirmed) {
             if (confirmed)
@@ -505,8 +525,20 @@ $('#heightmap-lightbox').click(function() {
 
 $('#simulate').click(function() {
     if (stockRunning) {
+        // Cancel in-progress carve but keep partial result (press again to reset)
+        if (stockSim) stockSim.running = false;
+        stockRunning = false;
+        if (stockSim && stockSim.toolMesh) stockSim.toolMesh.visible = false;
+        if (typeof hideToolpathOverlay === 'function') hideToolpathOverlay();
+        if (window.updateSimButton) window.updateSimButton();
+        return;
+    }
+    if (typeof stockSim !== 'undefined' && stockSim && !stockRunning) {
+        // Aspire "Reset Preview"
         stopMaterialSimulation();
-    } else if (!startMaterialSimulation()) {
+        return;
+    }
+    if (!startMaterialSimulation()) {
         if (simPlaying) {
             simStop();
         } else {
@@ -518,7 +550,12 @@ $('#simulate').click(function() {
 window.updateSimButton = function() {
     let button = $('#simulate');
     if (!button.length) return;
-    button.text((stockRunning || simPlaying) ? i18n.t('sim_stop') : i18n.t('simulate'));
+    if (stockRunning || simPlaying)
+        button.text(i18n.t('sim_stop'));
+    else if (typeof stockSim !== 'undefined' && stockSim)
+        button.text(i18n.t('sim_reset'));
+    else
+        button.text(i18n.t('simulate'));
 };
 
 function inputJob() {
@@ -527,11 +564,20 @@ function inputJob() {
     updateJob();
 }
 
-var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'stepover', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop', 'omitbottom', 'clearbottom', 'clearedges'];
+var inputs = ['toolshape', 'tooldiameter', 'xyfeed', 'zfeed', 'safez', 'rpm', 'direction', 'cutangle', 'stepover', 'stepdown', 'clearance', 'roughingonly', 'rampentry', 'omittop', 'omitbottom', 'clearbottom', 'clearedges'];
 for (var i = 0; i < inputs.length; i++) {
     $('#' + inputs[i]).change(inputJob);
     $('#' + inputs[i]).keyup(inputJob);
 }
+
+function updateAngleRow() {
+    if ($('#direction').val() === 'angle')
+        $('#angle-row').show();
+    else
+        $('#angle-row').hide();
+}
+$('#direction').change(updateAngleRow);
+updateAngleRow();
 
 /* tabs */
 
@@ -767,14 +813,15 @@ window.api.send('get-settings');
 
 function recomputeNext(id, only_dirty) {
     if (only_dirty) {
-        for (; !project.jobs[id].dirty; id++);
+        while (id < project.jobs.length && !project.jobs[id].dirty)
+            id++;
     }
 
     if (id >= project.jobs.length) return;
 
     showJob(id);
     doGenerateToolpath(function(file) {
-        if (file) recomputeNext(id+1);
+        if (file) recomputeNext(id+1, only_dirty);
     });
 }
 

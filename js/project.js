@@ -44,7 +44,8 @@ Project.prototype.addJob = function() {
         },
         path: {
             direction: 'horizontal',
-            stepover: 3,
+            angle: 45,
+            stepover_percent: 50,
             stepdown: 6,
             clearance: 0,
             roughingonly: false,
@@ -125,30 +126,74 @@ Project.prototype.loadSTL = function(file, cb) {
     this.heightmap = null;
 
     let workingfile = this.workingDir() + "/mesh.stl";
-
     var project = this;
 
-    window.api.send('copy-file', {
-        src: file,
-        dst: workingfile,
-    }, function(newfile) {
-        if (!newfile) throw "Couldn't copy " + file + " to " + workingfile;
-        project.stl = workingfile;
-        project.stl_original = file;
-        (new THREE.STLLoader()).load(project.stl, function (geometry) {
-            geometry.computeBoundingBox();
-            var bb = geometry.boundingBox;
-            project.mesh.triangles = geometry.attributes.position.array.length/9;
-            project.mesh.min = bb.min;
-            project.mesh.max = bb.max;
-            project.mesh.width = bb.max.x-bb.min.x;
-            project.mesh.height = bb.max.y-bb.min.y;
-            project.mesh.lineardepth = bb.max.z-bb.min.z;
-            project.mesh.rotarydepth = maxRadius(geometry);
-            project.calculateOrigin();
-            project.setRotary(project.rotary);
-            if (cb) cb();
-        });
+    // Huge meshes (10M+ tris) hang Electron/THREE and pngcam — probe first.
+    window.api.send('stl-info', { file: file }, function(info) {
+        if (info && info.error) {
+            alert(info.error);
+            if (cb) cb(null);
+            return;
+        }
+        let tris = (info && info.triangles) ? info.triangles : null;
+        let mb = (info && info.size) ? (info.size / (1024 * 1024)) : 0;
+        // Soft limit ~2M tris / ~80 MB; hard refuse above ~5M / ~200 MB
+        if ((tris && tris > 5000000) || mb > 200) {
+            alert(i18n.t('err_stl_too_large',
+                tris ? Math.round(tris).toLocaleString() : '?',
+                mb.toFixed(0)));
+            if (cb) cb(null);
+            return;
+        }
+        let continueLoad = function() {
+            window.api.send('copy-file', {
+                src: file,
+                dst: workingfile,
+            }, function(newfile) {
+                if (!newfile) {
+                    alert("Couldn't copy " + file + " to " + workingfile);
+                    if (cb) cb(null);
+                    return;
+                }
+                project.stl = workingfile;
+                project.stl_original = file;
+                showBusy(i18n.t('loading_stl') || 'Loading STL…');
+                (new THREE.STLLoader()).load(project.stl, function (geometry) {
+                    hideBusy();
+                    geometry.computeBoundingBox();
+                    var bb = geometry.boundingBox;
+                    project.mesh.triangles = geometry.attributes.position.array.length/9;
+                    project.mesh.min = bb.min;
+                    project.mesh.max = bb.max;
+                    project.mesh.width = bb.max.x-bb.min.x;
+                    project.mesh.height = bb.max.y-bb.min.y;
+                    project.mesh.lineardepth = bb.max.z-bb.min.z;
+                    project.mesh.rotarydepth = maxRadius(geometry);
+                    project.calculateOrigin();
+                    project.setRotary(project.rotary);
+                    if (cb) cb();
+                }, undefined, function(err) {
+                    hideBusy();
+                    alert(String(err || 'STL load failed'));
+                    if (cb) cb(null);
+                });
+            });
+        };
+        if ((tris && tris > 2000000) || mb > 80) {
+            confirmDialog(
+                i18n.t('confirm_stl_large',
+                    tris ? Math.round(tris).toLocaleString() : '?',
+                    mb.toFixed(0)),
+                i18n.t('btn_continue') || 'Continue',
+                i18n.t('btn_cancel'),
+                function(ok) {
+                    if (ok) continueLoad();
+                    else if (cb) cb(null);
+                }
+            );
+        } else {
+            continueLoad();
+        }
     });
 };
 
@@ -260,6 +305,7 @@ Project.prototype.renderHeightmap = function(cb) {
 
 Project.prototype.generateToolpath = function(id, cb) {
     var project = this;
+    var job = this.jobs[id];
     var offset = {
         x: this.mesh.min.x-this.mesh.origin.x,
         y: this.mesh.min.y-this.mesh.origin.y,
@@ -269,31 +315,132 @@ Project.prototype.generateToolpath = function(id, cb) {
         offset.y = 0;
         offset.z = 0;
     }
-    window.api.send('generate-toolpath', {
-        job: this.jobs[id],
-        heightmap: this.heightmap,
-        width: this.mesh.width,
-        height: this.mesh.height,
-        depth: this.mesh.depth,
-        offset: offset,
-        imperial: this.imperial,
-        write_stock: this.workingDir() + "/job-" + id + ".png",
-        read_stock: (id > 0 ? this.jobs[id-1].outputheightmap : null),
-        gcodepath: this.workingDir() + "/job-" + id + ".gcode",
-        rotary: this.rotary,
-    }, function(r) {
+
+    var gcodepath = this.workingDir() + "/job-" + id + ".gcode";
+    var write_stock = this.workingDir() + "/job-" + id + ".png";
+    var read_stock = (id > 0 ? this.jobs[id-1].outputheightmap : null);
+
+    var finish = function(r) {
         if (r.error) {
             alert(r.error);
         }
-        if (r.file) {
+        if (!r.file) {
+            cb(null);
+            return;
+        }
+        // Always re-estimate from final G-code (pngcam time is lost/zero after
+        // angled post-processing, and client-side estimate matches clipped paths).
+        window.api.send('read-file', r.file, function(rr) {
+            let est = 0;
+            if (!rr.err && rr.data) {
+                let maxvel = (typeof Settings !== 'undefined' && Settings.maxvel) ? Settings.maxvel : 4000;
+                est = estimateGcodeCycleTime(rr.data, job.controller.xyfeed, job.controller.zfeed, maxvel);
+            }
             project.jobs[id].dirty = false;
             project.dirtyJob(id+1);
             project.jobs[id].gcodefile = r.file;
             project.jobs[id].outputheightmap = r.heightmap_file;
-            project.jobs[id].cycletime = r.cycletime;
+            project.jobs[id].cycletime = (est > 0) ? est : (r.cycletime || 0);
+            cb(r.file);
+        });
+    };
+
+    var sendGenerate = function(heightmap, width, height, off, routeJob, after) {
+        let j = JSON.parse(JSON.stringify(routeJob));
+        // Ensure percent-based stepover is converted to mm for pngcam
+        if (j.path.stepover_percent != null && j.tool.diameter > 0)
+            j.path.stepover = j.tool.diameter * j.path.stepover_percent / 100;
+        window.api.send('generate-toolpath', {
+            job: j,
+            heightmap: heightmap,
+            width: width,
+            height: height,
+            depth: project.mesh.depth,
+            offset: off,
+            imperial: project.imperial,
+            write_stock: write_stock,
+            read_stock: read_stock,
+            gcodepath: gcodepath,
+            rotary: project.rotary,
+        }, after);
+    };
+
+    // Angled raster: full pipeline in main process (rotate → pngcam → unrotate).
+    let useAngle = (!this.rotary && job.path.direction === 'angle');
+    let angleDeg = parseFloat(job.path.angle);
+    if (useAngle && isFinite(angleDeg) && Math.abs(((angleDeg % 180) + 180) % 180) > 0.01
+        && Math.abs((((angleDeg % 180) + 180) % 180) - 90) > 0.01) {
+        if (!this.heightmap) {
+            alert(i18n.t('err_heightmap_size'));
+            cb(null);
+            return;
         }
-        cb(r.file);
-    });
+        // Prefer explicit stock box; fall back to model AABB (origin-relative)
+        let stockBounds = null;
+        if (typeof getStockBoundsOriginRelative === 'function')
+            stockBounds = getStockBoundsOriginRelative(project);
+        if (!stockBounds || !(stockBounds.xmax > stockBounds.xmin)) {
+            stockBounds = {
+                xmin: +project.mesh.min.x - +project.mesh.origin.x,
+                xmax: +project.mesh.max.x - +project.mesh.origin.x,
+                ymin: +project.mesh.min.y - +project.mesh.origin.y,
+                ymax: +project.mesh.max.y - +project.mesh.origin.y,
+            };
+        }
+        // Plain numbers only — THREE.Vector3 does not always survive IPC intact
+        let meshPlain = {
+            min: { x: +project.mesh.min.x, y: +project.mesh.min.y, z: +project.mesh.min.z },
+            max: { x: +project.mesh.max.x, y: +project.mesh.max.y, z: +project.mesh.max.z },
+        };
+        let originPlain = {
+            x: +project.mesh.origin.x,
+            y: +project.mesh.origin.y,
+            z: +project.mesh.origin.z,
+        };
+        let hmW = Math.ceil(project.mesh.width / project.resolution);
+        let hmH = Math.ceil(project.mesh.height / project.resolution);
+        let depth = +project.mesh.depth;
+        if (!(depth > 0)) depth = +project.mesh.lineardepth || (meshPlain.max.z - meshPlain.min.z);
+
+        // Ensure stepover mm is set before IPC
+        let jobCopy = JSON.parse(JSON.stringify(job));
+        if (jobCopy.path.stepover_percent != null && jobCopy.tool.diameter > 0)
+            jobCopy.path.stepover = jobCopy.tool.diameter * jobCopy.path.stepover_percent / 100;
+
+        window.api.send('generate-angled-toolpath', {
+            job: jobCopy,
+            heightmap: this.heightmap,
+            rotatedFile: this.workingDir() + "/job-" + id + "-angled.png",
+            rotatedStockFile: this.workingDir() + "/job-" + id + "-angled-stock.png",
+            angleDeg: angleDeg,
+            resolution: +this.resolution || 0.5,
+            mesh: meshPlain,
+            origin: originPlain,
+            stockBounds: stockBounds,
+            depth: depth,
+            offsetZ: +offset.z,
+            imperial: !!project.imperial,
+            write_stock: write_stock,
+            read_stock: read_stock,
+            gcodepath: gcodepath,
+            stockOutW: hmW,
+            stockOutH: hmH,
+        }, function(r) {
+            finish(r || { error: i18n.t('err_angled_failed') });
+        });
+        return;
+    }
+
+    // 0° / 90° angle aliases
+    if (useAngle) {
+        let a = ((angleDeg % 180) + 180) % 180;
+        let alias = JSON.parse(JSON.stringify(job));
+        alias.path.direction = (Math.abs(a - 90) < 0.01) ? 'vertical' : 'horizontal';
+        sendGenerate(this.heightmap, this.mesh.width, this.mesh.height, offset, alias, finish);
+        return;
+    }
+
+    sendGenerate(this.heightmap, this.mesh.width, this.mesh.height, offset, job, finish);
 };
 
 Project.prototype.saveGcode = function(id) {
@@ -421,7 +568,7 @@ Project.prototype.calculateOrigin = function() {
         this.mesh.origin.y = this.mesh.min.y;
         break;
     default:
-        throw "illegal xy origin: " + origin;
+        throw "illegal xy origin: " + this.xyorigin;
     }
 
     switch (this.zorigin) {
@@ -441,7 +588,7 @@ Project.prototype.calculateOrigin = function() {
         this.mesh.origin.z = this.mesh.min.z;
         break;
     default:
-        throw "illegal z origin: " + origin;
+        throw "illegal z origin: " + this.zorigin;
     }
 };
 
